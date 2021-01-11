@@ -1,6 +1,7 @@
 from datetime import datetime
 import pandas as pd
 import os
+import pdb
 
 HEADERS = ['PlateNum', 'WellNum', 'Day', 'Count', 'Marker']
 
@@ -52,7 +53,9 @@ class AnnotatedData:
         self.dataframe.reset_index(drop=True, inplace=True)
 
     def plate_nums(self):
-        return self.dataframe['PlateNum'].max()
+        plate_nums = self.dataframe['PlateNum'].unique()
+        plate_nums.sort()
+        return plate_nums
 
     def set_condition(self, condition, well_num, plate_num):
         if 'Condition' not in self.dataframe.columns:

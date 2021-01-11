@@ -159,7 +159,7 @@ class Plate():
                              (X_DIMENSION_WELLS + 2 * X_OFFSET))
         self.canvas_height = (SQUARE_SIZE *
                               (Y_DIMENSION_WELLS + 2 * Y_OFFSET) *
-                              self.plate_nums)
+                              len(self.plate_nums))
 
         self.canvas = tk.Canvas(
             self.right_bar_frame,
@@ -199,8 +199,8 @@ class Plate():
             scroll
         )
 
-        for plate_num in range(1, self.plate_nums + 1):
-            self.add_plate(plate_num)
+        for i, plate_num in enumerate(self.plate_nums):
+            self.add_plate(i, plate_num)
 
     @staticmethod
     def xy_to_well_num(x, y):
@@ -211,13 +211,13 @@ class Plate():
         return ((well_num - 1) % X_DIMENSION_WELLS,
                 (well_num - 1) // X_DIMENSION_WELLS)
 
-    def add_plate(self, plate_num):
+    def add_plate(self, i, plate_num):
         for x in range(X_DIMENSION_WELLS):
             for y in range(Y_DIMENSION_WELLS):
-                self.add_square(x, y, plate_num)
+                self.add_square(x, y, i, plate_num)
 
-    def add_square(self, x, y, plate_num):
-        plate_offset = (Y_OFFSET + Y_DIMENSION_WELLS) * (plate_num - 1) + 1
+    def add_square(self, x, y, i, plate_num):
+        plate_offset = (Y_OFFSET + Y_DIMENSION_WELLS) * i + 1
         position = (
             SQUARE_SIZE * (x + X_OFFSET),
             SQUARE_SIZE * (y + plate_offset),
