@@ -2,6 +2,8 @@ from datetime import datetime
 import pandas as pd
 import os
 
+HEADERS = ['PlateNum', 'WellNum', 'Day', 'Count', 'Marker']
+
 
 class AnnotatedData:
     WELL_NUMS = 96
@@ -20,11 +22,23 @@ class AnnotatedData:
         if all([filetype == 'xlsx' for filetype in filetypes]):
             for path in filepaths:
                 x = pd.ExcelFile(path)
+                # Some files have the headers specified but others
+                # don't. Handle this by trying first to parse without
+                # headers and then seeing if the headers are in the
+                # first row.
                 m = x.parse(
                     "Sheet1",
                     header=None,
-                    names=['PlateNum', 'WellNum', 'Day', 'Count', 'Marker']
+                    names=HEADERS
                 )
+                if set(HEADERS).intersection(set(m.loc[0].values)):
+                    m = x.parse(
+                        "Sheet1",
+                        header=0
+                    )
+                if "DayNum" in m.columns:
+                    m.rename(columns={"DayNum": "Day"}, inplace=True)
+
                 frames.append(m)
 
         elif all([filetype == 'csv' for filetype in filetypes]):
