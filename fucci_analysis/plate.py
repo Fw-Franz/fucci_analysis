@@ -166,6 +166,11 @@ class Plate():
             scrollregion=(0, 0, self.canvas_width, self.canvas_height),
             width=self.canvas_width
         )
+
+        self.canvas.bind('<ButtonPress-1>', self._click_square)
+        self.canvas.bind('<B1-Motion>', self._click_square)
+        self.canvas.bind('<Motion>', self._enter_square)
+
         canvas_scroll = ttk.Scrollbar(
             self.right_bar_frame,
             orient=tk.VERTICAL,
@@ -256,22 +261,19 @@ class Plate():
             tags=(f'well_num={well_num}', f'plate_num={plate_num}')
         )
 
-        self.canvas.bind('<ButtonPress-1>', self.click_square)
-        self.canvas.bind('<B1-Motion>', self.click_square)
-
     @staticmethod
-    def get_tag_info(tags, prefix):
+    def _get_tag_info(tags, prefix):
         try:
             return [int(tag.split(prefix)[1]) for tag in tags
                     if tag[0:len(prefix)] == prefix][0]
         except IndexError:
             return None
 
-    def click_square(self, event):
+    def _click_square(self, event):
         square_id = event.widget.find_closest(event.x, event.y)
         tags = self.canvas.gettags(*square_id)
-        well_num = self.get_tag_info(tags, "well_num=")
-        plate_num = self.get_tag_info(tags, "plate_num=")
+        well_num = self._get_tag_info(tags, "well_num=")
+        plate_num = self._get_tag_info(tags, "plate_num=")
         if well_num and plate_num:
             print(f'Clicked: well_num {well_num}, plate_num {plate_num}')
             condition = self.current_condition.get()
@@ -285,6 +287,25 @@ class Plate():
                 plate_num
             )
             print(self.data.dataframe)
+
+    def _enter_square(self, event):
+        square_id = event.widget.find_closest(event.x, event.y)
+        tags = self.canvas.gettags(*square_id)
+        well_num = self._get_tag_info(tags, "well_num=")
+        plate_num = self._get_tag_info(tags, "plate_num=")
+        if well_num and plate_num:
+            self.canvas.delete("condition_label")
+            condition = self.data.get_condition(well_num, plate_num)
+            if condition:
+                coordinates = self.canvas.coords(square_id)
+                center_x = int((coordinates[2] + coordinates[0]) / 2)
+                center_y = int((coordinates[3] + coordinates[1]) / 2)
+                self.canvas.create_text(
+                    center_x,
+                    center_y,
+                    text=condition,
+                    tags=("condition_label")
+                )
 
     def save(self):
         try:
