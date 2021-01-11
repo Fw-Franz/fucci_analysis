@@ -27,15 +27,22 @@ class AnnotatedData:
                 # don't. Handle this by trying first to parse without
                 # headers and then seeing if the headers are in the
                 # first row.
-                m = x.parse(
+                first_row = x.parse(
                     "Sheet1",
                     header=None,
-                    names=HEADERS
+                    names=HEADERS,
+                    nrows=1
                 )
-                if set(HEADERS).intersection(set(m.loc[0].values)):
+                if set(HEADERS).intersection(set(first_row.loc[0].values)):
                     m = x.parse(
                         "Sheet1",
                         header=0
+                    )
+                else:
+                    m = x.parse(
+                        "Sheet1",
+                        header=None,
+                        names=HEADERS
                     )
                 if "DayNum" in m.columns:
                     m.rename(columns={"DayNum": "Day"}, inplace=True)
