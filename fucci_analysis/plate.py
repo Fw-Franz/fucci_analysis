@@ -14,7 +14,7 @@ WELL_COUNT = X_DIMENSION_WELLS * Y_DIMENSION_WELLS
 
 SQUARE_SIZE = 30
 X_OFFSET = 1
-Y_OFFSET = 1
+Y_OFFSET = 2
 CANVAS_WIDTH = SQUARE_SIZE * (X_DIMENSION_WELLS + 2 * X_OFFSET)
 CANVAS_HEIGHT = SQUARE_SIZE * (Y_DIMENSION_WELLS + 2 * Y_OFFSET)
 
@@ -200,7 +200,7 @@ class Plate():
         )
 
         for i, plate_num in enumerate(self.plate_nums):
-            self.add_plate(i, plate_num)
+            self._add_plate(i, plate_num)
 
     @staticmethod
     def xy_to_well_num(x, y):
@@ -211,18 +211,42 @@ class Plate():
         return ((well_num - 1) % X_DIMENSION_WELLS,
                 (well_num - 1) // X_DIMENSION_WELLS)
 
-    def add_plate(self, i, plate_num):
+    def _add_plate(self, i, plate_num):
+        self._create_plate_label(i, plate_num)
         for x in range(X_DIMENSION_WELLS):
-            for y in range(Y_DIMENSION_WELLS):
-                self.add_square(x, y, i, plate_num)
+            self._create_x_label(x, i)
 
-    def add_square(self, x, y, i, plate_num):
-        plate_offset = (Y_OFFSET + Y_DIMENSION_WELLS) * i + 1
+        for y in range(Y_DIMENSION_WELLS):
+            self._create_y_label(y, i)
+            for x in range(X_DIMENSION_WELLS):
+                self._add_square(x, y, i, plate_num)
+
+    @staticmethod
+    def _plate_offset(i):
+        return (Y_OFFSET + Y_DIMENSION_WELLS) * i + Y_OFFSET
+
+    def _create_plate_label(self, i, plate_num):
+        x_pos = int(SQUARE_SIZE * (X_OFFSET + 0.5))
+        y_pos = int(SQUARE_SIZE * (self._plate_offset(i) - 1))
+        self.canvas.create_text(x_pos, y_pos, text=f'PLATE {plate_num}')
+
+    def _create_x_label(self, x, i):
+        x_pos = int(SQUARE_SIZE * (x + X_OFFSET + 0.5))
+        y_pos = int(SQUARE_SIZE * (self._plate_offset(i) - 0.5))
+        self.canvas.create_text(x_pos, y_pos, text=str(x+1))
+
+    def _create_y_label(self, y, i):
+        labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        x_pos = int(SQUARE_SIZE / 2)
+        y_pos = int(SQUARE_SIZE * (y + self._plate_offset(i) + 0.5))
+        self.canvas.create_text(x_pos, y_pos, text=labels[y])
+
+    def _add_square(self, x, y, i, plate_num):
         position = (
             SQUARE_SIZE * (x + X_OFFSET),
-            SQUARE_SIZE * (y + plate_offset),
+            SQUARE_SIZE * (y + self._plate_offset(i)),
             SQUARE_SIZE * (x + 1 + X_OFFSET),
-            SQUARE_SIZE * (y + 1 + plate_offset)
+            SQUARE_SIZE * (y + 1 + self._plate_offset(i))
         )
         well_num = self.xy_to_well_num(x, y)
         self.canvas.create_rectangle(
@@ -231,6 +255,7 @@ class Plate():
             outline="black",
             tags=(f'well_num={well_num}', f'plate_num={plate_num}')
         )
+
         self.canvas.bind('<ButtonPress-1>', self.click_square)
         self.canvas.bind('<B1-Motion>', self.click_square)
 
