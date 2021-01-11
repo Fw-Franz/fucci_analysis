@@ -132,6 +132,7 @@ class Plate():
         self.condition_color_map[condition] = color
         radio = tk.Radiobutton(
             self.conditions_radio_frame,
+            background=color,
             text=condition,
             value=condition,
             variable=self.current_condition
