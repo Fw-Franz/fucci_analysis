@@ -13,11 +13,11 @@ def test_set_conditions():
         'Day': {0: 0, 1: 1, 2: 0, 3: 1},
         'Count': {0: 29, 1: 17, 2: 14, 3: 22},
         'Marker': {0: 'RFP', 1: 'RFP', 2: 'RFP', 3: 'RFP'},
+        'Condition': {0: 'Foo', 1: 'Foo', 2: 'Bar', 3: 'Bar'},
         'Frame': {0: 1, 1: 1, 2: 1, 3: 1},
         'Percent': {0: 10, 1: 10, 2: 10, 3: 10},
         'Total': {0: 29.0, 1: 17.0, 2: 14.0, 3: 22.0},
-        'Cell_percent': {0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0},
-        'Condition': {0: 'Foo', 1: 'Foo', 2: 'Bar', 3: 'Bar'}
+        'Cell_percent': {0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0}
     })
 
     frame = 1
