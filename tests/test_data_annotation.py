@@ -14,6 +14,8 @@ def test_set_conditions():
         'Count': {0: 29, 1: 17, 2: 14, 3: 22},
         'Marker': {0: 'RFP', 1: 'RFP', 2: 'RFP', 3: 'RFP'},
         'Condition': {0: 'Foo', 1: 'Foo', 2: 'Bar', 3: 'Bar'},
+        'PlateRow': {0: 'A', 1: 'A', 2: 'B', 3: 'B'},
+        'PlateColumn': {0: '2', 1: '2', 2: '1', 3: '1'},
         'Frame': {0: 1, 1: 1, 2: 1, 3: 1},
         'Total': {0: 29.0, 1: 17.0, 2: 14.0, 3: 22.0},
         'Cell_percent': {0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0}
@@ -21,8 +23,14 @@ def test_set_conditions():
 
     frame = 1
     data = data_annotation.AnnotatedData(filepaths, frame)
-    data.set_condition('Foo', well_num=1, plate_num=1)
-    data.set_condition('Bar', well_num=1, plate_num=2)
+    data.set_condition(
+        condition='Foo', well_num=1, plate_num=1,
+        plate_row='A', plate_column='2'
+    )
+    data.set_condition(
+        condition='Bar', well_num=1, plate_num=2,
+        plate_row='B', plate_column='1'
+    )
     result = data.dataframe
 
     # We need to round off the floating point fields to test for equality

@@ -62,25 +62,25 @@ class AnnotatedData:
         if 'Condition' not in self.dataframe.columns:
             self.dataframe['Condition'] = None
 
+        if 'PlateRow' not in self.dataframe.columns:
+            self.dataframe['PlateRow'] = None
+
+        if 'PlateColumn' not in self.dataframe.columns:
+            self.dataframe['PlateColumn'] = None
+
     def plate_nums(self):
         plate_nums = self.dataframe['PlateNum'].unique()
         plate_nums.sort()
         return plate_nums
 
-    def set_condition(self, condition, well_num, plate_num):
-        # it is easier to deal with string identifiers on the frontend
-        # so coerce values here
-        if condition == 'None':
-            condition = None
-
+    def set_condition(self, condition, well_num,
+                      plate_num, plate_column, plate_row):
         query_str = f'WellNum == {well_num} & \
             PlateNum == {plate_num}'
         query_index = self.dataframe.query(query_str).index
-        self.dataframe.loc[query_index, 'Condition'] = condition
-
-    def get_condition(self, well_num, plate_num):
-        query_str = f'WellNum == {well_num} & PlateNum == {plate_num}'
-        return self.dataframe.query(query_str)['Condition'].unique()[0]
+        self.dataframe.loc[
+            query_index, ['Condition', 'PlateRow', 'PlateColumn']
+        ] = [condition, plate_row, plate_column]
 
     def set_frame(self, frame):
         if frame is None:

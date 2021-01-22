@@ -18,10 +18,14 @@ Y_OFFSET = 2
 CANVAS_WIDTH = SQUARE_SIZE * (X_DIMENSION_WELLS + 2 * X_OFFSET)
 CANVAS_HEIGHT = SQUARE_SIZE * (Y_DIMENSION_WELLS + 2 * Y_OFFSET)
 
+X_LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+Y_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+
 
 class Plate():
 
     def __init__(self):
+        self.condition_state = {}
         self.current_plate_num = 1
         self.data = None
 
@@ -155,6 +159,8 @@ class Plate():
         print(self.data.dataframe)
 
         self.plate_nums = self.data.plate_nums()
+        for plate_num in self.plate_nums:
+            self.condition_state[plate_num] = {}
 
         self.canvas_width = (SQUARE_SIZE *
                              (X_DIMENSION_WELLS + 2 * X_OFFSET))
@@ -208,15 +214,6 @@ class Plate():
         for i, plate_num in enumerate(self.plate_nums):
             self._add_plate(i, plate_num)
 
-    @staticmethod
-    def xy_to_well_num(x, y):
-        return (y * X_DIMENSION_WELLS) + (x + 1)
-
-    @staticmethod
-    def well_num_to_xy(well_num):
-        return ((well_num - 1) % X_DIMENSION_WELLS,
-                (well_num - 1) // X_DIMENSION_WELLS)
-
     def _add_plate(self, i, plate_num):
         self._create_plate_label(i, plate_num)
         for x in range(X_DIMENSION_WELLS):
@@ -239,13 +236,12 @@ class Plate():
     def _create_x_label(self, x, i):
         x_pos = int(SQUARE_SIZE * (x + X_OFFSET + 0.5))
         y_pos = int(SQUARE_SIZE * (self._plate_offset(i) - 0.5))
-        self.canvas.create_text(x_pos, y_pos, text=str(x+1))
+        self.canvas.create_text(x_pos, y_pos, text=X_LABELS[x])
 
     def _create_y_label(self, y, i):
-        labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
         x_pos = int(SQUARE_SIZE / 2)
         y_pos = int(SQUARE_SIZE * (y + self._plate_offset(i) + 0.5))
-        self.canvas.create_text(x_pos, y_pos, text=labels[y])
+        self.canvas.create_text(x_pos, y_pos, text=Y_LABELS[y])
 
     def _add_square(self, x, y, i, plate_num):
         position = (
@@ -254,12 +250,11 @@ class Plate():
             SQUARE_SIZE * (x + 1 + X_OFFSET),
             SQUARE_SIZE * (y + 1 + self._plate_offset(i))
         )
-        well_num = self.xy_to_well_num(x, y)
         self.canvas.create_rectangle(
             position,
             fill="white",
             outline="black",
-            tags=(f'well_num={well_num}', f'plate_num={plate_num}')
+            tags=(f'x={x}', f'y={y}', f'plate_num={plate_num}')
         )
 
     @staticmethod
@@ -276,21 +271,22 @@ class Plate():
             self.canvas.canvasy(event.y)
         )
         tags = self.canvas.gettags(*square_id)
-        well_num = self._get_tag_info(tags, "well_num=")
+        x = self._get_tag_info(tags, "x=")
+        y = self._get_tag_info(tags, "y=")
         plate_num = self._get_tag_info(tags, "plate_num=")
-        if well_num and plate_num:
-            print(f'Clicked: well_num {well_num}, plate_num {plate_num}')
+        if x is not None and y is not None and plate_num:
+            print(f'Clicked: x {x}, y {y}, plate_num {plate_num}')
             condition = self.current_condition.get()
             self.canvas.itemconfig(
                 square_id,
                 fill=self.condition_color_map[condition]
             )
-            self.data.set_condition(
+            self.set_condition(
                 condition,
-                well_num,
+                x,
+                y,
                 plate_num
             )
-            print(self.data.dataframe)
 
     def _enter_square(self, event):
         square_id = event.widget.find_closest(
@@ -298,11 +294,12 @@ class Plate():
             self.canvas.canvasy(event.y)
         )
         tags = self.canvas.gettags(*square_id)
-        well_num = self._get_tag_info(tags, "well_num=")
+        x = self._get_tag_info(tags, "x=")
+        y = self._get_tag_info(tags, "y=")
         plate_num = self._get_tag_info(tags, "plate_num=")
-        if well_num and plate_num:
+        if x is not None and y is not None and plate_num:
             self.canvas.delete("condition_label")
-            condition = self.data.get_condition(well_num, plate_num)
+            condition = self.get_condition(x, y, plate_num)
             if condition:
                 coordinates = self.canvas.coords(square_id)
                 center_x = int((coordinates[2] + coordinates[0]) / 2)
@@ -314,8 +311,34 @@ class Plate():
                     tags=("condition_label")
                 )
 
+    def set_condition(self, condition, x, y, plate_num):
+        self.condition_state[plate_num][(y, x)] = condition
+        print(self.condition_state)
+
+    def get_condition(self, x, y, plate_num):
+        try:
+            return self.condition_state[plate_num][(y, x)]
+        except IndexError:
+            return None
+
+    def save_conditions(self):
+        for plate_num, d in self.condition_state.items():
+            well_num = 1
+            for y, x in sorted(d.keys()):
+                condition = d[(y, x)]
+                if condition and not condition == "None":
+                    self.data.set_condition(
+                        condition=condition,
+                        well_num=well_num,
+                        plate_num=plate_num,
+                        plate_column=X_LABELS[x],
+                        plate_row=Y_LABELS[y]
+                    )
+                    well_num += 1
+
     def save(self):
         try:
+            self.save_conditions()
             path = self.data.save()
             print(f'Saved to {path}')
         except RuntimeError as err:
