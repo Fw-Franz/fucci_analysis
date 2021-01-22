@@ -271,7 +271,10 @@ class Plate():
             return None
 
     def _click_square(self, event):
-        square_id = event.widget.find_closest(event.x, event.y)
+        square_id = event.widget.find_closest(
+            self.canvas.canvasx(event.x),
+            self.canvas.canvasy(event.y)
+        )
         tags = self.canvas.gettags(*square_id)
         well_num = self._get_tag_info(tags, "well_num=")
         plate_num = self._get_tag_info(tags, "plate_num=")
@@ -290,7 +293,10 @@ class Plate():
             print(self.data.dataframe)
 
     def _enter_square(self, event):
-        square_id = event.widget.find_closest(event.x, event.y)
+        square_id = event.widget.find_closest(
+            self.canvas.canvasx(event.x),
+            self.canvas.canvasy(event.y)
+        )
         tags = self.canvas.gettags(*square_id)
         well_num = self._get_tag_info(tags, "well_num=")
         plate_num = self._get_tag_info(tags, "plate_num=")
