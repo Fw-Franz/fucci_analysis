@@ -8,11 +8,10 @@ HEADERS = ['PlateNum', 'WellNum', 'Day', 'Count', 'Marker']
 class AnnotatedData:
     WELL_NUMS = 96
 
-    def __init__(self, filepaths, frame=None, percents=None):
+    def __init__(self, filepaths, frame=None):
         self.load_files(filepaths)
         self.set_frame(frame)
         self.set_marker()
-        self.set_percents(percents)
         self.set_total_and_cell_percent()
 
     def load_files(self, filepaths):
@@ -80,23 +79,6 @@ class AnnotatedData:
     def get_condition(self, well_num, plate_num):
         query_str = f'WellNum == {well_num} & PlateNum == {plate_num}'
         return self.dataframe.query(query_str)['Condition'].unique()[0]
-
-    def set_percents(self, percents):
-        if percents is None:
-            return
-
-        self.percents = percents
-        self.dataframe['Percent'] = percents[0]
-
-        # TODO: What is the deal with this?
-        # for well in range(1, self.WELL_NUMS + 1):
-        #     query_str = f'WellNum == {well}'
-        #     my_query_index = self.dataframe.query(query_str).index
-        #     x = self.dataframe.columns.get_loc('Percent')
-        #     if np.mod(int((well-1)/6),len(percents)):
-        #         self.dataframe.iloc[my_query_index, x] = 'low'
-        #     else:
-        #         self.dataframe.iloc[my_query_index, x] = 'high'
 
     def set_frame(self, frame):
         if frame is None:
