@@ -15,7 +15,9 @@ class AnnotatedData:
         self.set_total_and_cell_percent()
 
     def load_files(self, filepaths):
-        self.directory = os.path.commonpath(filepaths)
+        self.directory = os.path.commonpath(
+            [os.path.dirname(path) for path in filepaths]
+        )
         filetypes = [path.split('.')[-1] for path in filepaths]
         frames = []
         if all([filetype == 'xlsx' for filetype in filetypes]):
@@ -108,7 +110,7 @@ class AnnotatedData:
     def save(self):
         if not self.frame:
             raise DataValidationError('Missing frame assignment')
-        if not (self.dataframe['Condition'] == None).all():
+        if (self.dataframe['Condition'] == None).any():
             raise DataValidationError("Missing condition assignments")
         timestamp = datetime.now().strftime('%Y%m%d%M%S')
         path = os.path.join(
