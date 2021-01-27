@@ -17,6 +17,7 @@ from matplotlib.lines import Line2D
 import time
 import os
 import sys
+from fucci_analysis import data_annotation
 
 start_time = time.time()
 
@@ -31,11 +32,6 @@ conditions_raw = sys.argv[2:]
 print('number of conditions: ',len(conditions_raw))
 
 condition_lists=[conditions_raw]
-
-# region read-in parameters
-start_day=0
-end_day=10
-#endregion
 
 # TODO: SWITCH BACK TO THIS
 # stats_vars = ['Cell_percent','Total']   # ['Cell_percent'] (use stacked barplots) or ['Total'] (use lineplots), or  ['Cell_percent','Total'] for both
@@ -72,74 +68,79 @@ hue_split="Condition"  # "Percent" or 'Condition'. mostly 'Condition' right now 
 
 # endregion
 
-for con_list in condition_lists:
 
-    conditions=con_list
-    print(conditions[0])
-    start_time_con_list = time.time()
+for frame in frames:
+    # region intitialize print out
+    print('-----------------------------------')
+    print('Processing frame m:', frame)
+    l = 0
+    #endregion
 
-    for stats_var in stats_vars:
+    path = os.path.join(base_directory, 'data', f'frame_m{frame}_processed_data.csv')
+    data = data_annotation.AnnotatedData([path])
+    mi = data.dataframe
+    start_day = data.start_day()
+    end_day = data.end_day()
 
-        #region intitialize print out
-        start_time_stats = time.time()
-        print('-----------------------------------')
-        print('-----------------------------------')
-        print('-----------------------------------')
-        if stats_var=='Cell_percent':
-            print('Processing Cell percentages')
-        elif stats_var=='Total':
-            print('Processing Total Cell counts')
-        #end
+    for con_list in condition_lists:
 
-        #endregion
+        conditions=con_list
+        print(conditions[0])
+        start_time_con_list = time.time()
 
-        # region Initilize for-loop parameters
-        days_total=end_day-start_day+1
-        days = [f'day{start_day}']
-        for ijkl in range(start_day+1, end_day+1):
-            days.append(f'day{ijkl}')
+        for stats_var in stats_vars:
 
-
-        if stats_var == 'Total':
-            tt_p = np.ones(len(days))
-            tt_c = np.zeros(len(days))
-            tt_m = np.zeros(len(days))
-            tt_all = np.zeros((3, len(days), len(conditions)))
-        else:
-            tt_p = np.ones((len(days), 3))
-            tt_c = np.zeros((len(days), 3))
-            tt_m = np.zeros((len(days), 3))
-            tt_all = np.zeros((3, len(days), len(conditions), 3))
-
-        if stats_var == 'Cell_percent':
-            plot_type = "stacked_bar"  # box, violin, stacked_bar, line
-        if stats_var == 'Total':
-            plot_type = "line"  # box, violin, stacked_bar, line
-
-        marker_list = ['RFP', 'YFP', 'Overlap']
-        if stats_var == 'Total':
-            marker = stats_var
-        else:
-            marker = 'all'
-
-        if x_var == "Day":
-            graph_n = conditions
-        else:
-            graph_n = range(start_day,len(days)+start_day)
-        if hue_split == "Condition" and (plot_type != "stacked_bar" and plot_type != "line"):
-            graph_n = range(0, 1)
-
-        control_condition = conditions[0]
-        # endregion
-
-        for frame in frames:
-            # region intitialize print out
+            #region intitialize print out
+            start_time_stats = time.time()
             print('-----------------------------------')
-            print('Processing frame m:', frame)
-            l = 0
+            print('-----------------------------------')
+            print('-----------------------------------')
+            if stats_var=='Cell_percent':
+                print('Processing Cell percentages')
+            elif stats_var=='Total':
+                print('Processing Total Cell counts')
+            #end
+
             #endregion
 
-            mi = pd.read_csv(os.path.join(base_directory, 'data', f'frame_m{frame}_processed_data.csv'))
+            # region Initilize for-loop parameters
+            days_total=end_day-start_day+1
+            days = [f'day{start_day}']
+            for ijkl in range(start_day+1, end_day+1):
+                days.append(f'day{ijkl}')
+
+
+            if stats_var == 'Total':
+                tt_p = np.ones(len(days))
+                tt_c = np.zeros(len(days))
+                tt_m = np.zeros(len(days))
+                tt_all = np.zeros((3, len(days), len(conditions)))
+            else:
+                tt_p = np.ones((len(days), 3))
+                tt_c = np.zeros((len(days), 3))
+                tt_m = np.zeros((len(days), 3))
+                tt_all = np.zeros((3, len(days), len(conditions), 3))
+
+            if stats_var == 'Cell_percent':
+                plot_type = "stacked_bar"  # box, violin, stacked_bar, line
+            if stats_var == 'Total':
+                plot_type = "line"  # box, violin, stacked_bar, line
+
+            marker_list = ['RFP', 'YFP', 'Overlap']
+            if stats_var == 'Total':
+                marker = stats_var
+            else:
+                marker = 'all'
+
+            if x_var == "Day":
+                graph_n = conditions
+            else:
+                graph_n = range(start_day,len(days)+start_day)
+            if hue_split == "Condition" and (plot_type != "stacked_bar" and plot_type != "line"):
+                graph_n = range(0, 1)
+
+            control_condition = conditions[0]
+            # endregion
 
             #region tukey
             if do_tukey_test:
@@ -1308,8 +1309,8 @@ for con_list in condition_lists:
                         plt.show()
             # endregion
 
-        print("Time spent on ", stats_var," in s: %s" % round((time.time() - start_time_stats), 2))
+            print("Time spent on ", stats_var," in s: %s" % round((time.time() - start_time_stats), 2))
 
-    print("Time spent on ", con_list[0], " in s: %s" % round((time.time() - start_time_con_list), 2))
+        print("Time spent on ", con_list[0], " in s: %s" % round((time.time() - start_time_con_list), 2))
 
 print("Total time passed in s: %s" % round((time.time() - start_time), 2))

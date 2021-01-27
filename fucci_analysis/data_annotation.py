@@ -68,6 +68,12 @@ class AnnotatedData:
         if 'PlateColumn' not in self.dataframe.columns:
             self.dataframe['PlateColumn'] = None
 
+    def start_day(self):
+        return self.dataframe['Day'].min()
+
+    def end_day(self):
+        return self.dataframe['Day'].max()
+
     def plate_nums(self):
         plate_nums = self.dataframe['PlateNum'].unique()
         plate_nums.sort()
