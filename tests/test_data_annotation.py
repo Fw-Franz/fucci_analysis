@@ -36,3 +36,4 @@ def test_set_conditions():
     # We need to round off the floating point fields to test for equality
     result['Cell_percent'] = result['Cell_percent'].round(5)
     assert (result == target).all().all
+    assert data.get_frame() == 1

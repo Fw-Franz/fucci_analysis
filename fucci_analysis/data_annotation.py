@@ -74,10 +74,24 @@ class AnnotatedData:
     def end_day(self):
         return self.dataframe['Day'].max()
 
+    def get_frame(self):
+        frames = self.dataframe['Frame'].unique()
+        if len(frames) > 1:
+            raise ValueError('dataframe has data for more than one frame')
+        elif len(frames) < 1:
+            return None
+        else:
+            return frames[0]
+
     def plate_nums(self):
         plate_nums = self.dataframe['PlateNum'].unique()
         plate_nums.sort()
         return plate_nums
+
+    def get_conditions(self):
+        conditions = self.dataframe['Condition'].unique()
+        conditions.sort()
+        return conditions
 
     def set_condition(self, condition, well_num,
                       plate_num, plate_column, plate_row):
@@ -89,7 +103,9 @@ class AnnotatedData:
         ] = [condition, plate_row, plate_column]
 
     def set_frame(self, frame):
-        if frame is None:
+        if frame is None and self.get_frame() is not None:
+            frame = self.get_frame()
+        elif frame is None:
             return
 
         self.frame = frame

@@ -19,74 +19,52 @@ import os
 import sys
 from fucci_analysis import data_annotation
 
-start_time = time.time()
-
-# Use commandline argument for directory if provided, otherwise default to current directory
-try:
-    base_directory = sys.argv[1]
-except IndexError:
-    base_directory = os.getcwd()
-
-conditions_raw = sys.argv[2:]
-
-print('number of conditions: ',len(conditions_raw))
-
-condition_lists=[conditions_raw]
-
-# TODO: SWITCH BACK TO THIS
-# stats_vars = ['Cell_percent','Total']   # ['Cell_percent'] (use stacked barplots) or ['Total'] (use lineplots), or  ['Cell_percent','Total'] for both
-stats_vars = ['Total']
-x_var="Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
-frames=[1,2] # [1], [1, 2], ..., [1,2,3,4]
-
-normalization_type = 'total' # 'relative' or 'total'
-
-load_stats=0 # not yet implemented, leave at 0
-do_ttest=0  # currently set for all conditions. needed for plotting line and stacked bar plots with stars, as well as for colormaps
-do_wilcoxon_test=0 # needs do_ttest to be set to 1, as it works from within it and just replaces the actual test function
-do_anova=0 #
-do_tukey_test=0
-do_chi2=0 # not yet supported
-
-save_excel_stats=1  # 1= saves stats to csv or xls files. needed for colormap-plots
-
-plots=1  # 1= create plots
-colormap_plot=0  # create color map of stat results
-cmap_discrete=0  # 1= discrete, 0 = continous
-individual_plots=1 # create individual line and/or bar graph plots
-
-boxplots=0 # 1 for DO IT (only for total)
-stackedbarplots=0 # only for Cell percent
-lineplots=1 # still working on this
-box_day=5
-
-save_plots=1  # 1= save all plots,  or 0= stops at each condition to show plot without saving it
-
-plot_context='talk'  # 'talk', 'poster', 'notebook' - use talk for now
-
-hue_split="Condition"  # "Percent" or 'Condition'. mostly 'Condition' right now for all major plots (line, stacked bar and colormap)
-
-# endregion
+NORMALIZATION_TYPES = ['total', 'relative']
+STATS_VARS_TYPES = ['Cell_percent', 'Total']
+X_VAR_TYPES = ['Day']
+PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
+HUE_SPLIT_TYPES = ['Percent', 'Condition']
 
 
-for frame in frames:
-    # region intitialize print out
-    print('-----------------------------------')
-    print('Processing frame m:', frame)
-    l = 0
-    #endregion
+def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
+        box_day, plot_context, hue_split,
+        control_condition=None,
+        plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
+        individual_plots=False, boxplots=False, stackedbarplots=False, lineplots=False,
+        do_ttest=False, do_wilcoxon_test=False, do_anova=False,
+        do_tukey_test=False, save_excel_stats=False):
 
-    path = os.path.join(base_directory, 'data', f'frame_m{frame}_processed_data.csv')
-    data = data_annotation.AnnotatedData([path])
-    mi = data.dataframe
-    start_day = data.start_day()
-    end_day = data.end_day()
+    if normalization_type not in NORMALIZATION_TYPES:
+        raise ValueError(f'Invalid normalization_type: {normalization_type}')
+    if x_var not in X_VAR_TYPES:
+        raise ValueError(f'Invalid x_var: {x_var}')
+    if plot_context not in PLOT_CONTEXT_TYPES:
+        raise ValueError(f'Invalid plot_context: {plot_context}')
+    if hue_split not in HUE_SPLIT_TYPES:
+        raise ValueError(f'Invalid hue_split: {hue_split}')
+    if not all([stats_var in STATS_VARS_TYPES for stats_var in stats_vars]):
+        raise ValueError(f'Invalid stats_vars: {stats_vars}')
 
-    for con_list in condition_lists:
+    start_time = time.time()
 
-        conditions=con_list
-        print(conditions[0])
-        start_time_con_list = time.time()
+    for path in filepaths:
+        print('-----------------------------------')
+        print('Processing file:', path)
+        l = 0
+
+        data = data_annotation.AnnotatedData([path])
+        mi = data.dataframe
+        start_day = data.start_day()
+        end_day = data.end_day()
+        frame = data.get_frame()
+        conditions = data.get_conditions()
+        start_time_conditions = time.time()
+
+        if control_condition is None:
+            control_condition = conditions[0]
+        if control_condition not in conditions:
+            raise ValueError(f'control_condition {control_condition} not contained in conditions for path {path}')
+        print(control_condition)
 
         for stats_var in stats_vars:
 
@@ -139,7 +117,6 @@ for frame in frames:
             if hue_split == "Condition" and (plot_type != "stacked_bar" and plot_type != "line"):
                 graph_n = range(0, 1)
 
-            control_condition = conditions[0]
             # endregion
 
             #region tukey
@@ -210,13 +187,6 @@ for frame in frames:
 
             #endregion
 
-            #region Chi Square
-            if do_chi2:
-                mi_chi = mi.loc[mi['Condition'].isin(conditions)]
-
-
-            #endregion
-
             for i in graph_n: #graph_n is just the conditions list in the current iteration
                 day = i
                 print('Processing:',i, 'at frame',frame)
@@ -249,7 +219,7 @@ for frame in frames:
                     if hue_split == "Condition":
                         violin_dir = os.path.join(
                             base_directory, 'plots', 'violinplots', 'condition_1_vs_2',
-                            f'{conditions[0]}_normalized', f'm{frame}'
+                            f'{control_condition}_normalized', f'm{frame}'
                         )
                         if not os.path.exists(violin_dir):
                             os.makedirs(violin_dir)
@@ -257,7 +227,7 @@ for frame in frames:
                     else:
                         violin_dir = os.path.join(
                             base_directory, 'plots', 'violinplots',
-                            f'{conditions[0]}_normalized', f'm{frame}'
+                            f'{control_condition}_normalized', f'm{frame}'
                         )
                         if not os.path.exists(violin_dir):
                             os.makedirs(violin_dir)
@@ -266,7 +236,7 @@ for frame in frames:
                 if boxplots:
                     box_dir = os.path.join(
                         base_directory, 'plots', 'boxplots',
-                        f'{conditions[0]}_normalized',
+                        f'{control_condition}_normalized',
                         f'm{frame}'
                     )
                     if not os.path.exists(box_dir):
@@ -277,7 +247,7 @@ for frame in frames:
                 if stackedbarplots:
                     stack_dir = os.path.join(
                         base_directory, 'plots', 'stackedbarplots',
-                        f'{conditions[0]}_normalized', f'm{frame}'
+                        f'{control_condition}_normalized', f'm{frame}'
                     )
                     if not os.path.exists(stack_dir):
                         os.makedirs(stack_dir)
@@ -289,7 +259,7 @@ for frame in frames:
                 if lineplots:
                     line_dir = os.path.join(
                         base_directory, 'plots', 'lineplotsall', 
-                        f'{conditions[0]}_normalized',
+                        f'{control_condition}_normalized',
                         f'm{frame}'
                     )
                     if not os.path.exists(line_dir):
@@ -300,7 +270,7 @@ for frame in frames:
                 if plot_type == "stacked_bar":
                     stacked_bar_dir = os.path.join(
                         base_directory, 'plots', 'stacked_bar',
-                        f'{conditions[0]}_normalized', f'm{frame}'
+                        f'{control_condition}_normalized', f'm{frame}'
                     )
                     if not os.path.exists(stacked_bar_dir):
                         os.makedirs(stacked_bar_dir)
@@ -309,7 +279,7 @@ for frame in frames:
                 if plot_type == "line":
                     line_dir = os.path.join(
                         base_directory, 'plots', 'lineplots',
-                        f'{conditions[0]}_normalized',
+                        f'{control_condition}_normalized',
                         f'm{frame}'
                     )
                     if not os.path.exists(line_dir):
@@ -319,7 +289,7 @@ for frame in frames:
                 if colormap_plot:
                     colormap_dir = os.path.join(
                         base_directory, 'plots', 'colormaps',
-                        f'{conditions[0]}_normalized', 
+                        f'{control_condition}_normalized', 
                         f'm{frame}'
                     )
                     if not os.path.exists(colormap_dir):
@@ -342,127 +312,124 @@ for frame in frames:
             # endregion
 
                 #region stats
-                if load_stats:  #  get data - to be implemented
-                    print("loading stats is not yet available!")
-                else:
-                    #region ttest
-                    if do_ttest:
-                        mi_control = mi_t[mi_t['Condition'] == control_condition]
-                        mi_drug = mi_t[mi_t['Condition'] == i]
+                #region ttest
+                if do_ttest:
+                    mi_control = mi_t[mi_t['Condition'] == control_condition]
+                    mi_drug = mi_t[mi_t['Condition'] == i]
 
 
-                        if stats_var=='Cell_percent':
-                            for iday in range (mi['Day'].min(),mi['Day'].max()+1):
-                                mi_control_d= mi_control[mi_control['Day'] == iday]
-                                mi_drug_d = mi_drug[mi_drug['Day'] == iday]
+                    if stats_var=='Cell_percent':
+                        for iday in range (mi['Day'].min(),mi['Day'].max()+1):
+                            mi_control_d= mi_control[mi_control['Day'] == iday]
+                            mi_drug_d = mi_drug[mi_drug['Day'] == iday]
 
-                                for k in range(0,3):
-                                    mi_control_d_m = mi_control_d[mi_control_d['Marker'] == marker_list[k]]
-                                    mi_drug_d_m  = mi_drug_d[mi_drug_d['Marker'] == marker_list[k]]
+                            for k in range(0,3):
+                                mi_control_d_m = mi_control_d[mi_control_d['Marker'] == marker_list[k]]
+                                mi_drug_d_m  = mi_drug_d[mi_drug_d['Marker'] == marker_list[k]]
 
-                                    if not iday == 0:
-                                        if do_wilcoxon_test:
-                                            tt = stats.mannwhitneyu(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
-                                        else:
-                                            tt =stats.ttest_ind(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
-
-                                        tt_p[iday-start_day,k]=tt[1]
-
-
-                                    mi_control_d_m[stats_var] = pd.to_numeric(mi_control_d_m[stats_var])
-                                    mi_drug_d_m[stats_var] =pd.to_numeric(mi_drug_d_m[stats_var])
-
-                                    mean_drug1 = np.mean(mi_control_d_m[stats_var])
-                                    mean_drug2 = np.mean(mi_drug_d_m[stats_var])
-                                    # mean_drug1 = mi_control_d_m[stats_var].mean()
-                                    # mean_drug2 = mi_drug_d_m[stats_var].mean()
-
-                                    tt_m[iday-start_day,k] = mean_drug2 - mean_drug1
-
-                                    cohen_d = abs((mean_drug1 - mean_drug2)) / np.sqrt(
-                                        (np.square(np.std(mi_control_d_m[stats_var])) + np.square(np.std(mi_drug_d_m[stats_var]))) / 2)
-                                    tt_c[iday-start_day,k]=cohen_d
-
-                            tt_all[0,:,l]=tt_p
-                            tt_all[1,:,l]=tt_c
-                            tt_all[2,:,l]=tt_m
-
-                        if stats_var=='Total':
-
-                            mi_t = mi[mi['Condition'] == i]
-
-                            mi_t = mi_t[mi_t['Marker'] == 'RFP']
-
-                            mi_t['norm'] = 0.
-
-                            mi_t = mi_t.reset_index(drop=True)
-
-                            mi_t_base = mi_t[mi_t['Day'] == start_day]
-                            mi_t_base = mi_t_base.reset_index(drop=True)
-
-                            for day in range(mi['Day'].min(),mi['Day'].max()+1):
-                                m_day = mi_t[mi_t['Day'] == day]
-                                ind = m_day.index
-                                m_day = m_day.reset_index(drop=True)
-                                if normalization_type == 'relative':
-                                    m_day['norm'] = (m_day[stats_var] - mi_t_base[stats_var]) / mi_t_base[stats_var]
-                                else:
-                                    m_day['norm'] = (m_day[stats_var]) / mi_t_base[stats_var]
-                                k = 0
-                                for j in ind:
-                                    mi_t['norm'].iloc[j] = m_day['norm'].iat[k]
-                                    k = k + 1
-
-                            if i==control_condition:
-                                mi_t_control=mi_t
-
-
-                            # print('mi_t_control[norm]', mi_t_control['norm'])
-                            # print('mi_t[norm]', mi_t['norm'])
-
-                            for day in range(mi['Day'].min(),mi['Day'].max()+1):
-
-                                mi_control_d = mi_t_control[mi_t_control['Day'] == day]
-                                mi_drug_d = mi_t[mi_t['Day'] == day]
-
-                                # print('mi_control_d[norm]', mi_control_d['norm'])
-                                # print('mi_drug_d[norm]', mi_drug_d['norm'])
-                                # if not i == control_condition:
-                                if not day == 0:
+                                if not iday == 0:
                                     if do_wilcoxon_test:
-                                        tt = stats.mannwhitneyu(mi_control_d['norm'], mi_drug_d['norm'])
+                                        tt = stats.mannwhitneyu(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
                                     else:
-                                        tt = stats.ttest_ind(mi_control_d['norm'], mi_drug_d['norm'])
+                                        tt =stats.ttest_ind(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
 
-                                    tt_p[day-start_day] = tt[1]
+                                    tt_p[iday-start_day,k]=tt[1]
 
 
-                                # print(mi_control_d['norm'])
-                                # print(type(mi_drug_d['norm']))
+                                mi_control_d_m[stats_var] = pd.to_numeric(mi_control_d_m[stats_var])
+                                mi_drug_d_m[stats_var] =pd.to_numeric(mi_drug_d_m[stats_var])
 
-                                mean_drug1 = np.mean(mi_control_d['norm'])
-                                mean_drug2 = np.mean(mi_drug_d['norm'])
+                                mean_drug1 = np.mean(mi_control_d_m[stats_var])
+                                mean_drug2 = np.mean(mi_drug_d_m[stats_var])
+                                # mean_drug1 = mi_control_d_m[stats_var].mean()
+                                # mean_drug2 = mi_drug_d_m[stats_var].mean()
 
-                                # print(mean_drug1,mean_drug2)
-                                if normalization_type == 'total':
-                                    tt_m[day-start_day] = (mean_drug2 - mean_drug1)/mean_drug1
-
+                                tt_m[iday-start_day,k] = mean_drug2 - mean_drug1
 
                                 cohen_d = abs((mean_drug1 - mean_drug2)) / np.sqrt(
-                                    (np.square(np.std(mi_control_d['norm'])) + np.square(
-                                        np.std(mi_drug_d['norm']))) / 2)
-                            # print("cohen's d: ", cohen_d)
-                                tt_c[day-start_day] = cohen_d
+                                    (np.square(np.std(mi_control_d_m[stats_var])) + np.square(np.std(mi_drug_d_m[stats_var]))) / 2)
+                                tt_c[iday-start_day,k]=cohen_d
 
-                            tt_all[0,:,l]=tt_p
-                            tt_all[1,:,l]=tt_c
+                        tt_all[0,:,l]=tt_p
+                        tt_all[1,:,l]=tt_c
+                        tt_all[2,:,l]=tt_m
+
+                    if stats_var=='Total':
+
+                        mi_t = mi[mi['Condition'] == i]
+
+                        mi_t = mi_t[mi_t['Marker'] == 'RFP']
+
+                        mi_t['norm'] = 0.
+
+                        mi_t = mi_t.reset_index(drop=True)
+
+                        mi_t_base = mi_t[mi_t['Day'] == start_day]
+                        mi_t_base = mi_t_base.reset_index(drop=True)
+
+                        for day in range(mi['Day'].min(),mi['Day'].max()+1):
+                            m_day = mi_t[mi_t['Day'] == day]
+                            ind = m_day.index
+                            m_day = m_day.reset_index(drop=True)
+                            if normalization_type == 'relative':
+                                m_day['norm'] = (m_day[stats_var] - mi_t_base[stats_var]) / mi_t_base[stats_var]
+                            else:
+                                m_day['norm'] = (m_day[stats_var]) / mi_t_base[stats_var]
+                            k = 0
+                            for j in ind:
+                                mi_t['norm'].iloc[j] = m_day['norm'].iat[k]
+                                k = k + 1
+
+                        if i==control_condition:
+                            mi_t_control=mi_t
+
+
+                        # print('mi_t_control[norm]', mi_t_control['norm'])
+                        # print('mi_t[norm]', mi_t['norm'])
+
+                        for day in range(mi['Day'].min(),mi['Day'].max()+1):
+
+                            mi_control_d = mi_t_control[mi_t_control['Day'] == day]
+                            mi_drug_d = mi_t[mi_t['Day'] == day]
+
+                            # print('mi_control_d[norm]', mi_control_d['norm'])
+                            # print('mi_drug_d[norm]', mi_drug_d['norm'])
+                            # if not i == control_condition:
+                            if not day == 0:
+                                if do_wilcoxon_test:
+                                    tt = stats.mannwhitneyu(mi_control_d['norm'], mi_drug_d['norm'])
+                                else:
+                                    tt = stats.ttest_ind(mi_control_d['norm'], mi_drug_d['norm'])
+
+                                tt_p[day-start_day] = tt[1]
+
+
+                            # print(mi_control_d['norm'])
+                            # print(type(mi_drug_d['norm']))
+
+                            mean_drug1 = np.mean(mi_control_d['norm'])
+                            mean_drug2 = np.mean(mi_drug_d['norm'])
+
+                            # print(mean_drug1,mean_drug2)
                             if normalization_type == 'total':
-                                tt_all[2,:,l]=tt_m
+                                tt_m[day-start_day] = (mean_drug2 - mean_drug1)/mean_drug1
 
-                        # print('t_final:',tt_p,tt_c)
 
-                        # slope, intercept, r_value, p_value, std_err = stats.linregress(mi_fixed[stats_var], mi_random[stats_var])
-                        # print("r^2: ", r_value ** 2)
+                            cohen_d = abs((mean_drug1 - mean_drug2)) / np.sqrt(
+                                (np.square(np.std(mi_control_d['norm'])) + np.square(
+                                    np.std(mi_drug_d['norm']))) / 2)
+                        # print("cohen's d: ", cohen_d)
+                            tt_c[day-start_day] = cohen_d
+
+                        tt_all[0,:,l]=tt_p
+                        tt_all[1,:,l]=tt_c
+                        if normalization_type == 'total':
+                            tt_all[2,:,l]=tt_m
+
+                    # print('t_final:',tt_p,tt_c)
+
+                    # slope, intercept, r_value, p_value, std_err = stats.linregress(mi_fixed[stats_var], mi_random[stats_var])
+                    # print("r^2: ", r_value ** 2)
 
                     #endregion
 
@@ -709,7 +676,7 @@ for frame in frames:
                 if do_ttest:
                     if plot_type=="stacked_bar":
                         stats_dir= os.path.join(
-                            base_directory, 'stats', f'{conditions[0]}_normalized', 
+                            base_directory, 'stats', f'{control_condition}_normalized', 
                             'percent_cell', f'm{frame}'
                         )
                         if not os.path.exists(stats_dir):
@@ -734,7 +701,7 @@ for frame in frames:
 
                     if plot_type == "line":
                         stats_dir=os.path.join(
-                            base_directory, 'stats', f'{conditions[0]}_normalized', 
+                            base_directory, 'stats', f'{control_condition}_normalized', 
                             'total_cell_n', f'm{frame}'
                         )
                         if not os.path.exists(stats_dir):
@@ -754,7 +721,7 @@ for frame in frames:
 
                     if plot_type == "line":
                         stats_dir=os.path.join(
-                            base_directory, 'stats', f'{conditions[0]}_normalized', 
+                            base_directory, 'stats', f'{control_condition}_normalized', 
                             'total_cell_n', f'm{frame}'
                         )
                         if not os.path.exists(stats_dir):
@@ -762,7 +729,7 @@ for frame in frames:
 
                     if plot_type == "stacked_bar":
                         stats_dir= os.path.join(
-                            base_directory, 'stats', f'{conditions[0]}_normalized', 
+                            base_directory, 'stats', f'{control_condition}_normalized', 
                             'percent_cell', f'm{frame}'
                         )
                         if not os.path.exists(stats_dir):
@@ -1040,9 +1007,9 @@ for frame in frames:
                               ['-Control', '+Control', 'Novel Combo', 'Novel Repurposed', 'Published \nor In Use'],
                               loc='upper left', bbox_to_anchor=(0.14, 0.98))
 
-                    for iii in range(1,len(con_list)):
-                        con_group1=con_list[0]
-                        con_group2=con_list[iii]
+                    for iii in range(1,len(conditions)):
+                        con_group1=control_condition
+                        con_group2=conditions[iii]
 
                         df_05_con=df_05[df_05['group1']==con_group1]
                         df_05_con=df_05_con[df_05_con['group2']==con_group2]
@@ -1123,7 +1090,7 @@ for frame in frames:
                     mi_new2 = mi[mi['Day'] == box_day]
 
 
-                    mi_new2 = mi_new2.loc[mi_new2['Condition'].isin(con_list)]
+                    mi_new2 = mi_new2.loc[mi_new2['Condition'].isin(conditions)]
 
 
                     sorterIndex1 = dict(zip(conditions, range(len(conditions))))
@@ -1175,7 +1142,7 @@ for frame in frames:
                     if do_ttest:
                         j=box_day
                         m = 0
-                        for con_bar in range(0,len(con_list)):
+                        for con_bar in range(0,len(conditions)):
                             for k in range(0, 3):
                                 # print(means)
                                 # print(3*con_bar+k)
@@ -1218,7 +1185,7 @@ for frame in frames:
                     mi_box = mi
                     mi_box = mi_box[mi_box.Marker == marker_list[0]]
 
-                    # for con in con_list:
+                    # for con in conditions:
                     #     mi_box = mi_box[mi_box.Condition != con]
 
                     mi_box = mi_box.loc[mi_box['Condition'].isin(conditions)]
@@ -1311,6 +1278,68 @@ for frame in frames:
 
             print("Time spent on ", stats_var," in s: %s" % round((time.time() - start_time_stats), 2))
 
-        print("Time spent on ", con_list[0], " in s: %s" % round((time.time() - start_time_con_list), 2))
+        print("Time spent on ", control_condition, " in s: %s" % round((time.time() - start_time_conditions), 2))
 
-print("Total time passed in s: %s" % round((time.time() - start_time), 2))
+    print("Total time passed in s: %s" % round((time.time() - start_time), 2))
+
+if __name__ == "__main__":
+    # Use commandline argument for directory if provided, otherwise default to current directory
+    try:
+        base_directory = sys.argv[1]
+    except IndexError:
+        base_directory = os.getcwd()
+
+    filepaths = [os.path.join(base_directory, 'data', f'frame_m{frame}_processed_data.csv') for frame in [1, 2]]
+
+    # TODO: SWITCH BACK TO THIS
+    # stats_vars = ['Cell_percent','Total']   # ['Cell_percent'] (use stacked barplots) or ['Total'] (use lineplots), or  ['Cell_percent','Total'] for both
+    stats_vars = ['Total']
+    x_var = "Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
+
+    normalization_type = 'total' # 'relative' or 'total'
+
+    do_ttest = False  # currently set for all conditions. needed for plotting line and stacked bar plots with stars, as well as for colormaps
+    do_wilcoxon_test = False # needs do_ttest to be set to True, as it works from within it and just replaces the actual test function
+    do_anova = False
+    do_tukey_test = False
+
+    save_excel_stats = True  # True = saves stats to csv or xls files. needed for colormap-plots
+
+    plots = True  # True = create plots
+    colormap_plot = False  # create color map of stat results
+    cmap_discrete = False  # True = discrete, False = continous
+    individual_plots = True # create individual line and/or bar graph plots
+
+    boxplots = False # True for DO IT (only for total)
+    stackedbarplots = False # only for Cell percent
+    lineplots = True # still working on this
+    box_day = 5
+
+    save_plots = True  # True = save all plots,  or False = stops at each condition to show plot without saving it
+
+    plot_context = 'talk'  # 'talk', 'poster', 'notebook' - use talk for now
+
+    hue_split = "Condition"  # "Percent" or 'Condition'. mostly 'Condition' right now for all major plots (line, stacked bar and colormap)
+
+    create_plots_and_stats(
+        stats_vars=stats_vars,
+        x_var=x_var,
+        filepaths=filepaths,
+        normalization_type=normalization_type,
+        do_ttest=do_ttest,
+        do_wilcoxon_test=do_wilcoxon_test,
+        do_anova=do_anova,
+        do_tukey_test=do_tukey_test,
+        save_excel_stats=save_excel_stats,
+        plots=plots,
+        colormap_plot=colormap_plot,
+        cmap_discrete=cmap_discrete,
+        individual_plots=individual_plots,
+        boxplots=boxplots,
+        stackedbarplots=stackedbarplots,
+        lineplots=lineplots,
+        box_day=box_day,
+        save_plots=save_plots,
+        plot_context=plot_context,
+        hue_split=hue_split
+    )
