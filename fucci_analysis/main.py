@@ -20,13 +20,19 @@ import sys
 from fucci_analysis import data_annotation
 
 NORMALIZATION_TYPES = ['total', 'relative']
-STATS_VARS_TYPES = ['Cell_percent', 'Total']
 X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
 HUE_SPLIT_TYPES = ['Percent', 'Condition']
+STATS_VARS_TYPES = ['Cell_percent', 'Total']
+
+DEFAULT_NORMALIZATION = 'total'
+DEFAULT_X_VAR = 'Day'
+DEFAULT_PLOT_CONTEXT = 'talk'
+DEFAULT_HUE_SPLIT = 'Percent'
+DEFAULT_STATS_VARS = ['Cell_percent', 'Total']
 
 
-def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
+def create_plots_and_stats(filepaths, stats_vars, x_var, normalization_type,
         box_day, plot_context, hue_split,
         control_condition=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
