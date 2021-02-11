@@ -19,31 +19,41 @@ import os
 import sys
 from fucci_analysis import data_annotation
 
-NORMALIZATION_TYPES = ['total', 'relative']
-STATS_VARS_TYPES = ['Cell_percent', 'Total']
+NORMALIZATION_TYPES = ['total', 'relative', 'raw']
+STATS_VARS_TYPES = ['Total', 'Cell_percent']
 X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
-HUE_SPLIT_TYPES = ['Percent', 'Condition']
+HUE_SPLIT_TYPES = ['Condition', 'Percent']
+
+#TODO: try to infer base_directory from filepaths
+#TODO: extend "raw" normalization type to plots other than line plots
 
 
-def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
-        box_day, plot_context, hue_split,
+def create_plots_and_stats(stats_vars, x_var, filepaths, base_directory, normalization_type,
+        plot_context, hue_split,
         control_condition=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
-        individual_plots=False, boxplots=False, stackedbarplots=False, lineplots=False,
+        individual_plots=False, boxplots=False, box_day=None, stackedbarplots=False, lineplots=False,
         do_ttest=False, do_wilcoxon_test=False, do_anova=False,
         do_tukey_test=False, save_excel_stats=False):
 
+    error_msgs = []
     if normalization_type not in NORMALIZATION_TYPES:
-        raise ValueError(f'Invalid normalization_type: {normalization_type}')
+        error_msgs.append(f'Invalid normalization_type: {normalization_type}.')
     if x_var not in X_VAR_TYPES:
-        raise ValueError(f'Invalid x_var: {x_var}')
+        error_msgs.append(f'Invalid x_var: {x_var}.')
     if plot_context not in PLOT_CONTEXT_TYPES:
-        raise ValueError(f'Invalid plot_context: {plot_context}')
+        error_msgs.append(f'Invalid plot_context: {plot_context}.')
     if hue_split not in HUE_SPLIT_TYPES:
-        raise ValueError(f'Invalid hue_split: {hue_split}')
+        error_msgs.append(f'Invalid hue_split: {hue_split}.')
     if not all([stats_var in STATS_VARS_TYPES for stats_var in stats_vars]):
-        raise ValueError(f'Invalid stats_vars: {stats_vars}')
+        error_msgs.append(f'Invalid stats_vars: {stats_vars}.')
+
+    if (boxplots or lineplots or stackedbarplots) and (box_day is None):
+        error_msgs.append('Must specify box_day.')
+
+    if not len(error_msgs) == 0:
+        raise ValueError(" ".join(error_msgs))
 
     start_time = time.time()
 
@@ -60,11 +70,11 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
         conditions = data.get_conditions()
         start_time_conditions = time.time()
 
-        if control_condition is None:
+        if (control_condition is None) or (control_condition == ""):
             control_condition = conditions[0]
         if control_condition not in conditions:
-            raise ValueError(f'control_condition {control_condition} not contained in conditions for path {path}')
-        print(control_condition)
+            err = f'control_condition {control_condition} not contained in conditions for path {path}'
+            raise ValueError(err)
 
         for stats_var in stats_vars:
 
@@ -599,8 +609,12 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
                                 if normalization_type == 'relative':
                                     m_day['norm'] = (m_day[stats_var] - m_base[stats_var]) / m_base[stats_var]
-                                else:
+                                elif normalization_type == 'total':
                                     m_day['norm'] = (m_day[stats_var]) / m_base[stats_var]
+                                elif normalization_type == 'raw':
+                                    m_day['norm'] = m_day[stats_var]
+                                else:
+                                    raise ValueError('unknown normalization_type')
                                 k=0
                                 for j in ind:
                                     mi_new['norm'].iloc[j] = m_day['norm'].iat[k]
@@ -627,7 +641,11 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                             plt.xticks(x_days)
                             # ax.set_xticklabels(x_days, rotation=0)
                             # ax.set_xticklabels([0,0,1,2,3,4,5,6,7,8,9,10], rotation=0)
-                            ax.set_ylabel('Normalized Cell Count')
+                            if normalization_type == 'raw':
+                                ylabel = 'Raw Cell Count'
+                            else:
+                                ylabel = 'Normalized Cell Count'
+                            ax.set_ylabel(ylabel)
                             ax.set_title(ax_title)
 
                             if do_ttest:
@@ -1324,6 +1342,7 @@ if __name__ == "__main__":
     create_plots_and_stats(
         stats_vars=stats_vars,
         x_var=x_var,
+        base_directory=base_directory,
         filepaths=filepaths,
         normalization_type=normalization_type,
         do_ttest=do_ttest,
