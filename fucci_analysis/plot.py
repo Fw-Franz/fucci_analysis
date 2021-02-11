@@ -10,7 +10,7 @@ import pdb
 
 class PlotUI:
 
-    def __init__(self, base_directory, filepaths):
+    def __init__(self, filepaths):
         self.root = tk.Tk()
         self.checkbox_frame = ttk.Frame(self.root, padding="12 12 12 12")
         self.select_frame = ttk.Frame(self.root, padding="36 12 12 12")
@@ -34,7 +34,6 @@ class PlotUI:
         menu_file = tk.Menu(menubar)
         menubar.add_cascade(menu=menu_file, label='File')
 
-        self.base_directory = base_directory
         if filepaths is None or filepaths == []:
             self.filepaths = filedialog.askopenfilename(
                 initialdir="/",
@@ -384,7 +383,6 @@ class PlotUI:
                 plot_context=self.plot_context_var.get(),
                 hue_split=self.hue_split_var.get(),
                 control_condition=self.control_condition_var.get(),
-                base_directory=self.base_directory,
                 filepaths=self.filepaths,
                 stats_vars=[self.stats_var_var.get()],
                 box_day=int(self.box_day_var.get()),
@@ -406,6 +404,5 @@ class PlotUI:
             messagebox.showinfo(message=message)
 
 if __name__ == "__main__":
-    base_directory = sys.argv[1]
-    filepaths = sys.argv[2:]
-    PlotUI(base_directory, filepaths)
+    filepaths = sys.argv[1:]
+    PlotUI(filepaths)

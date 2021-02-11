@@ -25,11 +25,10 @@ X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
 HUE_SPLIT_TYPES = ['Condition', 'Percent']
 
-#TODO: try to infer base_directory from filepaths
 #TODO: extend "raw" normalization type to plots other than line plots
 
 
-def create_plots_and_stats(stats_vars, x_var, filepaths, base_directory, normalization_type,
+def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
         plot_context, hue_split,
         control_condition=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
@@ -54,6 +53,12 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, base_directory, normali
 
     if not len(error_msgs) == 0:
         raise ValueError(" ".join(error_msgs))
+
+    base_directories = [os.path.dirname(os.path.dirname(path)) for path in filepaths]
+    if len(set(base_directories)) == 1:
+        base_directory = base_directories[0]
+    else:
+        raise ValueError("Selected filepaths not all in same base directory")
 
     start_time = time.time()
 
