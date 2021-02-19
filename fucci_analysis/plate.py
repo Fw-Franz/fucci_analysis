@@ -311,6 +311,11 @@ class Plate():
                     tags=("condition_label")
                 )
 
+
+
+
+
+
     def set_condition(self, condition, x, y, plate_num):
         self.condition_state[plate_num][(y, x)] = condition
         print(self.condition_state)
