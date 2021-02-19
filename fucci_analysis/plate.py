@@ -318,7 +318,7 @@ class Plate():
     def get_condition(self, x, y, plate_num):
         try:
             return self.condition_state[plate_num][(y, x)]
-        except IndexError:
+        except KeyError:
             return None
 
     def save_conditions(self):

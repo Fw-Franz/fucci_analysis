@@ -75,6 +75,8 @@ class AnnotatedData:
         return self.dataframe['Day'].max()
 
     def get_frame(self):
+        if 'Frame' not in self.dataframe.columns:
+            return None
         frames = self.dataframe['Frame'].unique()
         if len(frames) > 1:
             raise ValueError('dataframe has data for more than one frame')
