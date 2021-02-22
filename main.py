@@ -71,7 +71,13 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
         mi = data.dataframe
         start_day = data.start_day()
         end_day = data.end_day()
-        frame = data.get_frame()
+        frames = data.get_frames()
+        if len(frames) == 1:
+            frame = frames[0]
+        else:
+            #TODO: generalize code to handle this case
+            raise ValueError("Input data has multiple frames in one file")
+
         conditions = data.get_conditions()
         start_time_conditions = time.time()
 

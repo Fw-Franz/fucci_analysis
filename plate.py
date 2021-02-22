@@ -4,8 +4,9 @@ import data_annotation
 import colors
 import tkinter as tk
 from tkinter import ttk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 from platform import system
+import os
 import sys
 
 X_DIMENSION_WELLS = 12
@@ -101,29 +102,6 @@ class Plate():
         self.color_count = 0
         self.add_condition("None", "white")
 
-        self.frame_to_add = tk.StringVar()
-        frame_entry = ttk.Entry(
-            self.left_bar_frame,
-            textvariable=self.frame_to_add
-        )
-        frame_entry.bind(
-            '<Return>',
-            lambda e: self.set_frame(self.frame_to_add.get())
-        )
-        frame_entry.grid(
-            column=0,
-            row=0
-        )
-        frame_button = ttk.Button(
-            self.left_bar_frame,
-            text="Set frame",
-            command=lambda: self.set_frame(self.frame_to_add.get())
-        )
-        frame_button.grid(
-            column=0,
-            row=1
-        )
-
         self.root.mainloop()
 
     def add_condition(self, condition, color=None):
@@ -155,7 +133,15 @@ class Plate():
                 multiple=True,
                 filetypes=(("Excel", "*.xlsx"), ("csv", "*.csv"))
             )
-        self.data = data_annotation.AnnotatedData(filepaths)
+
+        frames = {}
+        for path in filepaths:
+            filename = os.path.basename(path)
+            msg = f'Provide frame number for file {filename}'
+            frame = simpledialog.askstring("foo", msg)
+            frames[path] = frame
+
+        self.data = data_annotation.AnnotatedData(filepaths, frames=frames)
         print(self.data.dataframe)
 
         self.plate_nums = self.data.plate_nums()
@@ -339,15 +325,10 @@ class Plate():
     def save(self):
         try:
             self.save_conditions()
-            path = self.data.save()
-            print(f'Saved to {path}')
+            self.data.save()
         except RuntimeError as err:
             message = '\n'.join(["Cannot save:", *err.args])
             messagebox.showinfo(message=message)
-
-    def set_frame(self, frame):
-        if frame:
-            self.data.set_frame(frame)
 
 
 if __name__ == "__main__":

@@ -8,19 +8,17 @@ HEADERS = ['PlateNum', 'WellNum', 'Day', 'Count', 'Marker']
 class AnnotatedData:
     WELL_NUMS = 96
 
-    def __init__(self, filepaths, frame=None):
-        self.load_files(filepaths)
-        self.frame = None
-        self.set_frame(frame)
+    def __init__(self, filepaths, frames=None):
+        self.load_files(filepaths, frames)
         self.set_marker()
         self.set_total_and_cell_percent()
 
-    def load_files(self, filepaths):
+    def load_files(self, filepaths, frames):
         self.directory = os.path.commonpath(
             [os.path.dirname(path) for path in filepaths]
         )
         filetypes = [path.split('.')[-1] for path in filepaths]
-        frames = []
+        data = []
         if all([filetype == 'xlsx' for filetype in filetypes]):
             for path in filepaths:
                 x = pd.ExcelFile(path)
@@ -48,16 +46,21 @@ class AnnotatedData:
                 if "DayNum" in m.columns:
                     m.rename(columns={"DayNum": "Day"}, inplace=True)
 
-                frames.append(m)
+                if frames:
+                    m['Frame'] = frames[path]
+                else:
+                    m['Frame'] = None
+
+                data.append(m)
 
         elif all([filetype == 'csv' for filetype in filetypes]):
             for path in filepaths:
                 m = pd.read_csv(path)
-                frames.append(m)
+                data.append(m)
         else:
             raise ValueError("Unhandled filetype (not .xlsx or .csv)")
 
-        self.dataframe = pd.concat(frames)
+        self.dataframe = pd.concat(data)
         self.dataframe.reset_index(drop=True, inplace=True)
 
         if 'Condition' not in self.dataframe.columns:
@@ -75,21 +78,15 @@ class AnnotatedData:
     def end_day(self):
         return self.dataframe['Day'].max()
 
-    def get_frame(self):
-        if 'Frame' not in self.dataframe.columns:
-            return None
-        frames = self.dataframe['Frame'].unique()
-        if len(frames) > 1:
-            raise ValueError('dataframe has data for more than one frame')
-        elif len(frames) < 1:
-            return None
-        else:
-            return frames[0]
-
     def plate_nums(self):
         plate_nums = self.dataframe['PlateNum'].unique()
         plate_nums.sort()
         return plate_nums
+
+    def get_frames(self):
+        frames = self.dataframe['Frame'].unique()
+        frames.sort()
+        return frames
 
     def get_conditions(self):
         conditions = self.dataframe['Condition'].unique()
@@ -104,14 +101,6 @@ class AnnotatedData:
         self.dataframe.loc[
             query_index, ['Condition', 'PlateRow', 'PlateColumn']
         ] = [condition, plate_row, plate_column]
-
-    def set_frame(self, frame):
-        if frame is None and self.get_frame() is not None:
-            frame = self.get_frame()
-
-        self.frame = frame
-        self.dataframe['Frame'] = frame
-        print(f'Changed frame to {self.frame}')
 
     def set_marker(self):
         self.dataframe['Marker'] = self.dataframe['Marker'].replace(
@@ -131,21 +120,20 @@ class AnnotatedData:
         self.dataframe['Cell_percent'] = percent
 
     def save(self):
-        if not self.frame:
-            raise DataValidationError('Missing frame assignment')
         if (self.dataframe['Condition'] == None).any():
             raise DataValidationError("Missing condition assignments")
         timestamp = datetime.now().strftime('%Y%m%d%M%S')
-        path = os.path.join(
-            self.directory,
-            f'frame_m{self.frame}_processed_data_{timestamp}.csv'
-        )
-        self.dataframe.to_csv(
-            path_or_buf=path,
-            index=None,
-            header=True
-        )
-        return path
+        for frame in self.get_frames():
+            path = os.path.join(
+                self.directory,
+                f'frame_m{frame}_processed_data_{timestamp}.csv'
+            )
+            data = self.dataframe[self.dataframe['Frame'] == frame]
+            data.to_csv(
+                path_or_buf=path,
+                index=None,
+                header=True
+            )
 
 
 class DataValidationError(RuntimeError):
