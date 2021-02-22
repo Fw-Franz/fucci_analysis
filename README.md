@@ -1,20 +1,17 @@
 # FUCCI Analysis Pipeline
 
 ## Setup
-This project uses [Poetry](https://python-poetry.org/) to handle dependencies and testing. If you don't have Poetry installed, run `pip install poetry` (docs [here](https://python-poetry.org/docs/)).
+This project uses [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/index.html) for dependency management. To [create a Conda env](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file) with the appropriate packages and environment variables, run `conda env create -f environment.yml`, then run `conda activate fucci_analysis` to use it.
 
-To install the necessary dependencies, run `poetry install`.
 
-#### Debugging setup issues
-- You may run into an error of the form `“The headers or library files could not be found for jpeg`. This is because one of the dependencies for the Pillow package, `libjpeg`, is not installed. On MacOS, use [Homebrew](https://brew.sh/) to get the package and try again: `brew install libjpeg`.
+## Running the data annotation + plot UIs
 
-If you are installing on a Macboook, you may need to follow [these extra steps](https://github.com/scipy/scipy/issues/13102#issuecomment-767502377).
+This package contains two UIs: the Plate and Plot UI.
 
-## Running the data annotation UI
+The Plate UI enables annotation of the well numbers with condition information and can be run with `python plate.py`. It accepts Excel files and produces CSVs. The Plot UI takes a CSV and produces the corresponding plots and statistics on the basis of a number selectable options. It can be run with `python plot.py`.
 
-Because all the dependencies are handled through Poetry, running the script requires prefacing any commands with `poetry run`. For instance, opening the plate annotation UI from the top level of this project would mean running `poetry run python fucci_analysis/plate.py`
+Both the plate and plot UI script also accept any number of filenames as command line arguments, for instance `python fucci_analysis/plate.py ~/OneDrive/my_folder/file1.xlsx ~/OneDrive/my_folder/file2.xlsx`. If no filenames are given, the UI will prompt you with a file selector.
 
-The plate UI script also accepts any number of filenames as command line arguments, for instance `poetry run python fucci_analysis/plate.py ~/OneDrive/my_folder/file1.xlsx ~/OneDrive/my_folder/file2.xlsx`. If no filenames are given, the UI will prompt you with a file selector.
 
 ## Testing
-There are a handful of tests written using [pytest](https://docs.pytest.org/en/stable/). These can be run using `poetry run pytest`. The tests are not exhaustive as there is no good automated testing framework for the tkinter UI. Update with caution.
+There are a handful of tests written using [pytest](https://docs.pytest.org/en/stable/). These can be run using `pytest`. The tests are not exhaustive as there is no good automated testing framework for the tkinter UI. Update with caution.

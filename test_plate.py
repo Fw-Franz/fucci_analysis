@@ -1,4 +1,4 @@
-from fucci_analysis import plate
+import plate
 
 
 def test_get_tag_info():

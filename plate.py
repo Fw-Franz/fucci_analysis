@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from fucci_analysis import data_annotation
-from fucci_analysis import colors
+import data_annotation
+import colors
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog, messagebox
