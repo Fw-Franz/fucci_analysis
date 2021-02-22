@@ -10,6 +10,7 @@ class AnnotatedData:
 
     def __init__(self, filepaths, frame=None):
         self.load_files(filepaths)
+        self.frame = None
         self.set_frame(frame)
         self.set_marker()
         self.set_total_and_cell_percent()
@@ -107,8 +108,6 @@ class AnnotatedData:
     def set_frame(self, frame):
         if frame is None and self.get_frame() is not None:
             frame = self.get_frame()
-        elif frame is None:
-            return
 
         self.frame = frame
         self.dataframe['Frame'] = frame

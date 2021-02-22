@@ -347,9 +347,7 @@ class Plate():
 
     def set_frame(self, frame):
         if frame:
-            frame = int(frame)
             self.data.set_frame(frame)
-            print(self.data.frame)
 
 
 if __name__ == "__main__":
