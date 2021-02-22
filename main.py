@@ -17,7 +17,7 @@ from matplotlib.lines import Line2D
 import time
 import os
 import sys
-from fucci_analysis import data_annotation
+import data_annotation
 
 NORMALIZATION_TYPES = ['total', 'relative', 'raw']
 STATS_VARS_TYPES = ['Total', 'Cell_percent']

@@ -1,10 +1,10 @@
-from fucci_analysis import data_annotation
+import data_annotation
 import os
 import pandas as pd
 
 
 def test_set_conditions():
-    base_directory = os.path.join(os.getcwd(), "tests", "test_data")
+    base_directory = os.path.join(os.getcwd(), "test_data")
     filepaths = [os.path.join(base_directory, 'test_set_conditions.xlsx')]
 
     target = pd.DataFrame(data={

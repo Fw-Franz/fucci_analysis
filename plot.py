@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from fucci_analysis import data_annotation, main
+import data_annotation, main
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog

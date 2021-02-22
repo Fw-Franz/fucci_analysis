@@ -1,6 +1,2 @@
 .DS_store
-dist/
-~/
-fucci_analysis.egg-info/
-fucci_analysis/__pycache__/
-tests/__pycache__/
+__pycache__
