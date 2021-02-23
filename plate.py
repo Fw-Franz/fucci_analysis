@@ -141,7 +141,8 @@ class Plate():
             frame = simpledialog.askstring("foo", msg)
             frames[path] = frame
 
-        self.data = data_annotation.AnnotatedData(filepaths, frames=frames)
+        self.data = data_annotation.AnnotatedData(filepaths)
+        self.data.load_unannotated_files(frames=frames)
         print(self.data.dataframe)
 
         self.plate_nums = self.data.plate_nums()

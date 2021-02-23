@@ -8,69 +8,97 @@ HEADERS = ['PlateNum', 'WellNum', 'Day', 'Count', 'Marker']
 class AnnotatedData:
     WELL_NUMS = 96
 
-    def __init__(self, filepaths, frames=None):
-        self.load_files(filepaths, frames)
-        self.set_marker()
-        self.set_total_and_cell_percent()
-
-    def load_files(self, filepaths, frames):
+    def __init__(self, filepaths):
+        self.filepaths = filepaths
         self.directory = os.path.commonpath(
             [os.path.dirname(path) for path in filepaths]
         )
-        filetypes = [path.split('.')[-1] for path in filepaths]
+
+    def load_annotated_files(self):
+        ''' Load assuming you have already annotated everything'''
         data = []
-        if all([filetype == 'xlsx' for filetype in filetypes]):
-            for path in filepaths:
-                x = pd.ExcelFile(path)
-                # Some files have the headers specified but others
-                # don't. Handle this by trying first to parse without
-                # headers and then seeing if the headers are in the
-                # first row.
-                first_row = x.parse(
-                    "Sheet1",
-                    header=None,
-                    names=HEADERS,
-                    nrows=1
-                )
-                if set(HEADERS).intersection(set(first_row.loc[0].values)):
-                    m = x.parse(
-                        "Sheet1",
-                        header=0
-                    )
-                else:
-                    m = x.parse(
-                        "Sheet1",
-                        header=None,
-                        names=HEADERS
-                    )
-                if "DayNum" in m.columns:
-                    m.rename(columns={"DayNum": "Day"}, inplace=True)
-
-                if frames:
-                    m['Frame'] = frames[path]
-                else:
-                    m['Frame'] = None
-
-                data.append(m)
-
-        elif all([filetype == 'csv' for filetype in filetypes]):
-            for path in filepaths:
-                m = pd.read_csv(path)
-                data.append(m)
-        else:
-            raise ValueError("Unhandled filetype (not .xlsx or .csv)")
+        for path in self.filepaths:
+            m = pd.read_csv(path)
+            data.append(m)
 
         self.dataframe = pd.concat(data)
         self.dataframe.reset_index(drop=True, inplace=True)
 
-        if 'Condition' not in self.dataframe.columns:
-            self.dataframe['Condition'] = None
+    def load_unannotated_files(self, frames):
+        ''' Load assuming you are about to annotate the files'''
+        data = []
+        for path in self.filepaths:
+            file_extension = os.path.splitext(path)[-1]
+            if file_extension == '.xlsx':
+                m = self.load_xlsx(path)
+            elif file_extension == '.csv':
+                m = self.load_csv(path)
+            else:
+                raise ValueError("Unhandled filetype (not .xlsx or .csv)")
 
-        if 'PlateRow' not in self.dataframe.columns:
-            self.dataframe['PlateRow'] = None
+            if "DayNum" in m.columns:
+                m.rename(columns={"DayNum": "Day"}, inplace=True)
 
-        if 'PlateColumn' not in self.dataframe.columns:
-            self.dataframe['PlateColumn'] = None
+            m['Frame'] = frames[path]
+
+            data.append(m)
+
+        self.dataframe = pd.concat(data)
+        self.dataframe.reset_index(drop=True, inplace=True)
+
+        columns = ['Condition', 'PlateRow', 'PlateColumn']
+        for column in columns:
+            if column not in self.dataframe.columns:
+                self.dataframe[column] = None
+
+        self.set_marker()
+        self.set_total_and_cell_percent()
+
+    @staticmethod
+    def load_xlsx(path):
+        x = pd.ExcelFile(path)
+        # Some files have the headers specified but others
+        # don't. Handle this by trying first to parse without
+        # headers and then seeing if the headers are in the
+        # first row.
+        first_row = x.parse(
+            header=None,
+            names=HEADERS,
+            nrows=1
+        )
+        if set(HEADERS).intersection(set(first_row.loc[0].values)):
+            return x.parse(
+                header=0
+            )
+        else:
+            return x.parse(
+                header=None,
+                names=HEADERS
+            )
+
+    @staticmethod
+    def load_csv(path):
+        # Some files have the headers specified but others
+        # don't. Handle this by trying first to parse without
+        # headers and then seeing if the headers are in the
+        # first row.
+        first_row = pd.read_csv(
+            path,
+            header=None,
+            names=HEADERS,
+            nrows=1
+        )
+        if set(HEADERS).intersection(set(first_row.loc[0].values)):
+            return pd.read_csv(
+                path,
+                header=0
+            )
+        else:
+            return pd.read_csv(
+                path,
+                header=None,
+                names=HEADERS
+            )
 
     def start_day(self):
         return self.dataframe['Day'].min()

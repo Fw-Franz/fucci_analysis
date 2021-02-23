@@ -45,6 +45,7 @@ class PlotUI:
             self.filepaths = filepaths
 
         self.data = data_annotation.AnnotatedData(self.filepaths)
+        self.data.load_annotated_files()
         self.conditions = self.data.get_conditions()
         self.days = range(self.data.start_day(), self.data.end_day() + 1)
 

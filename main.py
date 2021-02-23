@@ -68,6 +68,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
         l = 0
 
         data = data_annotation.AnnotatedData([path])
+        data.load_annotated_files()
         mi = data.dataframe
         start_day = data.start_day()
         end_day = data.end_day()
