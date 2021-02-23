@@ -19,13 +19,14 @@ import os
 import sys
 import data_annotation
 
-NORMALIZATION_TYPES = ['total', 'relative', 'raw']
+NORMALIZATION_TYPES = ['total', 'relative', 'raw', 'control']
 STATS_VARS_TYPES = ['Total', 'Cell_percent']
 X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
 HUE_SPLIT_TYPES = ['Condition', 'Percent']
 
 #TODO: extend "raw" normalization type to plots other than line plots
+#TODO: add "control" normalization for all plot types
 
 
 def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
@@ -607,6 +608,10 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                             mi_new = mi[mi['Condition'] == i]
                             mi_new = mi_new[mi_new['Marker'] == 'RFP']
 
+                            mi_control = mi[mi['Condition'] == control_condition]
+                            mi_control = mi_control[mi_control['Marker'] == 'RFP']
+                            mi_control = mi_control.reset_index(drop=True)
+
                             mi_new['norm'] = 0.
 
                             mi_new=mi_new.reset_index(drop=True)
@@ -614,8 +619,13 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                             m_base = mi_new[mi_new['Day'] == start_day]
                             m_base = m_base.reset_index(drop=True)
 
+                            m_control_base = mi_control[mi_control['Day'] == start_day]
+                            m_control_base = m_control_base.reset_index(drop=True)
+
                             for day in range(mi['Day'].min(),mi['Day'].max()+1):
                                 m_day = mi_new[mi_new['Day'] == day]
+                                m_control_day = mi_control[mi_control['Day'] == day]
+                                m_control_day = m_control_day.reset_index(drop=True)
                                 ind = m_day.index
                                 m_day = m_day.reset_index(drop=True)
 
@@ -625,8 +635,11 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                                     m_day['norm'] = (m_day[stats_var]) / m_base[stats_var]
                                 elif normalization_type == 'raw':
                                     m_day['norm'] = m_day[stats_var]
+                                elif normalization_type == 'control':
+                                    m_day['norm'] = (m_day[stats_var] / m_base[stats_var]) / (m_control_day[stats_var] / m_control_base[stats_var])
                                 else:
                                     raise ValueError('unknown normalization_type')
+
                                 k=0
                                 for j in ind:
                                     mi_new['norm'].iloc[j] = m_day['norm'].iat[k]
@@ -1313,20 +1326,14 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
     print("Total time passed in s: %s" % round((time.time() - start_time), 2))
 
 if __name__ == "__main__":
-    # Use commandline argument for directory if provided, otherwise default to current directory
-    try:
-        base_directory = sys.argv[1]
-    except IndexError:
-        base_directory = os.getcwd()
-
-    filepaths = [os.path.join(base_directory, 'data', f'frame_m{frame}_processed_data.csv') for frame in [1, 2]]
+    filepaths = sys.argv[1:]
 
     # TODO: SWITCH BACK TO THIS
     # stats_vars = ['Cell_percent','Total']   # ['Cell_percent'] (use stacked barplots) or ['Total'] (use lineplots), or  ['Cell_percent','Total'] for both
     stats_vars = ['Total']
     x_var = "Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
 
-    normalization_type = 'total' # 'relative' or 'total'
+    normalization_type = 'control'
 
     do_ttest = False  # currently set for all conditions. needed for plotting line and stacked bar plots with stars, as well as for colormaps
     do_wilcoxon_test = False # needs do_ttest to be set to True, as it works from within it and just replaces the actual test function
@@ -1354,7 +1361,6 @@ if __name__ == "__main__":
     create_plots_and_stats(
         stats_vars=stats_vars,
         x_var=x_var,
-        base_directory=base_directory,
         filepaths=filepaths,
         normalization_type=normalization_type,
         do_ttest=do_ttest,
