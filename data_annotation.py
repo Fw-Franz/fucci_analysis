@@ -1,4 +1,5 @@
 from datetime import datetime
+from main import TOTAL_NORM, RELATIVE_NORM, CONTROL_NORM
 import pandas as pd
 import os
 
@@ -147,14 +148,47 @@ class AnnotatedData:
         percent = self.dataframe['Count'] / self.dataframe['Total']
         self.dataframe['Cell_percent'] = percent
 
+    def set_normalization(self, normalization_type, stats_var, control_condition):
+        total_norm_colname = self.normalization_colname(TOTAL_NORM, stats_var, control_condition)
+        relative_norm_colname = self.normalization_colname(RELATIVE_NORM, stats_var, control_condition)
+        control_norm_colname = self.normalization_colname(CONTROL_NORM, stats_var, control_condition)
+        self.dataframe[[total_norm_colname, relative_norm_colname, control_norm_colname]] = 0.0
+
+        groups = {k: v for k, v in self.dataframe.groupby(['Day', 'Condition', 'Marker'])}
+        for (day, condition, marker), group in groups.items():
+            idx = group.index
+            start_day_group = groups[(self.start_day(), condition, marker)]
+            control_condition_group = groups[(day, control_condition, marker)]
+            control_start_day_group = groups[(self.start_day(), control_condition, marker)]
+
+            group = group.reset_index(drop=True)
+            start_day_group = start_day_group.reset_index(drop=True)
+            control_condition_group = control_condition_group.reset_index(drop=True)
+            control_start_day_group = control_start_day_group.reset_index(drop=True)
+
+            group[total_norm_colname] = group[stats_var] / start_day_group[stats_var]
+            group[relative_norm_colname] = (group[stats_var] - start_day_group[stats_var]) / start_day_group[stats_var]
+            group[control_norm_colname] = group[total_norm_colname] / (control_condition_group[stats_var] / control_start_day_group[stats_var])
+
+            for k, j in enumerate(idx):
+                self.dataframe[total_norm_colname].iloc[j] = group[total_norm_colname].iat[k]
+                self.dataframe[relative_norm_colname].iloc[j] = group[relative_norm_colname].iat[k]
+                self.dataframe[control_norm_colname].iloc[j] = group[control_norm_colname].iat[k]
+
+    @staticmethod
+    def normalization_colname(normalization_type, stats_var, control_condition):
+        colname = f'{stats_var}_{normalization_type}_norm'
+        if normalization_type == CONTROL_NORM:
+            colname = f'{colname}_{control_condition}'
+        return colname
+
     def save(self):
         if (self.dataframe['Condition'] == None).any():
             raise DataValidationError("Missing condition assignments")
-        timestamp = datetime.now().strftime('%Y%m%d%M%S')
         for frame in self.get_frames():
             path = os.path.join(
                 self.directory,
-                f'frame_m{frame}_processed_data_{timestamp}.csv'
+                f'frame_m{frame}_processed_data.csv'
             )
             data = self.dataframe[self.dataframe['Frame'] == frame]
             data.to_csv(

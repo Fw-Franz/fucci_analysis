@@ -19,14 +19,21 @@ import os
 import sys
 import data_annotation
 
-NORMALIZATION_TYPES = ['total', 'relative', 'raw', 'control']
+
+TOTAL_NORM = 'total'
+RELATIVE_NORM = 'relative'
+CONTROL_NORM = 'control'
+NORMALIZATION_TYPES = [
+    TOTAL_NORM,
+    RELATIVE_NORM,
+    CONTROL_NORM
+]
 STATS_VARS_TYPES = ['Total', 'Cell_percent']
 X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
 HUE_SPLIT_TYPES = ['Condition', 'Percent']
 
-#TODO: extend "raw" normalization type to plots other than line plots
-#TODO: add "control" normalization for all plot types
+#TODO: extend use of norm_colname to all plots and stats
 
 
 def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
@@ -103,6 +110,9 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
             #end
 
             #endregion
+
+            data.set_normalization(normalization_type, stats_var, control_condition)
+            norm_colname = data.normalization_colname(normalization_type, stats_var, control_condition)
 
             # region Initilize for-loop parameters
             days_total=end_day-start_day+1
@@ -608,74 +618,32 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                             mi_new = mi[mi['Condition'] == i]
                             mi_new = mi_new[mi_new['Marker'] == 'RFP']
 
-                            mi_control = mi[mi['Condition'] == control_condition]
-                            mi_control = mi_control[mi_control['Marker'] == 'RFP']
-                            mi_control = mi_control.reset_index(drop=True)
-
-                            mi_new['norm'] = 0.
-
-                            mi_new=mi_new.reset_index(drop=True)
-
-                            m_base = mi_new[mi_new['Day'] == start_day]
-                            m_base = m_base.reset_index(drop=True)
-
-                            m_control_base = mi_control[mi_control['Day'] == start_day]
-                            m_control_base = m_control_base.reset_index(drop=True)
-
-                            for day in range(mi['Day'].min(),mi['Day'].max()+1):
-                                m_day = mi_new[mi_new['Day'] == day]
-                                m_control_day = mi_control[mi_control['Day'] == day]
-                                m_control_day = m_control_day.reset_index(drop=True)
-                                ind = m_day.index
-                                m_day = m_day.reset_index(drop=True)
-
-                                if normalization_type == 'relative':
-                                    m_day['norm'] = (m_day[stats_var] - m_base[stats_var]) / m_base[stats_var]
-                                elif normalization_type == 'total':
-                                    m_day['norm'] = (m_day[stats_var]) / m_base[stats_var]
-                                elif normalization_type == 'raw':
-                                    m_day['norm'] = m_day[stats_var]
-                                elif normalization_type == 'control':
-                                    m_day['norm'] = (m_day[stats_var] / m_base[stats_var]) / (m_control_day[stats_var] / m_control_base[stats_var])
-                                else:
-                                    raise ValueError('unknown normalization_type')
-
-                                k=0
-                                for j in ind:
-                                    mi_new['norm'].iloc[j] = m_day['norm'].iat[k]
-                                    k=k+1
-
                             means = mi_new.groupby(['Day']).mean()
                             stds = mi_new.groupby(['Day']).std()
 
                             if i==control_condition:
                                 mi_new_control=mi_new
-                                ax = sns.lineplot(x='Day', y='norm', data=mi_new_control,ci='sd')  # ,palette = sns.color_palette("hsv", 2))#, err_style = "bars")
+                                ax = sns.lineplot(x='Day', y=norm_colname, data=mi_new_control,ci='sd')
 
                             else:
                                 mi_new_both=mi_new.append(mi_new_control)
                                 hue_choice = [control_condition, i]
-                                ax = sns.lineplot(x='Day', y='norm', data=mi_new_both, hue=hue_split,hue_order=hue_choice,legend='full',
-                                                  ci='sd', palette = sns.color_palette("hsv", 2), style=hue_split, markers=True, dashes=True)#, err_style = "bars")
+                                ax = sns.lineplot(x='Day', y=norm_colname, data=mi_new_both, hue=hue_split,hue_order=hue_choice,legend='full',
+                                                  ci='sd', palette = sns.color_palette("hsv", 2), style=hue_split, markers=True, dashes=True)
 
                             handles, labels = ax.get_legend_handles_labels()
                             ax.legend(handles, labels, loc='upper left')
 
                             x_days = np.arange(start_day, end_day+1)
-                            # print(x_days)
+
                             plt.xticks(x_days)
-                            # ax.set_xticklabels(x_days, rotation=0)
-                            # ax.set_xticklabels([0,0,1,2,3,4,5,6,7,8,9,10], rotation=0)
-                            if normalization_type == 'raw':
-                                ylabel = 'Raw Cell Count'
-                            else:
-                                ylabel = 'Normalized Cell Count'
+                            ylabel = 'Normalized Cell Count'
                             ax.set_ylabel(ylabel)
                             ax.set_title(ax_title)
 
                             if do_ttest:
                                 for j in range(mi['Day'].min(),mi['Day'].max()+1):
-                                    m=means.iloc[j-start_day]['norm']
+                                    m=means.iloc[j-start_day][norm_colname]
                                     if 0.01<=tt_p[j-start_day]<0.05:
                                         text(j, m+0.05, '*' , fontsize=18 , horizontalalignment='center')
                                     if 0.001<=tt_p[j-start_day]<0.01:
@@ -1228,9 +1196,6 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     mi_box = mi
                     mi_box = mi_box[mi_box.Marker == marker_list[0]]
 
-                    # for con in conditions:
-                    #     mi_box = mi_box[mi_box.Condition != con]
-
                     mi_box = mi_box.loc[mi_box['Condition'].isin(conditions)]
                     sorterIndex = dict(zip(conditions, range(len(conditions))))
 
@@ -1239,40 +1204,9 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     mi_box['Condition_Rank'] = mi_box['Condition'].map(sorterIndex)
                     mi_box.sort_values(['Condition_Rank', 'WellNum'], ascending=[True, True], inplace=True)
                     mi_box.drop('Condition_Rank', 1, inplace=True)
-                    # print(mi_box['Condition'])
 
-                    mi_box['norm'] = 0.
-
-                    mi_box = mi_box.reset_index(drop=True)
-
-                    mi_base = mi_box[mi_box['Day'] == start_day]
-                    mi_base = mi_base.reset_index(drop=True)
-
-                    for day in range(mi['Day'].min(), mi['Day'].max() + 1):
-                        m_day = mi_box[mi_box['Day'] == day]
-                        ind = m_day.index
-                        m_day = m_day.reset_index(drop=True)
-
-                        if normalization_type == 'relative':
-                            m_day['norm'] = (m_day[stats_var] - mi_base[stats_var]) / mi_base[stats_var]
-                        else:
-                            m_day['norm'] = (m_day[stats_var]) / mi_base[stats_var]
-                        k = 0
-                        for j in ind:
-                            mi_box['norm'].iloc[j] = m_day['norm'].iat[k]
-                            k = k + 1
-
-
-                    # ax = sns.lineplot(x='Day', y='norm', data=mi_box,
-                    #                       ci='sd')  # ,palette = sns.color_palette("hsv", 2))#, err_style = "bars")
-
-
-                    ax = sns.lineplot(x='Day', y='norm', data=mi_box, hue='Condition', linewidth=6,
-            
-                                      legend='full', ci=None)#,  err_style = "bars")#,err_kws=capsize)
-                                      # legend='full', ci='sd')#,  err_style = "bars")#,err_kws=capsize)
-                    # style = hue_split, markers = True, dashes = True,
-                    # , palette = sns.color_palette("hsv", 2)
+                    ax = sns.lineplot(x='Day', y=norm_colname, data=mi_box, hue='Condition', linewidth=6,
+                                      legend='full', ci=None)
                     handles, labels = ax.get_legend_handles_labels()
                     for legobj in handles:
                         legobj.set_linewidth(6.0)
@@ -1285,25 +1219,13 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     x_days = np.arange(start_day, end_day + 1)
                     plt.xticks(x_days)
 
-                    # ax.set(ylim=(0, 1.2))
                     fig = plt.gcf()
                     fig.set_size_inches(20, 20)
-                    # fig = plt.figure(figsize=(30, 30), dpi=300)
                     box = ax.get_position()
 
                     plt.gcf().subplots_adjust(bottom=0.3)
 
-                    # ax.set_xticklabels(conditions, rotation=90)
-                    # ax.set(xticks=ttest_pvalues.columns, rotation=90)
-                    # tick_list = np.r_[0:len(conditions)]
-                    # ax.set_xticks(tick_list)
-                    # print(conditions)
-                    # ax.set_xticklabels(conditions, rotation=37, ha='right')  # , rotation_mode="anchor")
-                    # for tick in ax.xaxis.get_majorticklabels():
-                    #     tick.set_horizontalalignment("right")
                     ax.set_ylabel('Normalized Cell Counts')
-                    # ax.set_xlabel('Conditions')
-                    # ax.set_xlabel('')
 
                     ax.set_title(ax_title_line)
 
@@ -1323,7 +1245,10 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
         print("Time spent on ", control_condition, " in s: %s" % round((time.time() - start_time_conditions), 2))
 
+        data.save()
+
     print("Total time passed in s: %s" % round((time.time() - start_time), 2))
+
 
 if __name__ == "__main__":
     filepaths = sys.argv[1:]
@@ -1333,7 +1258,7 @@ if __name__ == "__main__":
     stats_vars = ['Total']
     x_var = "Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
 
-    normalization_type = 'control'
+    normalization_type = CONTROL_NORM
 
     do_ttest = False  # currently set for all conditions. needed for plotting line and stacked bar plots with stars, as well as for colormaps
     do_wilcoxon_test = False # needs do_ttest to be set to True, as it works from within it and just replaces the actual test function
