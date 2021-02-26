@@ -615,21 +615,16 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                         #region lineplots
                         if plot_type=="line":
 
-                            mi_new = mi[mi['Condition'] == i]
-                            mi_new = mi_new[mi_new['Marker'] == 'RFP']
+                            mi_new = mi[(mi['Condition'] == i) & (mi['Marker'] == 'RFP')]
+                            mi_control = mi[(mi['Condition'] == control_condition) & (mi['Marker'] == 'RFP')]
+                            mi_new_both = mi_new.append(mi_control)
 
                             means = mi_new.groupby(['Day']).mean()
                             stds = mi_new.groupby(['Day']).std()
 
-                            if i==control_condition:
-                                mi_new_control=mi_new
-                                ax = sns.lineplot(x='Day', y=norm_colname, data=mi_new_control,ci='sd')
-
-                            else:
-                                mi_new_both=mi_new.append(mi_new_control)
-                                hue_choice = [control_condition, i]
-                                ax = sns.lineplot(x='Day', y=norm_colname, data=mi_new_both, hue=hue_split,hue_order=hue_choice,legend='full',
-                                                  ci='sd', palette = sns.color_palette("hsv", 2), style=hue_split, markers=True, dashes=True)
+                            hue_choice = [control_condition, i]
+                            ax = sns.lineplot(x='Day', y=norm_colname, data=mi_new_both, hue=hue_split,hue_order=hue_choice,legend='full',
+                                              ci='sd', palette = sns.color_palette("hsv", 2), style=hue_split, markers=True, dashes=True)
 
                             handles, labels = ax.get_legend_handles_labels()
                             ax.legend(handles, labels, loc='upper left')
