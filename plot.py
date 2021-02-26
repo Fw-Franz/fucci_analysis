@@ -39,7 +39,7 @@ class PlotUI:
                 initialdir="/",
                 title="Select file",
                 multiple=True,
-                filetypes=(("csv", "*.csv"))
+                filetypes=(("csv", "*.csv"),)
             )
         else:
             self.filepaths = filepaths
