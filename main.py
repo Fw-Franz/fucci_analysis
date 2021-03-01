@@ -252,7 +252,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     if hue_split == "Condition":
                         violin_dir = os.path.join(
                             base_directory, 'plots', 'violinplots', 'condition_1_vs_2',
-                            f'{control_condition}_normalized', f'm{frame}'
+                            f'{control_condition}_normalized', normalization_type, f'm{frame}'
                         )
                         if not os.path.exists(violin_dir):
                             os.makedirs(violin_dir)
@@ -260,7 +260,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     else:
                         violin_dir = os.path.join(
                             base_directory, 'plots', 'violinplots',
-                            f'{control_condition}_normalized', f'm{frame}'
+                            f'{control_condition}_normalized', normalization_type, f'm{frame}'
                         )
                         if not os.path.exists(violin_dir):
                             os.makedirs(violin_dir)
@@ -270,7 +270,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     box_dir = os.path.join(
                         base_directory, 'plots', 'boxplots',
                         f'{control_condition}_normalized',
-                        f'm{frame}'
+                        normalization_type, f'm{frame}'
                     )
                     if not os.path.exists(box_dir):
                         os.makedirs(box_dir)
@@ -280,7 +280,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                 if stackedbarplots:
                     stack_dir = os.path.join(
                         base_directory, 'plots', 'stackedbarplots',
-                        f'{control_condition}_normalized', f'm{frame}'
+                        f'{control_condition}_normalized', normalization_type, f'm{frame}'
                     )
                     if not os.path.exists(stack_dir):
                         os.makedirs(stack_dir)
@@ -293,7 +293,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     line_dir = os.path.join(
                         base_directory, 'plots', 'lineplotsall', 
                         f'{control_condition}_normalized',
-                        f'm{frame}'
+                        normalization_type, f'm{frame}'
                     )
                     if not os.path.exists(line_dir):
                         os.makedirs(line_dir)
@@ -303,7 +303,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                 if plot_type == "stacked_bar":
                     stacked_bar_dir = os.path.join(
                         base_directory, 'plots', 'stacked_bar',
-                        f'{control_condition}_normalized', f'm{frame}'
+                        f'{control_condition}_normalized', normalization_type, f'm{frame}'
                     )
                     if not os.path.exists(stacked_bar_dir):
                         os.makedirs(stacked_bar_dir)
@@ -313,7 +313,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     line_dir = os.path.join(
                         base_directory, 'plots', 'lineplots',
                         f'{control_condition}_normalized',
-                        f'm{frame}'
+                        normalization_type, f'm{frame}'
                     )
                     if not os.path.exists(line_dir):
                         os.makedirs(line_dir)
@@ -323,7 +323,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     colormap_dir = os.path.join(
                         base_directory, 'plots', 'colormaps',
                         f'{control_condition}_normalized', 
-                        f'm{frame}'
+                        normalization_type, f'm{frame}'
                     )
                     if not os.path.exists(colormap_dir):
                         os.makedirs(colormap_dir)
