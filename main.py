@@ -19,7 +19,6 @@ import os
 import sys
 import data_annotation
 
-
 TOTAL_NORM = 'total'
 RELATIVE_NORM = 'relative'
 CONTROL_NORM = 'control'
@@ -73,7 +72,6 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
     for path in filepaths:
         print('-----------------------------------')
         print('Processing file:', path)
-        l = 0
 
         data = data_annotation.AnnotatedData([path])
         data.load_annotated_files()
@@ -97,7 +95,6 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
             raise ValueError(err)
 
         for stats_var in stats_vars:
-
             #region intitialize print out
             start_time_stats = time.time()
             print('-----------------------------------')
@@ -220,7 +217,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
             #endregion
 
-            for i in graph_n: #graph_n is just the conditions list in the current iteration
+            for l, i in enumerate(graph_n): #graph_n is just the conditions list in the current iteration
                 day = i
                 print('Processing:',i, 'at frame',frame)
 
@@ -347,8 +344,8 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                 #region stats
                 #region ttest
                 if do_ttest:
-                    mi_control = mi_t[mi_t['Condition'] == control_condition]
-                    mi_drug = mi_t[mi_t['Condition'] == i]
+                    mi_control = mi[mi['Condition'] == control_condition]
+                    mi_drug = mi[mi['Condition'] == i]
 
 
                     if stats_var=='Cell_percent':
@@ -368,19 +365,16 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
                                     tt_p[iday-start_day,k]=tt[1]
 
+                                mean_control = np.mean(mi_control_d_m[stats_var])
+                                mean_drug = np.mean(mi_drug_d_m[stats_var])
 
-                                mi_control_d_m[stats_var] = pd.to_numeric(mi_control_d_m[stats_var])
-                                mi_drug_d_m[stats_var] =pd.to_numeric(mi_drug_d_m[stats_var])
+                                tt_m[iday-start_day,k] = mean_drug - mean_control
 
-                                mean_drug1 = np.mean(mi_control_d_m[stats_var])
-                                mean_drug2 = np.mean(mi_drug_d_m[stats_var])
-                                # mean_drug1 = mi_control_d_m[stats_var].mean()
-                                # mean_drug2 = mi_drug_d_m[stats_var].mean()
+                                std_control = np.std(mi_control_d_m[stats_var])
+                                std_drug = np.std(mi_drug_d_m[stats_var])
 
-                                tt_m[iday-start_day,k] = mean_drug2 - mean_drug1
-
-                                cohen_d = abs((mean_drug1 - mean_drug2)) / np.sqrt(
-                                    (np.square(np.std(mi_control_d_m[stats_var])) + np.square(np.std(mi_drug_d_m[stats_var]))) / 2)
+                                cohen_d = abs((mean_control - mean_drug)) / np.sqrt(
+                                    (np.square(std_control) + np.square(std_drug)) / 2)
                                 tt_c[iday-start_day,k]=cohen_d
 
                         tt_all[0,:,l]=tt_p
@@ -390,79 +384,45 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     if stats_var=='Total':
 
                         mi_t = mi[mi['Condition'] == i]
-
                         mi_t = mi_t[mi_t['Marker'] == 'RFP']
-
-                        mi_t['norm'] = 0.
-
-                        mi_t = mi_t.reset_index(drop=True)
-
-                        mi_t_base = mi_t[mi_t['Day'] == start_day]
-                        mi_t_base = mi_t_base.reset_index(drop=True)
-
-                        for day in range(mi['Day'].min(),mi['Day'].max()+1):
-                            m_day = mi_t[mi_t['Day'] == day]
-                            ind = m_day.index
-                            m_day = m_day.reset_index(drop=True)
-                            if normalization_type == 'relative':
-                                m_day['norm'] = (m_day[stats_var] - mi_t_base[stats_var]) / mi_t_base[stats_var]
-                            else:
-                                m_day['norm'] = (m_day[stats_var]) / mi_t_base[stats_var]
-                            k = 0
-                            for j in ind:
-                                mi_t['norm'].iloc[j] = m_day['norm'].iat[k]
-                                k = k + 1
 
                         if i==control_condition:
                             mi_t_control=mi_t
-
-
-                        # print('mi_t_control[norm]', mi_t_control['norm'])
-                        # print('mi_t[norm]', mi_t['norm'])
 
                         for day in range(mi['Day'].min(),mi['Day'].max()+1):
 
                             mi_control_d = mi_t_control[mi_t_control['Day'] == day]
                             mi_drug_d = mi_t[mi_t['Day'] == day]
 
-                            # print('mi_control_d[norm]', mi_control_d['norm'])
-                            # print('mi_drug_d[norm]', mi_drug_d['norm'])
-                            # if not i == control_condition:
                             if not day == 0:
                                 if do_wilcoxon_test:
-                                    tt = stats.mannwhitneyu(mi_control_d['norm'], mi_drug_d['norm'])
+                                    tt = stats.mannwhitneyu(mi_control_d[norm_colname], mi_drug_d[norm_colname])
                                 else:
-                                    tt = stats.ttest_ind(mi_control_d['norm'], mi_drug_d['norm'])
+                                    tt = stats.ttest_ind(mi_control_d[norm_colname], mi_drug_d[norm_colname])
 
                                 tt_p[day-start_day] = tt[1]
 
+                            mean_control = np.mean(mi_control_d[norm_colname])
+                            mean_drug = np.mean(mi_drug_d[norm_colname])
 
-                            # print(mi_control_d['norm'])
-                            # print(type(mi_drug_d['norm']))
-
-                            mean_drug1 = np.mean(mi_control_d['norm'])
-                            mean_drug2 = np.mean(mi_drug_d['norm'])
-
-                            # print(mean_drug1,mean_drug2)
                             if normalization_type == 'total':
-                                tt_m[day-start_day] = (mean_drug2 - mean_drug1)/mean_drug1
+                                tt_m[day-start_day] = (mean_drug - mean_control) / mean_control
 
+                            std_control = np.std(mi_control_d[norm_colname])
+                            std_drug = np.std(mi_drug_d[norm_colname])
 
-                            cohen_d = abs((mean_drug1 - mean_drug2)) / np.sqrt(
-                                (np.square(np.std(mi_control_d['norm'])) + np.square(
-                                    np.std(mi_drug_d['norm']))) / 2)
-                        # print("cohen's d: ", cohen_d)
+                            if std_control == 0 and std_drug == 0:
+                                cohen_d = np.nan
+                            else:
+                                cohen_d = abs((mean_control - mean_drug)) / np.sqrt(
+                                    (np.square(std_control) + np.square(std_drug)) / 2)
+
                             tt_c[day-start_day] = cohen_d
 
                         tt_all[0,:,l]=tt_p
                         tt_all[1,:,l]=tt_c
                         if normalization_type == 'total':
                             tt_all[2,:,l]=tt_m
-
-                    # print('t_final:',tt_p,tt_c)
-
-                    # slope, intercept, r_value, p_value, std_err = stats.linregress(mi_fixed[stats_var], mi_random[stats_var])
-                    # print("r^2: ", r_value ** 2)
 
                     #endregion
 
@@ -673,9 +633,6 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                         #endregion
 
 
-                l=l+1
-
-                #endregion
 
             #region save stats
             if save_excel_stats:
@@ -1248,14 +1205,12 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 if __name__ == "__main__":
     filepaths = sys.argv[1:]
 
-    # TODO: SWITCH BACK TO THIS
-    # stats_vars = ['Cell_percent','Total']   # ['Cell_percent'] (use stacked barplots) or ['Total'] (use lineplots), or  ['Cell_percent','Total'] for both
-    stats_vars = ['Total']
+    stats_vars = ['Total', 'Cell_percent']
     x_var = "Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
 
     normalization_type = CONTROL_NORM
 
-    do_ttest = False  # currently set for all conditions. needed for plotting line and stacked bar plots with stars, as well as for colormaps
+    do_ttest = True  # needed for plotting line and stacked bar plots with stars, as well as for colormaps
     do_wilcoxon_test = False # needs do_ttest to be set to True, as it works from within it and just replaces the actual test function
     do_anova = False
     do_tukey_test = False
