@@ -32,8 +32,6 @@ X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
 HUE_SPLIT_TYPES = ['Condition', 'Percent']
 
-#TODO: extend use of norm_colname to all plots and stats
-
 
 def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
         plot_context, hue_split,
@@ -57,6 +55,9 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
     if (boxplots or lineplots or stackedbarplots) and (box_day is None):
         error_msgs.append('Must specify box_day.')
+
+    if normalization_type == CONTROL_NORM and do_wilcoxon_test:
+        error_msgs.append('Cannot do a Wilcoxon–Mann–Whitney test when control normalizing.')
 
     if not len(error_msgs) == 0:
         raise ValueError(" ".join(error_msgs))
@@ -155,22 +156,8 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                 mi_tukey = mi.loc[mi['Condition'].isin(conditions)]
                 mi_tukey = mi_tukey[mi_tukey.Marker == 'RFP']
 
-                mi_tukey['norm'] = 0.
-
-                mi_tukey = mi_tukey.reset_index(drop=True)
-
-                mi_base = mi_tukey[mi_tukey['Day'] == start_day]
-                mi_base = mi_base.reset_index(drop=True)
-
                 for day in range(mi['Day'].min(), mi['Day'].max() + 1):
                     m_day = mi_tukey[mi_tukey['Day'] == day]
-                    ind = m_day.index
-                    m_day = m_day.reset_index(drop=True)
-
-                    if normalization_type == 'relative':
-                        m_day['norm'] = (m_day[stats_var] - mi_base[stats_var]) / mi_base[stats_var]
-                    else:
-                        m_day['norm'] = (m_day[stats_var]) / mi_base[stats_var]
 
                     result_05 = statsmodels.stats.multicomp.pairwise_tukeyhsd(m_day[stats_var], m_day['Condition'],
                                                                               alpha=0.05)
@@ -178,7 +165,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                                                                               alpha=0.01)
                     result_001 = statsmodels.stats.multicomp.pairwise_tukeyhsd(m_day[stats_var], m_day['Condition'],
                                                                            alpha=0.001)
-                    # print(result.summary())
+
                     if day==start_day:
                         df_05 = pd.DataFrame(data=result_05._results_table.data[1:],
                                              columns=result_05._results_table.data[0])
@@ -444,31 +431,10 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
                         if stats_var == 'Total':
                             mi_an = mi_an[mi_an.Marker == marker_list[0]]
-
-                            mi_an['norm'] = 0.
-
-                            mi_an = mi_an.reset_index(drop=True)
-
                             mi_an_base = mi_an[mi_an['Day'] == start_day]
                             mi_an_base = mi_an_base.reset_index(drop=True)
 
-                            for day in range(mi['Day'].min(),mi['Day'].max()+1):
-                                m_day = mi_an[mi_an['Day'] == day]
-                                ind = m_day.index
-                                m_day = m_day.reset_index(drop=True)
-
-                                if normalization_type == 'relative':
-                                    m_day['norm'] = (m_day[stats_var]  - mi_an_base[stats_var]) / mi_an_base[stats_var]
-                                else:
-                                    m_day['norm'] = (m_day[stats_var]) / mi_an_base[stats_var]
-
-                                k = 0
-                                for j in ind:
-                                    mi_an['norm'].iloc[j] = m_day['norm'].iat[k]
-                                    k = k + 1
-
-                            formula = f'norm ~ C({x_var}) + C(Condition) + C({x_var}):C(Condition)'
-                            # print("2 way AnoVa formula: ",formula)
+                            formula = f'{norm_colname} ~ C({x_var}) + C(Condition) + C({x_var}):C(Condition)'
                             model = ols(formula, mi_an).fit()
                             aov_table = anova_lm(model, type=2)
 
@@ -924,7 +890,6 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     mi_box=mi
                     mi_box = mi_box[mi_box.Marker == marker_list[0]]
 
-
                     mi_box=mi_box.loc[mi_box['Condition'].isin(conditions)]
                     sorterIndex = dict(zip(conditions, range(len(conditions))))
 
@@ -934,32 +899,11 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     mi_box.sort_values(['Condition_Rank','WellNum'], ascending = [True,True], inplace = True)
                     mi_box.drop('Condition_Rank', 1, inplace=True)
 
-                    mi_box['norm'] = 0.
-
+                    mi_box= mi_box[mi_box.Day == box_day]
                     mi_box = mi_box.reset_index(drop=True)
 
-                    mi_base = mi_box[mi_box['Day'] == start_day]
-                    mi_base = mi_base.reset_index(drop=True)
-
-
-                    m_day = mi_box[mi_box['Day'] == box_day]
-                    ind = m_day.index
-                    m_day = m_day.reset_index(drop=True)
-
-                    if normalization_type == 'relative':
-                        m_day['norm'] = (m_day[stats_var] - mi_base[stats_var]) / mi_base[stats_var]
-                    else:
-                        m_day['norm'] = (m_day[stats_var]) / mi_base[stats_var]
-
-                    k = 0
-                    for j in ind:
-                        mi_box['norm'].iloc[j] = m_day['norm'].iat[k]
-                        k = k + 1
-
-                    mi_box= mi_box[mi_box.Day == box_day]
-
-                    ax = sns.boxplot(x="Condition", y='norm', data=mi_box, linewidth=2, fliersize=0)
-                    ax = sns.swarmplot(x="Condition", y='norm', data=mi_box, size=15, color='#767676',edgecolor="white",linewidth=1)
+                    ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, linewidth=2, fliersize=0)
+                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, size=15, color='#767676',edgecolor="white",linewidth=1)
 
                     custom_lines = [Line2D([0], [0], color="#5fa2ce", lw=4),
                                     Line2D([0], [0], color="#ffbc79", lw=4),
@@ -1208,23 +1152,23 @@ if __name__ == "__main__":
     stats_vars = ['Total', 'Cell_percent']
     x_var = "Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
 
-    normalization_type = CONTROL_NORM
+    normalization_type = RELATIVE_NORM
 
     do_ttest = True  # needed for plotting line and stacked bar plots with stars, as well as for colormaps
-    do_wilcoxon_test = False # needs do_ttest to be set to True, as it works from within it and just replaces the actual test function
-    do_anova = False
-    do_tukey_test = False
+    do_wilcoxon_test = True # needs do_ttest to be set to True, as it works from within it and just replaces the actual test function
+    do_anova = True
+    do_tukey_test = True
 
     save_excel_stats = True  # True = saves stats to csv or xls files. needed for colormap-plots
 
     plots = True  # True = create plots
-    colormap_plot = False  # create color map of stat results
-    cmap_discrete = False  # True = discrete, False = continous
+    colormap_plot = True  # create color map of stat results
+    cmap_discrete = True  # True = discrete, False = continous
     individual_plots = True # create individual line and/or bar graph plots
 
-    boxplots = False # True for DO IT (only for total)
-    stackedbarplots = False # only for Cell percent
-    lineplots = True # still working on this
+    boxplots = True
+    stackedbarplots = True
+    lineplots = True
     box_day = 5
 
     save_plots = True  # True = save all plots,  or False = stops at each condition to show plot without saving it
