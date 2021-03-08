@@ -183,7 +183,7 @@ class AnnotatedData:
         return colname
 
     def save(self):
-        if (self.dataframe['Condition'] == None).any():
+        if self.dataframe['Condition'].isnull().any():
             raise DataValidationError("Missing condition assignments")
         for frame in self.get_frames():
             path = os.path.join(

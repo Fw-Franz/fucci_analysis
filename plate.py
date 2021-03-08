@@ -324,7 +324,7 @@ class Plate():
         try:
             self.save_conditions()
             self.data.save()
-        except RuntimeError as err:
+        except data_annotation.DataValidationError as err:
             message = '\n'.join(["Cannot save:", *err.args])
             messagebox.showinfo(message=message)
 
