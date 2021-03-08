@@ -143,7 +143,6 @@ class Plate():
 
         self.data = data_annotation.AnnotatedData(filepaths)
         self.data.load_unannotated_files(frames=frames)
-        print(self.data.dataframe)
 
         self.plate_nums = self.data.plate_nums()
         for plate_num in self.plate_nums:
@@ -262,7 +261,6 @@ class Plate():
         y = self._get_tag_info(tags, "y=")
         plate_num = self._get_tag_info(tags, "plate_num=")
         if x is not None and y is not None and plate_num:
-            print(f'Clicked: x {x}, y {y}, plate_num {plate_num}')
             condition = self.current_condition.get()
             self.canvas.itemconfig(
                 square_id,
@@ -300,7 +298,6 @@ class Plate():
 
     def set_condition(self, condition, x, y, plate_num):
         self.condition_state[plate_num][(y, x)] = condition
-        print(self.condition_state)
 
     def get_condition(self, x, y, plate_num):
         try:
