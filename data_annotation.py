@@ -47,7 +47,7 @@ class AnnotatedData:
         self.dataframe = pd.concat(data)
         self.dataframe.reset_index(drop=True, inplace=True)
 
-        columns = ['Condition', 'PlateRow', 'PlateColumn']
+        columns = ['Condition', 'PlateRow', 'PlateColumn', 'Date']
         for column in columns:
             if column not in self.dataframe.columns:
                 self.dataframe[column] = None
@@ -148,6 +148,9 @@ class AnnotatedData:
         percent = self.dataframe['Count'] / self.dataframe['Total']
         self.dataframe['Cell_percent'] = percent
 
+    def set_date(self, date):
+        self.dataframe['Date'] = date
+
     def set_normalization(self, normalization_type, stats_var, control_condition):
         total_norm_colname = self.normalization_colname(TOTAL_NORM, stats_var, control_condition)
         relative_norm_colname = self.normalization_colname(RELATIVE_NORM, stats_var, control_condition)
@@ -183,6 +186,8 @@ class AnnotatedData:
         return colname
 
     def save(self):
+        if self.dataframe['Date'].isnull().any():
+            raise DataValidationError("Missing date assignment")
         if self.dataframe['Condition'].isnull().any():
             raise DataValidationError("Missing condition assignments")
         for frame in self.get_frames():

@@ -60,6 +60,36 @@ class Plate():
         self.open_files(filepaths)
         self.current_condition = tk.StringVar()
 
+        self.date = tk.StringVar()
+        date_entry = ttk.Entry(
+            self.left_bar_frame,
+            textvariable=self.date
+        )
+
+        def date_bind(e):
+            self.set_date(self.date.get())
+
+        date_entry.bind(
+            '<Return>',
+            date_bind
+        )
+
+        date_entry.grid(
+            column=0,
+            row=0
+        )
+
+        date_button = ttk.Button(
+            self.left_bar_frame,
+            text="Set Date",
+            command=lambda: self.set_date(self.date.get())
+        )
+
+        date_button.grid(
+            column=0,
+            row=1
+        )
+
         self.condition_to_add = tk.StringVar()
         condition_entry = ttk.Entry(
             self.left_bar_frame,
@@ -304,6 +334,9 @@ class Plate():
             return self.condition_state[plate_num][(y, x)]
         except KeyError:
             return None
+
+    def set_date(self, date):
+        self.data.set_date(date)
 
     def save_conditions(self):
         for plate_num, d in self.condition_state.items():
