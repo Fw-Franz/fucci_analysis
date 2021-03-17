@@ -27,6 +27,14 @@ NORMALIZATION_TYPES = [
     RELATIVE_NORM,
     CONTROL_NORM
 ]
+NORMALIZED_METHOD = 'normalized'
+RAW_METHOD = 'raw'
+FOLD_CHANGE_METHOD = 'fold-change'
+ANALYZE_METHODS = [
+    NORMALIZED_METHOD,
+    RAW_METHOD,
+    FOLD_CHANGE_METHOD
+]
 STATS_VARS_TYPES = ['Total', 'Cell_percent']
 X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
@@ -34,7 +42,7 @@ HUE_SPLIT_TYPES = ['Condition', 'Percent']
 
 
 def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
-        plot_context, hue_split,
+        analyze_method, plot_context, hue_split,
         control_condition=None, conditions_override=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
         individual_plots=False, boxplots=False, box_day=None, stackedbarplots=False, lineplots=False,
@@ -44,6 +52,8 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
     error_msgs = []
     if normalization_type not in NORMALIZATION_TYPES:
         error_msgs.append(f'Invalid normalization_type: {normalization_type}.')
+    if analyze_method not in ANALYZE_METHODS:
+        error_msgs.append(f'Invalid analyze_method: {analyze_method}.')
     if x_var not in X_VAR_TYPES:
         error_msgs.append(f'Invalid x_var: {x_var}.')
     if plot_context not in PLOT_CONTEXT_TYPES:
@@ -1155,6 +1165,7 @@ if __name__ == "__main__":
     x_var = "Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
 
     normalization_type = RELATIVE_NORM
+    analyze_method = NORMALIZED_METHOD
 
     do_ttest = True  # needed for plotting line and stacked bar plots with stars, as well as for colormaps
     do_wilcoxon_test = True # needs do_ttest to be set to True, as it works from within it and just replaces the actual test function
@@ -1184,6 +1195,7 @@ if __name__ == "__main__":
         x_var=x_var,
         filepaths=filepaths,
         normalization_type=normalization_type,
+        analyze_method=analyze_method,
         do_ttest=do_ttest,
         do_wilcoxon_test=do_wilcoxon_test,
         do_anova=do_anova,
