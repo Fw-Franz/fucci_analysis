@@ -35,7 +35,7 @@ HUE_SPLIT_TYPES = ['Condition', 'Percent']
 
 def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
         plot_context, hue_split,
-        control_condition=None,
+        control_condition=None, conditions_override=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
         individual_plots=False, boxplots=False, box_day=None, stackedbarplots=False, lineplots=False,
         do_ttest=False, do_wilcoxon_test=False, do_anova=False,
@@ -86,7 +86,10 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
             #TODO: generalize code to handle this case
             raise ValueError("Input data has multiple frames in one file")
 
-        conditions = data.get_conditions()
+        if conditions_override and len(conditions_override) > 0:
+            conditions = list(conditions_override)
+        else:
+            conditions = data.get_conditions()
         start_time_conditions = time.time()
 
         if (control_condition is None) or (control_condition == ""):

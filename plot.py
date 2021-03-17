@@ -5,7 +5,6 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 import sys
-import pdb
 
 
 class PlotUI:
@@ -363,6 +362,27 @@ class PlotUI:
             row=6
         )
 
+        conditions_override_label = ttk.Label(
+            self.select_frame,
+            text="Conditions override"
+        )
+        conditions_override_label.grid(
+            column=0,
+            row=7,
+            sticky=tk.W
+        )
+
+        self.conditions_override_listbox = tk.Listbox(
+            self.select_frame,
+            selectmode=tk.MULTIPLE
+        )
+        for condition in self.conditions:
+            self.conditions_override_listbox.insert(tk.END, condition)
+        self.conditions_override_listbox.grid(
+            column=1,
+            row=7
+        )
+
         run_plots_button = ttk.Button(
             self.select_frame,
             text="Run Plots",
@@ -376,6 +396,10 @@ class PlotUI:
 
         self.root.mainloop()
 
+    def _get_conditions_override(self):
+        selected = self.conditions_override_listbox.curselection()
+        return [self.conditions_override_listbox.get(i) for i in selected]
+
     def _run_plots(self):
         try:
             main.create_plots_and_stats(
@@ -384,6 +408,7 @@ class PlotUI:
                 plot_context=self.plot_context_var.get(),
                 hue_split=self.hue_split_var.get(),
                 control_condition=self.control_condition_var.get(),
+                conditions_override = self._get_conditions_override(),
                 filepaths=self.filepaths,
                 stats_vars=[self.stats_var_var.get()],
                 box_day=int(self.box_day_var.get()),
