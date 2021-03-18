@@ -171,7 +171,7 @@ class AnnotatedData:
 
             group[total_norm_colname] = group[stats_var] / start_day_group[stats_var]
             group[relative_norm_colname] = (group[stats_var] - start_day_group[stats_var]) / start_day_group[stats_var]
-            group[control_norm_colname] = group[total_norm_colname] / (control_condition_group[stats_var] / control_start_day_group[stats_var])
+            group[control_norm_colname] = group[total_norm_colname] / (control_condition_group[stats_var].mean() / control_start_day_group[stats_var].mean())
 
             for k, j in enumerate(idx):
                 self.dataframe[total_norm_colname].iloc[j] = group[total_norm_colname].iat[k]
