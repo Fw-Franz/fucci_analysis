@@ -376,8 +376,8 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                         mi_t = mi[mi['Condition'] == i]
                         mi_t = mi_t[mi_t['Marker'] == 'RFP']
 
-                        if i==control_condition:
-                            mi_t_control=mi_t
+                        mi_t_control = mi[mi['Condition'] == control_condition]
+                        mi_t_control = mi_t_control[mi_t_control['Marker'] == 'RFP']
 
                         for day in range(mi['Day'].min(),mi['Day'].max()+1):
 
@@ -395,14 +395,14 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                             mean_control = np.mean(mi_control_d[norm_colname])
                             mean_drug = np.mean(mi_drug_d[norm_colname])
 
-                            if normalization_type == 'total':
+                            if not mean_control == 0.0:
                                 tt_m[day-start_day] = (mean_drug - mean_control) / mean_control
 
                             std_control = np.std(mi_control_d[norm_colname])
                             std_drug = np.std(mi_drug_d[norm_colname])
 
                             if std_control == 0 and std_drug == 0:
-                                cohen_d = np.nan
+                                cohen_d = 0
                             else:
                                 cohen_d = abs((mean_control - mean_drug)) / np.sqrt(
                                     (np.square(std_control) + np.square(std_drug)) / 2)
@@ -411,8 +411,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
                         tt_all[0,:,l]=tt_p
                         tt_all[1,:,l]=tt_c
-                        if normalization_type == 'total':
-                            tt_all[2,:,l]=tt_m
+                        tt_all[2,:,l]=tt_m
 
                     #endregion
 
