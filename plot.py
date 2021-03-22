@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 import sys
+import pdb
 
 
 class PlotUI:
@@ -426,6 +427,7 @@ class PlotUI:
                 save_excel_stats=self.save_excel_stats_var.get()
             )
         except RuntimeError as err:
+            pdb.set_trace()
             message = '\n'.join(["Cannot run plots:", *err.args])
             messagebox.showinfo(message=message)
 

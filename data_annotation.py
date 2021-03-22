@@ -122,6 +122,11 @@ class AnnotatedData:
         conditions.sort()
         return conditions
 
+    def get_dates(self):
+        dates = self.dataframe['Date'].unique()
+        dates.sort()
+        return dates
+
     def set_condition(self, condition, well_num,
                       plate_num, plate_column, plate_row):
         query_str = f'WellNum == {well_num} & \
@@ -157,12 +162,12 @@ class AnnotatedData:
         control_norm_colname = self.normalization_colname(CONTROL_NORM, stats_var, control_condition)
         self.dataframe[[total_norm_colname, relative_norm_colname, control_norm_colname]] = 0.0
 
-        groups = {k: v for k, v in self.dataframe.groupby(['Day', 'Condition', 'Marker'])}
-        for (day, condition, marker), group in groups.items():
+        groups = {k: v for k, v in self.dataframe.groupby(['Date', 'Day', 'Condition', 'Marker'])}
+        for (date, day, condition, marker), group in groups.items():
             idx = group.index
-            start_day_group = groups[(self.start_day(), condition, marker)]
-            control_condition_group = groups[(day, control_condition, marker)]
-            control_start_day_group = groups[(self.start_day(), control_condition, marker)]
+            start_day_group = groups[(date, self.start_day(), condition, marker)]
+            control_condition_group = groups[(date, day, control_condition, marker)]
+            control_start_day_group = groups[(date, self.start_day(), control_condition, marker)]
 
             group = group.reset_index(drop=True)
             start_day_group = start_day_group.reset_index(drop=True)
@@ -191,9 +196,10 @@ class AnnotatedData:
         if self.dataframe['Condition'].isnull().any():
             raise DataValidationError("Missing condition assignments")
         for frame in self.get_frames():
+            date_str = "_".join(list(self.get_dates()))
             path = os.path.join(
                 self.directory,
-                f'frame_m{frame}_processed_data.csv'
+                f'frame_m{frame}_processed_data_{date_str}.csv'
             )
             data = self.dataframe[self.dataframe['Frame'] == frame]
             data.to_csv(
