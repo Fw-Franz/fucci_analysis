@@ -1,5 +1,5 @@
 from datetime import datetime
-from main import TOTAL_NORM, RELATIVE_NORM, CONTROL_NORM
+from main import TOTAL_NORM, RELATIVE_NORM, NORMALIZED_METHOD, RAW_METHOD, FOLD_CHANGE_METHOD
 import pandas as pd
 import os
 
@@ -156,11 +156,12 @@ class AnnotatedData:
     def set_date(self, date):
         self.dataframe['Date'] = date
 
-    def set_normalization(self, normalization_type, stats_var, control_condition):
-        total_norm_colname = self.normalization_colname(TOTAL_NORM, stats_var, control_condition)
-        relative_norm_colname = self.normalization_colname(RELATIVE_NORM, stats_var, control_condition)
-        control_norm_colname = self.normalization_colname(CONTROL_NORM, stats_var, control_condition)
-        self.dataframe[[total_norm_colname, relative_norm_colname, control_norm_colname]] = 0.0
+    def set_normalization(self, stats_var, control_condition):
+        total_normalized = self.normalization_colname(TOTAL_NORM, NORMALIZED_METHOD, stats_var, control_condition)
+        relative_normalized = self.normalization_colname(RELATIVE_NORM, NORMALIZED_METHOD, stats_var, control_condition)
+        total_fold_change = self.normalization_colname(TOTAL_NORM, FOLD_CHANGE_METHOD, stats_var, control_condition)
+        relative_fold_change = self.normalization_colname(RELATIVE_NORM, FOLD_CHANGE_METHOD, stats_var, control_condition)
+        self.dataframe[[total_normalized, relative_normalized, total_fold_change, relative_fold_change]] = 0.0
 
         groups = {k: v for k, v in self.dataframe.groupby(['Date', 'Day', 'Condition', 'Marker'])}
         for (date, day, condition, marker), group in groups.items():
@@ -174,18 +175,22 @@ class AnnotatedData:
             control_condition_group = control_condition_group.reset_index(drop=True)
             control_start_day_group = control_start_day_group.reset_index(drop=True)
 
-            group[total_norm_colname] = group[stats_var] / start_day_group[stats_var]
-            group[relative_norm_colname] = (group[stats_var] - start_day_group[stats_var]) / start_day_group[stats_var]
-            group[control_norm_colname] = group[total_norm_colname] / (control_condition_group[stats_var].mean() / control_start_day_group[stats_var].mean())
+            group[total_normalized] = group[stats_var] / start_day_group[stats_var]
+            group[relative_normalized] = (group[stats_var] - start_day_group[stats_var]) / start_day_group[stats_var]
+            group[total_fold_change] = group[total_normalized] / (control_condition_group[stats_var].mean() / control_start_day_group[stats_var].mean())
+            group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var].mean() - start_day_group[stats_var].mean()) / control_start_day_group[stats_var].mean())
 
             for k, j in enumerate(idx):
-                self.dataframe[total_norm_colname].iloc[j] = group[total_norm_colname].iat[k]
-                self.dataframe[relative_norm_colname].iloc[j] = group[relative_norm_colname].iat[k]
-                self.dataframe[control_norm_colname].iloc[j] = group[control_norm_colname].iat[k]
+                self.dataframe[total_normalized].iloc[j] = group[total_normalized].iat[k]
+                self.dataframe[relative_normalized].iloc[j] = group[relative_normalized].iat[k]
+                self.dataframe[total_fold_change].iloc[j] = group[total_fold_change].iat[k]
+                self.dataframe[relative_fold_change].iloc[j] = group[relative_fold_change].iat[k]
 
     @staticmethod
-    def normalization_colname(normalization_type, stats_var, control_condition):
-        colname = f'{stats_var}_{normalization_type}_norm'
+    def normalization_colname(normalization_type, analyze_method, stats_var, control_condition):
+        if analyze_method == RAW_METHOD:
+            return stats_var
+        colname = f'{stats_var}_{normalization_type}_{analyze_method}_norm'
         if normalization_type == CONTROL_NORM:
             colname = f'{colname}_{control_condition}'
         return colname

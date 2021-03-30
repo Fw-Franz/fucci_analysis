@@ -21,15 +21,13 @@ import data_annotation
 
 TOTAL_NORM = 'total'
 RELATIVE_NORM = 'relative'
-CONTROL_NORM = 'control'
 NORMALIZATION_TYPES = [
     TOTAL_NORM,
-    RELATIVE_NORM,
-    CONTROL_NORM
+    RELATIVE_NORM
 ]
 NORMALIZED_METHOD = 'normalized'
 RAW_METHOD = 'raw'
-FOLD_CHANGE_METHOD = 'fold-change'
+FOLD_CHANGE_METHOD = 'fold_change'
 ANALYZE_METHODS = [
     NORMALIZED_METHOD,
     RAW_METHOD,
@@ -66,8 +64,8 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
     if (boxplots or lineplots or stackedbarplots) and (box_day is None):
         error_msgs.append('Must specify box_day.')
 
-    if normalization_type == CONTROL_NORM and do_wilcoxon_test:
-        error_msgs.append('Cannot do a Wilcoxon–Mann–Whitney test when control normalizing.')
+    if normalization_type == FOLD_CHANGE_METHOD and do_wilcoxon_test:
+        error_msgs.append('Cannot do a Wilcoxon–Mann–Whitney test when using fold-change.')
 
     if not len(error_msgs) == 0:
         raise ValueError(" ".join(error_msgs))
@@ -122,8 +120,8 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
             #endregion
 
-            data.set_normalization(normalization_type, stats_var, control_condition)
-            norm_colname = data.normalization_colname(normalization_type, stats_var, control_condition)
+            data.set_normalization(stats_var, control_condition)
+            norm_colname = data.normalization_colname(normalization_type, analyze_method, stats_var, control_condition)
 
             # region Initilize for-loop parameters
             days_total=end_day-start_day+1
