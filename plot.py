@@ -393,7 +393,7 @@ class PlotUI:
         )
         conditions_override_label.grid(
             column=0,
-            row=7,
+            row=8,
             sticky=tk.W
         )
 
@@ -405,7 +405,7 @@ class PlotUI:
             self.conditions_override_listbox.insert(tk.END, condition)
         self.conditions_override_listbox.grid(
             column=1,
-            row=7
+            row=8
         )
 
         run_plots_button = ttk.Button(
