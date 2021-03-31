@@ -97,14 +97,17 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
         if conditions_override and len(conditions_override) > 0:
             conditions = list(conditions_override)
         else:
-            conditions = data.get_conditions()
+            conditions = list(data.get_conditions())
         start_time_conditions = time.time()
 
         if (control_condition is None) or (control_condition == ""):
             control_condition = conditions[0]
-        if control_condition not in conditions:
+        elif control_condition not in conditions:
             err = f'control_condition {control_condition} not contained in conditions for path {path}'
             raise ValueError(err)
+        else:
+            conditions.remove(control_condition)
+            conditions.insert(0, control_condition)
 
         for stats_var in stats_vars:
             #region intitialize print out
@@ -167,51 +170,31 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                 mi_tukey = mi.loc[mi['Condition'].isin(conditions)]
                 mi_tukey = mi_tukey[mi_tukey.Marker == 'RFP']
 
+                tukey_frames = []
                 for day in range(mi['Day'].min(), mi['Day'].max() + 1):
                     m_day = mi_tukey[mi_tukey['Day'] == day]
 
-                    result_05 = statsmodels.stats.multicomp.pairwise_tukeyhsd(m_day[stats_var], m_day['Condition'],
-                                                                              alpha=0.05)
-                    result_01 = statsmodels.stats.multicomp.pairwise_tukeyhsd(m_day[stats_var], m_day['Condition'],
-                                                                              alpha=0.01)
-                    result_001 = statsmodels.stats.multicomp.pairwise_tukeyhsd(m_day[stats_var], m_day['Condition'],
-                                                                           alpha=0.001)
+                    result_05 = statsmodels.stats.multicomp.pairwise_tukeyhsd(
+                        m_day[norm_colname], m_day['Condition'], alpha=0.05
+                    )
+                    df_tukey = pd.DataFrame(
+                        data=result_05._results_table.data[1:],
+                        columns=result_05._results_table.data[0]
+                    )
+                    df_tukey['Day'] = day
+                    df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
+                    df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
+                    df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
+                    tukey_frames.append(df_tukey)
 
-                    if day==start_day:
-                        df_05 = pd.DataFrame(data=result_05._results_table.data[1:],
-                                             columns=result_05._results_table.data[0])
-                        df_05['Day']=day
-                        df_01 = pd.DataFrame(data=result_01._results_table.data[1:],
-                                             columns=result_01._results_table.data[0])
-                        df_01['Day']=day
-                        df_001 = pd.DataFrame(data=result_001._results_table.data[1:],
-                                              columns=result_001._results_table.data[0])
-                        df_001['Day']=day
-                    else:
-                        df_05_i=pd.DataFrame(data=result_05._results_table.data[1:],
-                                     columns=result_05._results_table.data[0])
-                        df_05_i['Day']=day
-                        df_05 = df_05.append(df_05_i)
+                df_tukey = pd.concat(tukey_frames)
 
-                        df_01_i = pd.DataFrame(data=result_01._results_table.data[1:],
-                                             columns=result_01._results_table.data[0])
-                        df_01_i['Day'] = day
-                        df_01 = df_01.append(df_01_i)
-
-                        df_001_i = pd.DataFrame(data=result_001._results_table.data[1:],
-                                              columns=result_001._results_table.data[0])
-                        df_001_i['Day'] = day
-                        df_001 = df_001.append(df_001_i)
-
-
-                df_05.to_csv(path_or_buf=os.path.join(base_directory, 'stats', 'tukey_results_05.csv'),
-                          index=None, header=True)
-
-                df_01.to_csv(path_or_buf=os.path.join(base_directory, 'stats', 'tukey_results_01.csv'),
-                          index=None, header=True)
-
-                df_001.to_csv(path_or_buf=os.path.join(base_directory, 'stats', 'tukey_results_001.csv'),
-                          index=None, header=True)
+                if save_excel_stats:
+                    df_tukey.to_csv(
+                        path_or_buf=os.path.join(base_directory, 'stats', f'tukey_results_{norm_colname}.csv'),
+                        index=None,
+                        header=True
+                    )
 
             #endregion
 
@@ -909,7 +892,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     mi_box.sort_values(['Condition_Rank','WellNum'], ascending = [True,True], inplace = True)
                     mi_box.drop('Condition_Rank', 1, inplace=True)
 
-                    mi_box= mi_box[mi_box.Day == box_day]
+                    mi_box = mi_box[mi_box.Day == box_day]
                     mi_box = mi_box.reset_index(drop=True)
 
                     ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, linewidth=2, fliersize=0)
@@ -924,28 +907,54 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                               ['-Control', '+Control', 'Novel Combo', 'Novel Repurposed', 'Published \nor In Use'],
                               loc='upper left', bbox_to_anchor=(0.14, 0.98))
 
+
+                    if save_excel_stats:
+                        means_box = m_day.groupby(['Condition'], sort=False).mean()
+                        means_box.pop('Cell_percent')
+                        means_box.pop('Count')
+                        means_box.pop('Frame')
+                        means_box.pop('Percent')
+                        means_box.pop('Day')
+                        means_box.pop('PlateNum')
+                        means_box.pop('WellNum')
+
+                        stds_box = m_day.groupby(['Condition'], sort=False).std()
+                        stds_box = m_day.groupby(['Condition'], sort=False).std()
+                        stds_box.pop('Cell_percent')
+                        stds_box.pop('Count')
+                        stds_box.pop('Frame')
+                        stds_box.pop('Percent')
+                        stds_box.pop('Day')
+                        stds_box.pop('PlateNum')
+                        stds_box.pop('WellNum')
+
+                        means_box.to_csv(
+                            path_or_buf=os.path.join(stats_dir, f'Means_results_{analyze_method}_day_5.csv'), 
+                            index=True,
+                            header=True
+                        )
+                        stds_box.to_csv(
+                            path_or_buf=os.path.join(stats_dir, f'Stds_results_{analyze_method}_day_5.csv'),
+                            index=True,
+                            header=True
+                        )
+
                     if do_tukey_test:
-                        for iii in range(1,len(conditions)):
-                            con_group1=control_condition
-                            con_group2=conditions[iii]
+                        if sorterIndex[control_condition] != 0:
+                            raise ValueError("control_condition is not the first condition, violating assumptions necessary for plotting")
 
-                            df_05_con=df_05[df_05['group1']==con_group1]
-                            df_05_con=df_05_con[df_05_con['group2']==con_group2]
-                            df_05_con=df_05_con[df_05_con['Day']==box_day]
-                            df_05_con=df_05_con.reset_index(drop=True)
-                            reject_05=df_05_con.iloc[0]['reject']
-
-                            df_01_con=df_01[df_01['group1']==con_group1]
-                            df_01_con=df_01_con[df_01_con['group2']==con_group2]
-                            df_01_con=df_01_con[df_01_con['Day']==box_day]
-                            df_01_con=df_01_con.reset_index(drop=True)
-                            reject_01=df_01_con.iloc[0]['reject']
-
-                            df_001_con=df_001[df_001['group1']==con_group1]
-                            df_001_con=df_001_con[df_001_con['group2']==con_group2]
-                            df_001_con=df_001_con[df_001_con['Day']==box_day]
-                            df_001_con=df_001_con.reset_index(drop=True)
-                            reject_001=df_001_con.iloc[0]['reject']
+                        for condition, iii in sorterIndex.items():
+                            if condition == control_condition:
+                                continue
+                            query_str = f'Day == {box_day} & \
+                                ((group1 == "{condition}" & group2 == "{control_condition}") | \
+                                (group1 == "{control_condition}" & group2 == "{condition}"))'
+                            df_tukey_con = df_tukey.query(query_str)
+                            df_tukey_con = df_tukey_con.reset_index(drop=True)
+                            row = df_tukey_con.iloc[0]
+                            reject_05 = row['reject_05']
+                            reject_01 = row['reject_01']
+                            reject_001 = row['reject_001']
 
                             ymin, ymax = ax.get_ylim()
                             lines = ax.get_lines()
@@ -956,11 +965,12 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                             y = round(lines[3 + iii * 6].get_ydata()[0], 1)
 
                             if reject_001:
-                                text(iii -0.15, y + 0.7, '***', fontsize=40,color='black')
+                                text(iii - 0.15, y + 0.7, '***', fontsize=40, color='black')
                             elif reject_01:
-                                text(iii -0.1, y + 0.7, '**', fontsize=40,color='black')
+                                text(iii - 0.1, y + 0.7, '**', fontsize=40, color='black')
                             elif reject_05:
-                                text(iii -0.05, y + 0.7, '*', fontsize=40,color='black')
+                                text(iii - 0.05, y + 0.7, '*', fontsize=40, color='black')
+
 
                     ax.grid(True)
                     # ax.set(ylim=(0, 1.2))
@@ -1163,6 +1173,8 @@ if __name__ == "__main__":
     stats_vars = ['Total', 'Cell_percent']
     x_var = "Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
 
+    control_condition = "Control_DMSO"
+
     normalization_type = RELATIVE_NORM
     analyze_method = NORMALIZED_METHOD
 
@@ -1190,6 +1202,7 @@ if __name__ == "__main__":
     hue_split = "Condition"  # "Percent" or 'Condition'. mostly 'Condition' right now for all major plots (line, stacked bar and colormap)
 
     create_plots_and_stats(
+        control_condition=control_condition,
         stats_vars=stats_vars,
         x_var=x_var,
         filepaths=filepaths,
