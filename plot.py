@@ -440,6 +440,7 @@ class PlotUI:
                 box_day=int(self.box_day_var.get()),
                 plots=self.plots_var.get(),
                 lineplots=self.lineplots_var.get(),
+                boxplots=self.boxplots_var.get(),
                 stackedbarplots=self.stackedbarplots_var.get(),
                 individual_plots=self.individual_plots_var.get(),
                 save_plots=self.saveplots_var.get(),

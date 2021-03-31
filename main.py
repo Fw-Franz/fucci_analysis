@@ -913,7 +913,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                     mi_box = mi_box.reset_index(drop=True)
 
                     ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, linewidth=2, fliersize=0)
-                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, size=15, color='#767676',edgecolor="white",linewidth=1)
+                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue='Date', size=15, color='#767676',edgecolor="white",linewidth=1)
 
                     custom_lines = [Line2D([0], [0], color="#5fa2ce", lw=4),
                                     Line2D([0], [0], color="#ffbc79", lw=4),
@@ -924,42 +924,43 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                               ['-Control', '+Control', 'Novel Combo', 'Novel Repurposed', 'Published \nor In Use'],
                               loc='upper left', bbox_to_anchor=(0.14, 0.98))
 
-                    for iii in range(1,len(conditions)):
-                        con_group1=control_condition
-                        con_group2=conditions[iii]
+                    if do_tukey_test:
+                        for iii in range(1,len(conditions)):
+                            con_group1=control_condition
+                            con_group2=conditions[iii]
 
-                        df_05_con=df_05[df_05['group1']==con_group1]
-                        df_05_con=df_05_con[df_05_con['group2']==con_group2]
-                        df_05_con=df_05_con[df_05_con['Day']==box_day]
-                        df_05_con=df_05_con.reset_index(drop=True)
-                        reject_05=df_05_con.iloc[0]['reject']
+                            df_05_con=df_05[df_05['group1']==con_group1]
+                            df_05_con=df_05_con[df_05_con['group2']==con_group2]
+                            df_05_con=df_05_con[df_05_con['Day']==box_day]
+                            df_05_con=df_05_con.reset_index(drop=True)
+                            reject_05=df_05_con.iloc[0]['reject']
 
-                        df_01_con=df_01[df_01['group1']==con_group1]
-                        df_01_con=df_01_con[df_01_con['group2']==con_group2]
-                        df_01_con=df_01_con[df_01_con['Day']==box_day]
-                        df_01_con=df_01_con.reset_index(drop=True)
-                        reject_01=df_01_con.iloc[0]['reject']
+                            df_01_con=df_01[df_01['group1']==con_group1]
+                            df_01_con=df_01_con[df_01_con['group2']==con_group2]
+                            df_01_con=df_01_con[df_01_con['Day']==box_day]
+                            df_01_con=df_01_con.reset_index(drop=True)
+                            reject_01=df_01_con.iloc[0]['reject']
 
-                        df_001_con=df_001[df_001['group1']==con_group1]
-                        df_001_con=df_001_con[df_001_con['group2']==con_group2]
-                        df_001_con=df_001_con[df_001_con['Day']==box_day]
-                        df_001_con=df_001_con.reset_index(drop=True)
-                        reject_001=df_001_con.iloc[0]['reject']
+                            df_001_con=df_001[df_001['group1']==con_group1]
+                            df_001_con=df_001_con[df_001_con['group2']==con_group2]
+                            df_001_con=df_001_con[df_001_con['Day']==box_day]
+                            df_001_con=df_001_con.reset_index(drop=True)
+                            reject_001=df_001_con.iloc[0]['reject']
 
-                        ymin, ymax = ax.get_ylim()
-                        lines = ax.get_lines()
-                        categories = ax.get_xticks()
-                        # every 4th line at the interval of 6 is median line
-                        # 0 -> p25 1 -> p75 2 -> lower whisker 3 -> upper whisker 4 -> p50 5 -> upper extreme value
+                            ymin, ymax = ax.get_ylim()
+                            lines = ax.get_lines()
+                            categories = ax.get_xticks()
+                            # every 4th line at the interval of 6 is median line
+                            # 0 -> p25 1 -> p75 2 -> lower whisker 3 -> upper whisker 4 -> p50 5 -> upper extreme value
 
-                        y = round(lines[3 + iii * 6].get_ydata()[0], 1)
+                            y = round(lines[3 + iii * 6].get_ydata()[0], 1)
 
-                        if reject_001:
-                            text(iii -0.15, y + 0.7, '***', fontsize=40,color='black')
-                        elif reject_01:
-                            text(iii -0.1, y + 0.7, '**', fontsize=40,color='black')
-                        elif reject_05:
-                            text(iii -0.05, y + 0.7, '*', fontsize=40,color='black')
+                            if reject_001:
+                                text(iii -0.15, y + 0.7, '***', fontsize=40,color='black')
+                            elif reject_01:
+                                text(iii -0.1, y + 0.7, '**', fontsize=40,color='black')
+                            elif reject_05:
+                                text(iii -0.05, y + 0.7, '*', fontsize=40,color='black')
 
                     ax.grid(True)
                     # ax.set(ylim=(0, 1.2))

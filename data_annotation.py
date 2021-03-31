@@ -191,7 +191,7 @@ class AnnotatedData:
         if analyze_method == RAW_METHOD:
             return stats_var
         colname = f'{stats_var}_{normalization_type}_{analyze_method}_norm'
-        if normalization_type == CONTROL_NORM:
+        if analyze_method == FOLD_CHANGE_METHOD:
             colname = f'{colname}_{control_condition}'
         return colname
 
