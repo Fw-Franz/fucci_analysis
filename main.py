@@ -78,37 +78,28 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
     start_time = time.time()
 
-    for path in filepaths:
-        print('-----------------------------------')
-        print('Processing file:', path)
+    data = data_annotation.AnnotatedData(filepaths)
+    data.load_annotated_files()
+    start_day = data.start_day()
+    end_day = data.end_day()
 
-        data = data_annotation.AnnotatedData([path])
-        data.load_annotated_files()
-        mi = data.dataframe
-        start_day = data.start_day()
-        end_day = data.end_day()
-        frames = data.get_frames()
-        if len(frames) == 1:
-            frame = frames[0]
-        else:
-            #TODO: generalize code to handle this case
-            raise ValueError("Input data has multiple frames in one file")
+    if conditions_override and len(conditions_override) > 0:
+        conditions = list(conditions_override)
+    else:
+        conditions = list(data.get_conditions())
+    start_time_conditions = time.time()
 
-        if conditions_override and len(conditions_override) > 0:
-            conditions = list(conditions_override)
-        else:
-            conditions = list(data.get_conditions())
-        start_time_conditions = time.time()
+    if (control_condition is None) or (control_condition == ""):
+        control_condition = conditions[0]
+    elif control_condition not in conditions:
+        err = f'control_condition {control_condition} not contained in conditions'
+        raise ValueError(err)
+    else:
+        conditions.remove(control_condition)
+        conditions.insert(0, control_condition)
 
-        if (control_condition is None) or (control_condition == ""):
-            control_condition = conditions[0]
-        elif control_condition not in conditions:
-            err = f'control_condition {control_condition} not contained in conditions for path {path}'
-            raise ValueError(err)
-        else:
-            conditions.remove(control_condition)
-            conditions.insert(0, control_condition)
-
+    for frame in data.get_frames():
+        mi = data.dataframe.query(f'Frame == {frame}')
         for stats_var in stats_vars:
             #region intitialize print out
             start_time_stats = time.time()

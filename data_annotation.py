@@ -20,6 +20,7 @@ class AnnotatedData:
         data = []
         for path in self.filepaths:
             m = pd.read_csv(path)
+            m['Filepath'] = path
             data.append(m)
 
         self.dataframe = pd.concat(data)
@@ -41,7 +42,6 @@ class AnnotatedData:
                 m.rename(columns={"DayNum": "Day"}, inplace=True)
 
             m['Frame'] = frames[path]
-
             data.append(m)
 
         self.dataframe = pd.concat(data)
@@ -200,18 +200,27 @@ class AnnotatedData:
             raise DataValidationError("Missing date assignment")
         if self.dataframe['Condition'].isnull().any():
             raise DataValidationError("Missing condition assignments")
-        for frame in self.get_frames():
-            date_str = "_".join(list(self.get_dates()))
-            path = os.path.join(
-                self.directory,
-                f'frame_m{frame}_processed_data_{date_str}.csv'
-            )
-            data = self.dataframe[self.dataframe['Frame'] == frame]
-            data.to_csv(
-                path_or_buf=path,
-                index=None,
-                header=True
-            )
+        if 'Filepath' in self.dataframe.columns:
+            for path in list(self.dataframe['Filepath'].unique()):
+                data = self.dataframe.query(f'Filepath == "{path}"').drop(columns='Filepath')
+                data.to_csv(
+                    path_or_buf=path,
+                    index=None,
+                    header=True
+                )
+        else:
+            for frame in self.get_frames():
+                date_str = "_".join(list(self.get_dates()))
+                path = os.path.join(
+                    self.directory,
+                    f'frame_m{frame}_processed_data_{date_str}.csv'
+                )
+                data = self.dataframe.query(f'Frame == {frame}')
+                data.to_csv(
+                    path_or_buf=path,
+                    index=None,
+                    header=True
+                )
 
 
 class DataValidationError(RuntimeError):
