@@ -71,10 +71,10 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
         raise ValueError(" ".join(error_msgs))
 
     base_directories = [os.path.dirname(os.path.dirname(path)) for path in filepaths]
-    if len(set(base_directories)) == 1:
-        base_directory = base_directories[0]
-    else:
-        raise ValueError("Selected filepaths not all in same base directory")
+    # if len(set(base_directories)) == 1:
+    base_directory = base_directories[0]
+    # else:
+    #     raise ValueError("Selected filepaths not all in same base directory")
 
     start_time = time.time()
 
