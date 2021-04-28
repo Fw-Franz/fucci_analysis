@@ -61,6 +61,8 @@ dependencies:
   - xz=5.2.5
   - zlib=1.2.11
   - zstd=1.4.5
+  - pip:
+    - tkscrolledframe==1.0.4
 variables:
   PYTHONPATH: . pytest
 prefix: /Users/adamstrandberg/opt/anaconda3/envs/fucci_analysis
