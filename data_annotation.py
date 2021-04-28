@@ -145,7 +145,7 @@ class AnnotatedData:
         # write in total cell count
         self.dataframe['Total'] = 0
 
-        for _, rows in self.dataframe.groupby(['PlateNum', 'WellNum', 'Day']):
+        for _, rows in self.dataframe.groupby(['PlateNum', 'WellNum', 'Day', 'Frame']):
             total = rows['Count'].sum()
             self.dataframe.loc[rows.index, 'Total'] = total
 
@@ -163,12 +163,12 @@ class AnnotatedData:
         relative_fold_change = self.normalization_colname(RELATIVE_NORM, FOLD_CHANGE_METHOD, stats_var, control_condition)
         self.dataframe[[total_normalized, relative_normalized, total_fold_change, relative_fold_change]] = 0.0
 
-        groups = {k: v for k, v in self.dataframe.groupby(['Date', 'Day', 'Condition', 'Marker'])}
-        for (date, day, condition, marker), group in groups.items():
+        groups = {k: v for k, v in self.dataframe.groupby(['Date', 'Day', 'Condition', 'Marker', 'Frame'])}
+        for (date, day, condition, marker, frame), group in groups.items():
             idx = group.index
-            start_day_group = groups[(date, self.start_day(), condition, marker)]
-            control_condition_group = groups[(date, day, control_condition, marker)]
-            control_start_day_group = groups[(date, self.start_day(), control_condition, marker)]
+            start_day_group = groups[(date, self.start_day(), condition, marker, frame)]
+            control_condition_group = groups[(date, day, control_condition, marker, frame)]
+            control_start_day_group = groups[(date, self.start_day(), control_condition, marker, frame)]
 
             group = group.reset_index(drop=True)
             start_day_group = start_day_group.reset_index(drop=True)
