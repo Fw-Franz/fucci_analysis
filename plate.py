@@ -129,17 +129,16 @@ class Plate():
             sticky=(tk.N, tk.W, tk.S, tk.E)
         )
         self.condition_color_map = {}
-        self.color_count = 0
         self.add_condition("None", "white")
 
         self.root.mainloop()
 
     def add_condition(self, condition, color=None):
-        if condition == "":
+        if condition == "" or condition in self.condition_color_map:
             return
         if color is None:
-            color = colors.COLORS[self.color_count]
-            self.color_count += 1
+            color_count = len(self.condition_color_map)
+            color = colors.COLORS[color_count]
 
         self.condition_color_map[condition] = color
         radio = tk.Radiobutton(
