@@ -5,6 +5,7 @@ import colors
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog, messagebox, simpledialog
+from tkscrolledframe import ScrolledFrame
 from platform import system
 import os
 import sys
@@ -32,18 +33,18 @@ class Plate():
 
     def main(self):
         self.root = tk.Tk()
-        self.left_bar_frame = ttk.Frame(self.root, padding="12 12 12 12")
-        self.left_bar_frame.grid(
-            column=0,
-            row=0,
+        self.left_bar_overframe = ScrolledFrame(self.root)
+        self.left_bar_overframe.grid(
             sticky=(tk.N, tk.W, tk.E, tk.S)
         )
+        self.left_bar_frame = self.left_bar_overframe.display_widget(tk.Frame)
         self.right_bar_frame = ttk.Frame(self.root)
         self.right_bar_frame.grid(
-            column=1,
+            column=2,
             row=0,
             sticky=(tk.N, tk.W, tk.E, tk.S)
         )
+
         self.right_bar_frame.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
