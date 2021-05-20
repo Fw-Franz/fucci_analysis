@@ -28,6 +28,13 @@ NORMALIZATION_TYPES = [
 NORMALIZED_METHOD = 'normalized'
 RAW_METHOD = 'raw'
 FOLD_CHANGE_METHOD = 'fold_change'
+
+NORMAL_SCALE='normal'
+LOG2_SCALE='log2'
+DATA_SCALE_METHODS = [
+    NORMAL_SCALE,
+    LOG2_SCALE
+]
 ANALYZE_METHODS = [
     NORMALIZED_METHOD,
     RAW_METHOD,
@@ -39,7 +46,7 @@ PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
 HUE_SPLIT_TYPES = ['Condition', 'Percent']
 
 
-def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
+def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, data_scale,
         analyze_method, plot_context, hue_split,
         control_condition=None, conditions_override=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
@@ -124,7 +131,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
             #endregion
 
             data.set_normalization(stats_var, control_condition)
-            norm_colname = data.normalization_colname(normalization_type, analyze_method, stats_var, control_condition)
+            norm_colname = data.normalization_colname(normalization_type, data_scale, analyze_method, stats_var, control_condition)
 
             # region Initilize for-loop parameters
             days_total=end_day-start_day+1
@@ -507,14 +514,6 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                                     m=0
                                     for k in range(0, 3):
                                         sum_means=means.iloc[j-start_day+k*days_total]['Cell_percent']
-                                        # if j==0 and i==0:
-                                        #     if 0.01<=tt_p[5-start_day,2]<0.05:
-                                        #         text(j+0.05, m-0.05, '*' , fontsize=18)
-                                        #     if 0.001<=tt_p[5-start_day,2]<0.01:
-                                        #         text(j+0.05, m-0.05, '**' , fontsize=18)
-                                        #     if tt_p[5-start_day,2]<0.001:
-                                        #         text(j+0.05, m-0.05, '***' , fontsize=18)
-                                        # else:
                                         m=m+sum_means
                                         if k==0:
                                             k_new=1
@@ -1176,6 +1175,9 @@ if __name__ == "__main__":
     control_condition = "Control_DMSO"
 
     normalization_type = RELATIVE_NORM
+
+    data_scale = LOG2_SCALE
+
     analyze_method = NORMALIZED_METHOD
 
     do_ttest = True  # needed for plotting line and stacked bar plots with stars, as well as for colormaps
@@ -1207,6 +1209,7 @@ if __name__ == "__main__":
         x_var=x_var,
         filepaths=filepaths,
         normalization_type=normalization_type,
+        data_scale=data_scale,
         analyze_method=analyze_method,
         do_ttest=do_ttest,
         do_wilcoxon_test=do_wilcoxon_test,

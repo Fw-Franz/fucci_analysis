@@ -1,6 +1,7 @@
 from datetime import datetime
-from main import TOTAL_NORM, RELATIVE_NORM, NORMALIZED_METHOD, RAW_METHOD, FOLD_CHANGE_METHOD
+from main import TOTAL_NORM, RELATIVE_NORM, NORMALIZED_METHOD, DATA_SCALE_METHODS, NORMAL_SCALE, LOG2_SCALE, RAW_METHOD, FOLD_CHANGE_METHOD
 import pandas as pd
+import numpy as np
 import os
 
 HEADERS = ['PlateNum', 'WellNum', 'Day', 'Count', 'Marker']
@@ -157,11 +158,13 @@ class AnnotatedData:
         self.dataframe['Date'] = date
 
     def set_normalization(self, stats_var, control_condition):
-        total_normalized = self.normalization_colname(TOTAL_NORM, NORMALIZED_METHOD, stats_var, control_condition)
-        relative_normalized = self.normalization_colname(RELATIVE_NORM, NORMALIZED_METHOD, stats_var, control_condition)
-        total_fold_change = self.normalization_colname(TOTAL_NORM, FOLD_CHANGE_METHOD, stats_var, control_condition)
-        relative_fold_change = self.normalization_colname(RELATIVE_NORM, FOLD_CHANGE_METHOD, stats_var, control_condition)
-        self.dataframe[[total_normalized, relative_normalized, total_fold_change, relative_fold_change]] = 0.0
+        total_normalized = self.normalization_colname(TOTAL_NORM, NORMAL_SCALE, NORMALIZED_METHOD, stats_var, control_condition)
+        relative_normalized = self.normalization_colname(RELATIVE_NORM, NORMAL_SCALE, NORMALIZED_METHOD, stats_var, control_condition)
+        total_normalized_log2 = self.normalization_colname(TOTAL_NORM, LOG2_SCALE, NORMALIZED_METHOD, stats_var, control_condition)
+        relative_normalized_log2 = self.normalization_colname(RELATIVE_NORM, LOG2_SCALE, NORMALIZED_METHOD, stats_var, control_condition)
+        total_fold_change = self.normalization_colname(TOTAL_NORM, NORMAL_SCALE, FOLD_CHANGE_METHOD, stats_var, control_condition)
+        relative_fold_change = self.normalization_colname(RELATIVE_NORM, NORMAL_SCALE, FOLD_CHANGE_METHOD, stats_var, control_condition)
+        self.dataframe[[total_normalized, relative_normalized, total_normalized_log2, relative_normalized_log2, total_fold_change, relative_fold_change]] = 0.0
 
         groups = {k: v for k, v in self.dataframe.groupby(['Date', 'Day', 'Condition', 'Marker', 'Frame'])}
         for (date, day, condition, marker, frame), group in groups.items():
@@ -177,20 +180,32 @@ class AnnotatedData:
 
             group[total_normalized] = group[stats_var] / start_day_group[stats_var]
             group[relative_normalized] = (group[stats_var] - start_day_group[stats_var]) / start_day_group[stats_var]
+
+            group[total_normalized_log2] = group[total_normalized].map(np.log2)
+            group[relative_normalized_log2] = group[relative_normalized].map(np.log2)
+
             group[total_fold_change] = group[total_normalized] / (control_condition_group[stats_var].mean() / control_start_day_group[stats_var].mean())
             group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var].mean() - start_day_group[stats_var].mean()) / control_start_day_group[stats_var].mean())
 
             for k, j in enumerate(idx):
                 self.dataframe[total_normalized].iloc[j] = group[total_normalized].iat[k]
                 self.dataframe[relative_normalized].iloc[j] = group[relative_normalized].iat[k]
+                self.dataframe[total_normalized_log2].iloc[j] = group[total_normalized_log2].iat[k]
+                self.dataframe[relative_normalized_log2].iloc[j] = group[relative_normalized_log2].iat[k]
                 self.dataframe[total_fold_change].iloc[j] = group[total_fold_change].iat[k]
                 self.dataframe[relative_fold_change].iloc[j] = group[relative_fold_change].iat[k]
 
     @staticmethod
-    def normalization_colname(normalization_type, analyze_method, stats_var, control_condition):
-        if analyze_method == RAW_METHOD:
-            return stats_var
-        colname = f'{stats_var}_{normalization_type}_{analyze_method}_norm'
+    def normalization_colname(normalization_type, data_scale, analyze_method, stats_var, control_condition):
+        if data_scale == LOG2_SCALE:
+            if analyze_method == RAW_METHOD:
+                colname= f'{stats_var}_log2'
+            else:
+                colname = f'{stats_var}_{normalization_type}_{analyze_method}_norm_log2'
+        else:
+            if analyze_method == RAW_METHOD:
+                return stats_var
+            colname = f'{stats_var}_{normalization_type}_{analyze_method}_norm'
         if analyze_method == FOLD_CHANGE_METHOD:
             colname = f'{colname}_{control_condition}'
         return colname

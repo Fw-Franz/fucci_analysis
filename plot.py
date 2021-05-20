@@ -229,6 +229,29 @@ class PlotUI:
             row=0
         )
 
+        data_scale_label = ttk.Label(
+            self.select_frame,
+            text="Data Scaling",
+            justify="left"
+        )
+        data_scale_label.grid(
+            column=0,
+            row=1,
+            sticky=tk.W
+        )
+        self.data_scale_var = tk.StringVar()
+        data_scale_box = ttk.Combobox(
+            self.select_frame,
+            textvariable=self.data_scale_var,
+            state="readonly",
+            values=main.DATA_SCALE_METHODS
+        )
+        data_scale_box.current(0)
+        data_scale_box.grid(
+            column=1,
+            row=1
+        )
+
         analyze_method_label = ttk.Label(
             self.select_frame,
             text="Analyze Method",
@@ -236,7 +259,7 @@ class PlotUI:
         )
         analyze_method_label.grid(
             column=0,
-            row=1,
+            row=2,
             sticky=tk.W
         )
         self.analyze_method_var = tk.StringVar()
@@ -249,7 +272,7 @@ class PlotUI:
         analyze_method_box.current(0)
         analyze_method_box.grid(
             column=1,
-            row=1
+            row=2
         )
 
         x_var_label = ttk.Label(
@@ -259,7 +282,7 @@ class PlotUI:
         )
         x_var_label.grid(
             column=0,
-            row=2,
+            row=3,
             sticky=tk.W
         )
         self.x_var_var = tk.StringVar()
@@ -272,7 +295,7 @@ class PlotUI:
         x_var_box.current(0)
         x_var_box.grid(
             column=1,
-            row=2
+            row=3
         )
 
         plot_context_label = ttk.Label(
@@ -282,7 +305,7 @@ class PlotUI:
         )
         plot_context_label.grid(
             column=0,
-            row=3,
+            row=4,
             sticky=tk.W
         )
         self.plot_context_var = tk.StringVar()
@@ -295,7 +318,7 @@ class PlotUI:
         plot_context_box.current(0)
         plot_context_box.grid(
             column=1,
-            row=3
+            row=4
         )
 
         hue_split_label = ttk.Label(
@@ -304,7 +327,7 @@ class PlotUI:
         )
         hue_split_label.grid(
             column=0,
-            row=4,
+            row=5,
             sticky=tk.W
         )
         self.hue_split_var = tk.StringVar()
@@ -317,7 +340,7 @@ class PlotUI:
         hue_split_box.current(0)
         hue_split_box.grid(
             column=1,
-            row=4
+            row=5
         )
 
         control_condition_label = ttk.Label(
@@ -326,7 +349,7 @@ class PlotUI:
         )
         control_condition_label.grid(
             column=0,
-            row=5,
+            row=6,
             sticky=tk.W
         )
         self.control_condition_var = tk.StringVar()
@@ -339,7 +362,7 @@ class PlotUI:
         control_condition_box.current(0)
         control_condition_box.grid(
             column=1,
-            row=5
+            row=6
         )
 
         box_day_label = ttk.Label(
@@ -348,7 +371,7 @@ class PlotUI:
         )
         box_day_label.grid(
             column=0,
-            row=6,
+            row=7,
             sticky=tk.W
         )
         self.box_day_var = tk.IntVar()
@@ -361,7 +384,7 @@ class PlotUI:
         box_day_box.current(0)
         box_day_box.grid(
             column=1,
-            row=6
+            row=7
         )
 
 
@@ -371,7 +394,7 @@ class PlotUI:
         )
         stats_var_label.grid(
             column=0,
-            row=7,
+            row=8,
             sticky=tk.W
         )
         self.stats_var_var = tk.StringVar()
@@ -384,7 +407,7 @@ class PlotUI:
         stats_var_box.current(0)
         stats_var_box.grid(
             column=1,
-            row=7
+            row=8
         )
 
         conditions_override_label = ttk.Label(
@@ -393,7 +416,7 @@ class PlotUI:
         )
         conditions_override_label.grid(
             column=0,
-            row=8,
+            row=9,
             sticky=tk.W
         )
 
@@ -405,7 +428,7 @@ class PlotUI:
             self.conditions_override_listbox.insert(tk.END, condition)
         self.conditions_override_listbox.grid(
             column=1,
-            row=8
+            row=9
         )
 
         run_plots_button = ttk.Button(
@@ -415,7 +438,7 @@ class PlotUI:
         )
         run_plots_button.grid(
             column=1,
-            row=10,
+            row=11,
             sticky=tk.E
         )
 
@@ -430,6 +453,7 @@ class PlotUI:
             main.create_plots_and_stats(
                 normalization_type=self.normalization_var.get(),
                 analyze_method=self.analyze_method_var.get(),
+                data_scale=self.data_scale_var.get(),
                 x_var=self.x_var_var.get(),
                 plot_context=self.plot_context_var.get(),
                 hue_split=self.hue_split_var.get(),
