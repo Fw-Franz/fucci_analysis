@@ -131,6 +131,9 @@ class Plate():
         )
         self.condition_color_map = {}
         self.add_condition("None", "white")
+        conditions = list(filter(None, self.data.get_conditions()))
+        for condition in conditions:
+            self.add_condition(condition)
 
         self.root.mainloop()
 
