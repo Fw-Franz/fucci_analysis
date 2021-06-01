@@ -557,12 +557,23 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
 
                             if do_ttest:
                                 for j in range(mi['Day'].min(),mi['Day'].max()+1):
+<<<<<<< HEAD
                                     m=means.iloc[j-start_day][norm_colname]
                                     if 0.01<=tt_p[j-start_day]<0.05:
                                         text(j, m+0.05, '*' , fontsize=18 , horizontalalignment='center')
                                     if 0.001<=tt_p[j-start_day]<0.01:
                                         text(j, m+0.05, '**' , fontsize=18 , horizontalalignment='center')
                                     if tt_p[j-start_day]<0.001:
+=======
+                                    # print(j,start_day,norm_colname)
+                                    # print(means)
+                                    m=means.iloc[int(j/2)-start_day][norm_colname]
+                                    if 0.01<=tt_p[int(j/2)-start_day]<0.05:
+                                        text(j, m+0.05, '*' , fontsize=18 , horizontalalignment='center')
+                                    if 0.001<=tt_p[int(j/2)-start_day]<0.01:
+                                        text(j, m+0.05, '**' , fontsize=18 , horizontalalignment='center')
+                                    if tt_p[int(j/2)-start_day]<0.001:
+>>>>>>> parent of ac51db3 (Generalized 2nd day changes for any type of day interval)
                                         text(j, m+0.05, '***' , fontsize=18 , horizontalalignment='center')
 
 
