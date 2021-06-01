@@ -14,7 +14,7 @@ X_DIMENSION_WELLS = 12
 Y_DIMENSION_WELLS = 8
 WELL_COUNT = X_DIMENSION_WELLS * Y_DIMENSION_WELLS
 
-SQUARE_SIZE = 30
+SQUARE_SIZE = 50
 X_OFFSET = 1
 Y_OFFSET = 2
 CANVAS_WIDTH = SQUARE_SIZE * (X_DIMENSION_WELLS + 2 * X_OFFSET)
@@ -131,6 +131,18 @@ class Plate():
         )
         self.condition_color_map = {}
         self.add_condition("None", "white")
+        conditions = list(filter(None, self.data.get_conditions()))
+        for condition in conditions:
+            self.add_condition(condition)
+
+
+        vals = self.data.get_row_and_column_labeled_values()
+        for val in vals:
+            plate_num = val[0]
+            x = X_LABELS.index(str(val[1]))
+            y = Y_LABELS.index(val[2])
+            condition = val[3]
+            self.set_condition(condition=condition, x=x, y=y, plate_num=plate_num)
 
         self.root.mainloop()
 
@@ -292,10 +304,6 @@ class Plate():
         plate_num = self._get_tag_info(tags, "plate_num=")
         if x is not None and y is not None and plate_num:
             condition = self.current_condition.get()
-            self.canvas.itemconfig(
-                square_id,
-                fill=self.condition_color_map[condition]
-            )
             self.set_condition(
                 condition,
                 x,
@@ -327,6 +335,15 @@ class Plate():
                 )
 
     def set_condition(self, condition, x, y, plate_num):
+        x_squares = set(self.canvas.find_withtag(f'x={x}'))
+        y_squares = set(self.canvas.find_withtag(f'y={y}'))
+        plate_num_squares = set(self.canvas.find_withtag(f'plate_num={plate_num}'))
+        square_ids = x_squares & y_squares & plate_num_squares
+        for square_id in square_ids:
+            self.canvas.itemconfig(
+                square_id,
+                fill=self.condition_color_map[condition]
+            )
         self.condition_state[plate_num][(y, x)] = condition
 
     def get_condition(self, x, y, plate_num):

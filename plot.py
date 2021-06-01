@@ -7,7 +7,6 @@ from tkinter import filedialog
 import sys
 import pdb
 
-
 class PlotUI:
 
     def __init__(self, filepaths):
@@ -24,6 +23,10 @@ class PlotUI:
             row=0,
             sticky=(tk.N, tk.W, tk.E, tk.S)
         )
+
+        self.canvas_width = 100
+        self.canvas_height = 50
+
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         self.root.title("96 Well Data Annotation")
@@ -422,6 +425,7 @@ class PlotUI:
 
         self.conditions_override_listbox = tk.Listbox(
             self.select_frame,
+            width=self.canvas_width,
             selectmode=tk.MULTIPLE
         )
         for condition in self.conditions:
