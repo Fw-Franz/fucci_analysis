@@ -19,6 +19,8 @@ import os
 import sys
 import data_annotation
 
+pd.options.mode.chained_assignment = 'raise'
+
 TOTAL_NORM = 'total'
 RELATIVE_NORM = 'relative'
 NORMALIZATION_TYPES = [
@@ -501,20 +503,12 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                             ax.set_title(ax_title)
 
                             if do_ttest:
-                                for j in range(mi['Day'].min(),mi['Day'].max()+1):
-                                #     mi_control_d = mi_control[mi_control['Day'] == j]
-                                #     mi_drug_d = mi_drug[mi_drug['Day'] == j]
+                                Days_list = mi['Day'].to_numpy()
+                                unique_Days=np.unique(Days_list)
+                                for j in range(0,len(unique_Days)):
                                     m=0
                                     for k in range(0, 3):
-                                        sum_means=means.iloc[j-start_day+k*days_total]['Cell_percent']
-                                        # if j==0 and i==0:
-                                        #     if 0.01<=tt_p[5-start_day,2]<0.05:
-                                        #         text(j+0.05, m-0.05, '*' , fontsize=18)
-                                        #     if 0.001<=tt_p[5-start_day,2]<0.01:
-                                        #         text(j+0.05, m-0.05, '**' , fontsize=18)
-                                        #     if tt_p[5-start_day,2]<0.001:
-                                        #         text(j+0.05, m-0.05, '***' , fontsize=18)
-                                        # else:
+                                        sum_means=means.iloc[j+k*days_total]['Cell_percent']
                                         m=m+sum_means
                                         if k==0:
                                             k_new=1
@@ -522,12 +516,12 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                                             k_new=2
                                         if k==2:
                                             k_new=0
-                                        if 0.01<=tt_p[j-start_day,k_new]<0.05:
-                                            text(j-start_day+0.05, m-0.05, '*' , fontsize=18)
-                                        if 0.001<=tt_p[j-start_day,k_new]<0.01:
-                                            text(j-start_day+0.05, m-0.05, '**' , fontsize=18)
-                                        if tt_p[j-start_day,k_new]<0.001:
-                                            text(j-start_day+0.05, m-0.05, '***' , fontsize=18)
+                                        if 0.01<=tt_p[unique_Days[j],k_new]<0.05:
+                                            text(unique_Days[j]+0.05, m-0.05, '*' , fontsize=18)
+                                        if 0.001<=tt_p[unique_Days[j],k_new]<0.01:
+                                            text(unique_Days[j]+0.05, m-0.05, '**' , fontsize=18)
+                                        if tt_p[unique_Days[j],k_new]<0.001:
+                                            text(unique_Days[j]+0.05, m-0.05, '***' , fontsize=18)
 
                         #endregion
 
@@ -556,37 +550,17 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type,
                             ax.set_title(ax_title)
 
                             if do_ttest:
-                                for j in range(mi['Day'].min(),mi['Day'].max()+1):
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                                    m=means.iloc[j-start_day][norm_colname]
-                                    if 0.01<=tt_p[j-start_day]<0.05:
-                                        text(j, m+0.05, '*' , fontsize=18 , horizontalalignment='center')
-                                    if 0.001<=tt_p[j-start_day]<0.01:
-                                        text(j, m+0.05, '**' , fontsize=18 , horizontalalignment='center')
-                                    if tt_p[j-start_day]<0.001:
-=======
-=======
->>>>>>> parent of ac51db3 (Generalized 2nd day changes for any type of day interval)
-=======
->>>>>>> parent of ac51db3 (Generalized 2nd day changes for any type of day interval)
-                                    # print(j,start_day,norm_colname)
-                                    # print(means)
-                                    m=means.iloc[int(j/2)-start_day][norm_colname]
-                                    if 0.01<=tt_p[int(j/2)-start_day]<0.05:
-                                        text(j, m+0.05, '*' , fontsize=18 , horizontalalignment='center')
-                                    if 0.001<=tt_p[int(j/2)-start_day]<0.01:
-                                        text(j, m+0.05, '**' , fontsize=18 , horizontalalignment='center')
-                                    if tt_p[int(j/2)-start_day]<0.001:
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of ac51db3 (Generalized 2nd day changes for any type of day interval)
-=======
->>>>>>> parent of ac51db3 (Generalized 2nd day changes for any type of day interval)
-=======
->>>>>>> parent of ac51db3 (Generalized 2nd day changes for any type of day interval)
-                                        text(j, m+0.05, '***' , fontsize=18 , horizontalalignment='center')
+                                Days_list = mi['Day'].to_numpy()
+                                unique_Days=np.unique(Days_list)
+
+                                for j in range(0,len(unique_Days)):
+                                    m=means.iloc[j][norm_colname]
+                                    if 0.01<=tt_p[unique_Days[j]]<0.05:
+                                        text(unique_Days[j], m+0.05, '*' , fontsize=18 , horizontalalignment='center')
+                                    if 0.001<=tt_p[unique_Days[j]]<0.01:
+                                        text(unique_Days[j], m+0.05, '**' , fontsize=18 , horizontalalignment='center')
+                                    if tt_p[unique_Days[j]]<0.001:
+                                        text(unique_Days[j], m+0.05, '***' , fontsize=18 , horizontalalignment='center')
 
 
                         #endregion
