@@ -188,12 +188,12 @@ class AnnotatedData:
             group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var].mean() - start_day_group[stats_var].mean()) / control_start_day_group[stats_var].mean())
 
             for k, j in enumerate(idx):
-                self.dataframe[total_normalized].iloc[j] = group[total_normalized].iat[k]
-                self.dataframe[relative_normalized].iloc[j] = group[relative_normalized].iat[k]
-                self.dataframe[total_normalized_log2].iloc[j] = group[total_normalized_log2].iat[k]
-                self.dataframe[relative_normalized_log2].iloc[j] = group[relative_normalized_log2].iat[k]
-                self.dataframe[total_fold_change].iloc[j] = group[total_fold_change].iat[k]
-                self.dataframe[relative_fold_change].iloc[j] = group[relative_fold_change].iat[k]
+                self.dataframe[total_normalized].iat[j] = group[total_normalized].iat[k]
+                self.dataframe[relative_normalized].iat[j] = group[relative_normalized].iat[k]
+                self.dataframe[total_normalized_log2].iat[j] = group[total_normalized_log2].iat[k]
+                self.dataframe[relative_normalized_log2].iat[j] = group[relative_normalized_log2].iat[k]
+                self.dataframe[total_fold_change].iat[j] = group[total_fold_change].iat[k]
+                self.dataframe[relative_fold_change].iat[j] = group[relative_fold_change].iat[k]
 
     @staticmethod
     def normalization_colname(normalization_type, data_scale, analyze_method, stats_var, control_condition):
