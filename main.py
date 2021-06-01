@@ -19,6 +19,8 @@ import os
 import sys
 import data_annotation
 
+pd.options.mode.chained_assignment = 'raise'
+
 TOTAL_NORM = 'total'
 RELATIVE_NORM = 'relative'
 NORMALIZATION_TYPES = [
@@ -276,7 +278,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
 
                 if lineplots:
                     line_dir = os.path.join(
-                        base_directory, 'plots', 'lineplotsall', 
+                        base_directory, 'plots', 'lineplotsall',
                         f'{control_condition}_normalized',
                         normalization_type, f'm{frame}'
                     )
@@ -307,7 +309,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                 if colormap_plot:
                     colormap_dir = os.path.join(
                         base_directory, 'plots', 'colormaps',
-                        f'{control_condition}_normalized', 
+                        f'{control_condition}_normalized',
                         normalization_type, f'm{frame}'
                     )
                     if not os.path.exists(colormap_dir):
@@ -327,7 +329,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                     fname_colormap_anova = os.path.join(colormap_dir, f'{ax_title_colormap_anova}.png')
 
                     fnames_colormaps=[fname_colormap_p,fname_colormap_c,fname_colormap_m,fname_colormap_anova]
-            # endregion
+                # endregion
 
                 #region stats
                 #region ttest
@@ -508,12 +510,12 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                             ax.set_title(ax_title)
 
                             if do_ttest:
-                                for j in range(mi['Day'].min(),mi['Day'].max()+1):
-                                #     mi_control_d = mi_control[mi_control['Day'] == j]
-                                #     mi_drug_d = mi_drug[mi_drug['Day'] == j]
+                                Days_list = mi['Day'].to_numpy()
+                                unique_Days=np.unique(Days_list)
+                                for j in range(0,len(unique_Days)):
                                     m=0
                                     for k in range(0, 3):
-                                        sum_means=means.iloc[j-start_day+k*days_total]['Cell_percent']
+                                        sum_means=means.iloc[j+k*days_total]['Cell_percent']
                                         m=m+sum_means
                                         if k==0:
                                             k_new=1
@@ -521,12 +523,12 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                                             k_new=2
                                         if k==2:
                                             k_new=0
-                                        if 0.01<=tt_p[j-start_day,k_new]<0.05:
-                                            text(j-start_day+0.05, m-0.05, '*' , fontsize=18)
-                                        if 0.001<=tt_p[j-start_day,k_new]<0.01:
-                                            text(j-start_day+0.05, m-0.05, '**' , fontsize=18)
-                                        if tt_p[j-start_day,k_new]<0.001:
-                                            text(j-start_day+0.05, m-0.05, '***' , fontsize=18)
+                                        if 0.01<=tt_p[unique_Days[j],k_new]<0.05:
+                                            text(unique_Days[j]+0.05, m-0.05, '*' , fontsize=18)
+                                        if 0.001<=tt_p[unique_Days[j],k_new]<0.01:
+                                            text(unique_Days[j]+0.05, m-0.05, '**' , fontsize=18)
+                                        if tt_p[unique_Days[j],k_new]<0.001:
+                                            text(unique_Days[j]+0.05, m-0.05, '***' , fontsize=18)
 
                         #endregion
 
@@ -555,14 +557,17 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                             ax.set_title(ax_title)
 
                             if do_ttest:
-                                for j in range(mi['Day'].min(),mi['Day'].max()+1):
-                                    m=means.iloc[j-start_day][norm_colname]
-                                    if 0.01<=tt_p[j-start_day]<0.05:
-                                        text(j, m+0.05, '*' , fontsize=18 , horizontalalignment='center')
-                                    if 0.001<=tt_p[j-start_day]<0.01:
-                                        text(j, m+0.05, '**' , fontsize=18 , horizontalalignment='center')
-                                    if tt_p[j-start_day]<0.001:
-                                        text(j, m+0.05, '***' , fontsize=18 , horizontalalignment='center')
+                                Days_list = mi['Day'].to_numpy()
+                                unique_Days=np.unique(Days_list)
+
+                                for j in range(0,len(unique_Days)):
+                                    m=means.iloc[j][norm_colname]
+                                    if 0.01<=tt_p[unique_Days[j]]<0.05:
+                                        text(unique_Days[j], m+0.05, '*' , fontsize=18 , horizontalalignment='center')
+                                    if 0.001<=tt_p[unique_Days[j]]<0.01:
+                                        text(unique_Days[j], m+0.05, '**' , fontsize=18 , horizontalalignment='center')
+                                    if tt_p[unique_Days[j]]<0.001:
+                                        text(unique_Days[j], m+0.05, '***' , fontsize=18 , horizontalalignment='center')
 
 
                         #endregion
