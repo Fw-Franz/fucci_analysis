@@ -128,6 +128,12 @@ class AnnotatedData:
         dates.sort()
         return dates
 
+    def get_row_and_column_labeled_values(self):
+        vals = []
+        for val, _ in self.dataframe.groupby(['PlateNum', 'PlateColumn', 'PlateRow', 'Condition']):
+            vals.append(val)
+        return vals
+
     def set_condition(self, condition, well_num,
                       plate_num, plate_column, plate_row):
         query_str = f'WellNum == {well_num} & \
