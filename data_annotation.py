@@ -65,7 +65,6 @@ class AnnotatedData:
         # first row.
         first_row = x.parse(
             header=None,
-            names=HEADERS,
             nrows=1
         )
         if set(HEADERS).intersection(set(first_row.loc[0].values)):
@@ -87,7 +86,6 @@ class AnnotatedData:
         first_row = pd.read_csv(
             path,
             header=None,
-            names=HEADERS,
             nrows=1
         )
         if set(HEADERS).intersection(set(first_row.loc[0].values)):

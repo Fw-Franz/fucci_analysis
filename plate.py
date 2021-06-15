@@ -135,7 +135,6 @@ class Plate():
         for condition in conditions:
             self.add_condition(condition)
 
-
         vals = self.data.get_row_and_column_labeled_values()
         for val in vals:
             plate_num = val[0]
