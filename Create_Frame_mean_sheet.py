@@ -1,0 +1,4 @@
+
+
+
+file = open(f, 'r')
