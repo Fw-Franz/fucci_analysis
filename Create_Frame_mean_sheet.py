@@ -4,10 +4,12 @@ import pandas as pd
 
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\all_data_together"
 
 root = tk.Tk()
 root.withdraw()
 
+# m1_filepath,m2_filepath = filedialog.askopenfilename(initialdir=Custom_dir,
 m1_filepath,m2_filepath = filedialog.askopenfilename(initialdir=BASE_DIR,
                 title="Select files m1 and m2",
                 multiple=True,
