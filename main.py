@@ -43,13 +43,15 @@ ANALYZE_METHODS = [
     FOLD_CHANGE_METHOD
 ]
 STATS_VARS_TYPES = ['Total', 'Cell_percent']
-X_VAR_TYPES = ['Day']
+# X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
-HUE_SPLIT_TYPES = ['Condition', 'Percent']
+# HUE_SPLIT_TYPES = ['Condition', 'Percent']
 
 
-def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, data_scale,
-        analyze_method, plot_context, hue_split,
+def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale,
+# def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, data_scale,
+        # analyze_method, plot_context, hue_split,
+        analyze_method, plot_context,
         control_condition=None, conditions_override=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
         individual_plots=False, boxplots=False, box_day=None, stackedbarplots=False, lineplots=False,
@@ -61,12 +63,12 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
         error_msgs.append(f'Invalid normalization_type: {normalization_type}.')
     if analyze_method not in ANALYZE_METHODS:
         error_msgs.append(f'Invalid analyze_method: {analyze_method}.')
-    if x_var not in X_VAR_TYPES:
-        error_msgs.append(f'Invalid x_var: {x_var}.')
+    # if x_var not in X_VAR_TYPES:
+    #     error_msgs.append(f'Invalid x_var: {x_var}.')
     if plot_context not in PLOT_CONTEXT_TYPES:
         error_msgs.append(f'Invalid plot_context: {plot_context}.')
-    if hue_split not in HUE_SPLIT_TYPES:
-        error_msgs.append(f'Invalid hue_split: {hue_split}.')
+    # if hue_split not in HUE_SPLIT_TYPES:
+    #     error_msgs.append(f'Invalid hue_split: {hue_split}.')
     if not all([stats_var in STATS_VARS_TYPES for stats_var in stats_vars]):
         error_msgs.append(f'Invalid stats_vars: {stats_vars}.')
 
@@ -164,11 +166,13 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
             else:
                 marker = 'all'
 
-            if x_var == "Day":
-                graph_n = conditions
-            else:
-                graph_n = range(start_day,len(days)+start_day)
-            if hue_split == "Condition" and (plot_type != "stacked_bar" and plot_type != "line"):
+            # if x_var == "Day":
+            #     graph_n =
+            # else:
+            #     graph_n = range(start_day,len(days)+start_day)
+            graph_n = conditions
+            # if hue_split == "Condition" and (plot_type != "stacked_bar" and plot_type != "line"):
+            if (plot_type != "stacked_bar" and plot_type != "line"):
                 graph_n = range(0, 1)
 
             # endregion
@@ -212,18 +216,20 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                 print('Processing:',i, 'at frame',frame)
 
                 # region  Titles and filenames
-                if x_var == "Day":
-                    if hue_split != "Condition":
-                        ax_title = f'm{frame} {marker} {day}'
-                    else:
-                        if plot_type == "stacked_bar":
-                            ax_title = f'm{frame} {i}'
-                        elif plot_type == "line":
-                            ax_title = f'm{frame} {i} vs {control_condition}'
-                        else:
-                            ax_title = f'm{frame} {hue_choice[0]} vs {hue_choice[1]}'
-                else:
-                    ax_title = f'm{frame} {marker} Day {day}'
+                # if x_var == "Day":
+                #     ax_title = f'm{frame} {marker} {day}'
+                    # if hue_split != "Condition":
+                    #     ax_title = f'm{frame} {marker} {day}'
+                ax_title = f'm{frame} {marker} {day}'
+                    # else:
+                    #     if plot_type == "stacked_bar":
+                    #         ax_title = f'm{frame} {i}'
+                    #     elif plot_type == "line":
+                    #         ax_title = f'm{frame} {i} vs {control_condition}'
+                    #     else:
+                    #         ax_title = f'm{frame} {hue_choice[0]} vs {hue_choice[1]}'
+                # else:
+                #     ax_title = f'm{frame} {marker} Day {day}'
 
                 data_dir = os.path.join(base_directory, 'data')
                 if not os.path.exists(data_dir):
@@ -236,22 +242,29 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                     os.makedirs(stats_dir)
 
                 if plot_type == "violin":
-                    if hue_split == "Condition":
-                        violin_dir = os.path.join(
-                            base_directory, 'plots', 'violinplots', 'condition_1_vs_2',
-                            f'{control_condition}_normalized', normalization_type, f'm{frame}'
-                        )
-                        if not os.path.exists(violin_dir):
-                            os.makedirs(violin_dir)
-                        plot_fname = os.path.join(violin_dir, f'{ax_title}.png')
-                    else:
-                        violin_dir = os.path.join(
-                            base_directory, 'plots', 'violinplots',
-                            f'{control_condition}_normalized', normalization_type, f'm{frame}'
-                        )
-                        if not os.path.exists(violin_dir):
-                            os.makedirs(violin_dir)
-                        plot_fname = os.path.join(violin_dir, f'{ax_title}.png')
+                    # if hue_split == "Condition":
+                    #     violin_dir = os.path.join(
+                    #         base_directory, 'plots', 'violinplots', 'condition_1_vs_2',
+                    #         f'{control_condition}_normalized', normalization_type, f'm{frame}'
+                    #     )
+                    #     if not os.path.exists(violin_dir):
+                    #         os.makedirs(violin_dir)
+                    #     plot_fname = os.path.join(violin_dir, f'{ax_title}.png')
+                    violin_dir = os.path.join(
+                        base_directory, 'plots', 'violinplots', 'condition_1_vs_2',
+                        f'{control_condition}_normalized', normalization_type, f'm{frame}'
+                    )
+                    if not os.path.exists(violin_dir):
+                        os.makedirs(violin_dir)
+                    plot_fname = os.path.join(violin_dir, f'{ax_title}.png')
+                    # else:
+                    #     violin_dir = os.path.join(
+                    #         base_directory, 'plots', 'violinplots',
+                    #         f'{control_condition}_normalized', normalization_type, f'm{frame}'
+                    #     )
+                    #     if not os.path.exists(violin_dir):
+                    #         os.makedirs(violin_dir)
+                    #     plot_fname = os.path.join(violin_dir, f'{ax_title}.png')
 
                 if boxplots:
                     box_dir = os.path.join(
@@ -436,7 +449,8 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                             mi_an_base = mi_an[mi_an['Day'] == start_day]
                             mi_an_base = mi_an_base.reset_index(drop=True)
 
-                            formula = f'{norm_colname} ~ C({x_var}) + C(Condition) + C({x_var}):C(Condition)'
+                            # formula = f'{norm_colname} ~ C({x_var}) + C(Condition) + C({x_var}):C(Condition)'
+                            formula = f'{norm_colname} ~ C(Day) + C(Condition) + C(Day):C(Condition)'
                             model = ols(formula, mi_an).fit()
                             aov_table = anova_lm(model, type=2)
 
@@ -453,7 +467,7 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                         if stats_var == 'Cell_percent':
                             for mark in marker_list:
                                 mi_an_mark = mi_an[mi_an.Marker == mark]
-                                formula = f'{stats_var} ~ C({x_var}) + C(Condition) + C({x_var}):C(Condition)'
+                                formula = f'{stats_var} ~ C(Day) + C(Condition) + C(Day):C(Condition)'
 
                                 model = ols(formula, mi_an_mark).fit()
                                 aov_table = anova_lm(model, type=2)
@@ -543,8 +557,10 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                             stds = mi_new.groupby(['Day']).std()
 
                             hue_choice = [control_condition, i]
-                            ax = sns.lineplot(x='Day', y=norm_colname, data=mi_new_both, hue=hue_split,hue_order=hue_choice,legend='full',
-                                              ci='sd', palette = sns.color_palette("hsv", 2), style=hue_split, markers=True, dashes=True)
+                            # ax = sns.lineplot(x='Day', y=norm_colname, data=mi_new_both, hue=hue_split,hue_order=hue_choice,legend='full',
+                            #                   ci='sd', palette = sns.color_palette("hsv", 2), style=hue_split, markers=True, dashes=True)
+                            ax = sns.lineplot(x='Day', y=norm_colname, data=mi_new_both, hue='Condition',hue_order=hue_choice,legend='full',
+                                              ci='sd', palette = sns.color_palette("hsv", 2), style='Condition', markers=True, dashes=True)
 
                             handles, labels = ax.get_legend_handles_labels()
                             ax.legend(handles, labels, loc='upper left')
@@ -575,8 +591,8 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                         #region Global plot parameters
                         ax.grid(False)
 
-                        if x_var=="Condition":
-                            ax.set_xticklabels(ax.get_xticklabels(),rotation=30)
+                        # if x_var=="Condition":
+                        #     ax.set_xticklabels(ax.get_xticklabels(),rotation=30)
 
                         if marker!="all":
                             ax.set_title(ax_title)
@@ -900,16 +916,18 @@ def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, dat
                     mi_box = mi_box.reset_index(drop=True)
 
                     ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, linewidth=2, fliersize=0)
-                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue='Date', size=15, color='#767676',edgecolor="white",linewidth=1)
+                    # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue='Date', size=15, color='#767676',edgecolor="white",linewidth=1)
+                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=8,
+                                       edgecolor="white", linewidth=1, dodge=True)
 
-                    custom_lines = [Line2D([0], [0], color="#5fa2ce", lw=4),
-                                    Line2D([0], [0], color="#ffbc79", lw=4),
-                                    Line2D([0], [0], color="#fc7d0b", lw=4),
-                                    Line2D([0], [0], color="#c85200", lw=4),
-                                    Line2D([0], [0], color="#1170aa", lw=4)]
-                    ax.legend(custom_lines,
-                              ['-Control', '+Control', 'Novel Combo', 'Novel Repurposed', 'Published \nor In Use'],
-                              loc='upper left', bbox_to_anchor=(0.14, 0.98))
+                    # custom_lines = [Line2D([0], [0], color="#5fa2ce", lw=4),
+                    #                 Line2D([0], [0], color="#ffbc79", lw=4),
+                    #                 Line2D([0], [0], color="#fc7d0b", lw=4),
+                    #                 Line2D([0], [0], color="#c85200", lw=4),
+                    #                 Line2D([0], [0], color="#1170aa", lw=4)]
+                    # ax.legend(custom_lines,
+                    #           ['-Control', '+Control', 'Novel Combo', 'Novel Repurposed', 'Published \nor In Use'],
+                    #           loc='upper left', bbox_to_anchor=(0.14, 0.98))
 
 
                     if save_excel_stats:
@@ -1175,7 +1193,7 @@ if __name__ == "__main__":
     filepaths = sys.argv[1:]
 
     stats_vars = ['Total', 'Cell_percent']
-    x_var = "Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
+    # x_var = "Day"  # x_axis variable, mostly 'Day' right now for all major plots (line, stacked bar and colormap)
 
     control_condition = "Control_DMSO"
 
@@ -1200,18 +1218,18 @@ if __name__ == "__main__":
     boxplots = True
     stackedbarplots = True
     lineplots = True
-    box_day = 5
+    box_day = 6
 
     save_plots = True  # True = save all plots,  or False = stops at each condition to show plot without saving it
 
     plot_context = 'talk'  # 'talk', 'poster', 'notebook' - use talk for now
 
-    hue_split = "Condition"  # "Percent" or 'Condition'. mostly 'Condition' right now for all major plots (line, stacked bar and colormap)
+    # hue_split = "Condition"  # "Percent" or 'Condition'. mostly 'Condition' right now for all major plots (line, stacked bar and colormap)
 
     create_plots_and_stats(
         control_condition=control_condition,
         stats_vars=stats_vars,
-        x_var=x_var,
+        # x_var=x_var,
         filepaths=filepaths,
         normalization_type=normalization_type,
         data_scale=data_scale,
@@ -1231,5 +1249,5 @@ if __name__ == "__main__":
         box_day=box_day,
         save_plots=save_plots,
         plot_context=plot_context,
-        hue_split=hue_split
+        # hue_split=hue_split
     )

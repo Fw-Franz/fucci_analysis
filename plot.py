@@ -39,7 +39,8 @@ class PlotUI:
 
         if filepaths is None or filepaths == []:
             self.filepaths = filedialog.askopenfilename(
-                initialdir="/",
+                # initialdir="/",
+                initialdir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\data\\",
                 title="Select file",
                 multiple=True,
                 filetypes=(("csv", "*.csv"),)
@@ -52,51 +53,16 @@ class PlotUI:
         self.conditions = self.data.get_conditions()
         self.days = range(self.data.start_day(), self.data.end_day() + 1)
 
-        self.lineplots_var = tk.BooleanVar(value=True)
-        lineplots_checkbox = ttk.Checkbutton(
+
+        self.plots_var = tk.BooleanVar(value=True)
+        plots_checkbox = ttk.Checkbutton(
             self.checkbox_frame,
-            variable=self.lineplots_var,
-            text="lineplots"
+            variable=self.plots_var,
+            text="plots"
         )
-        lineplots_checkbox.grid(
+        plots_checkbox.grid(
             column=0,
             row=0,
-            sticky=tk.W
-        )
-
-        self.stackedbarplots_var = tk.BooleanVar()
-        stackedbarplots_checkbox = ttk.Checkbutton(
-            self.checkbox_frame,
-            variable=self.stackedbarplots_var,
-            text="stackedbarplots"
-        )
-        stackedbarplots_checkbox.grid(
-            column=0,
-            row=1,
-            sticky=tk.W
-        )
-
-        self.boxplots_var = tk.BooleanVar()
-        boxplots_checkbox = ttk.Checkbutton(
-            self.checkbox_frame,
-            variable=self.boxplots_var,
-            text="boxplots"
-        )
-        boxplots_checkbox.grid(
-            column=0,
-            row=2,
-            sticky=tk.W
-        )
-
-        self.individual_plots_var = tk.BooleanVar()
-        individual_plots_checkbox = ttk.Checkbutton(
-            self.checkbox_frame,
-            variable=self.individual_plots_var,
-            text="individual_plots"
-        )
-        individual_plots_checkbox.grid(
-            column=0,
-            row=3,
             sticky=tk.W
         )
 
@@ -108,21 +74,60 @@ class PlotUI:
         )
         saveplots_checkbox.grid(
             column=0,
+            row=1,
+            sticky=tk.W
+        )
+
+        self.individual_plots_var = tk.BooleanVar()
+        individual_plots_checkbox = ttk.Checkbutton(
+            self.checkbox_frame,
+            variable=self.individual_plots_var,
+            text="individual_plots"
+        )
+        individual_plots_checkbox.grid(
+            column=0,
+            row=2,
+            sticky=tk.W
+        )
+
+
+        self.boxplots_var = tk.BooleanVar()
+        boxplots_checkbox = ttk.Checkbutton(
+            self.checkbox_frame,
+            variable=self.boxplots_var,
+            text="boxplots"
+        )
+        boxplots_checkbox.grid(
+            column=0,
+            row=3,
+            sticky=tk.W
+        )
+
+        self.lineplots_var = tk.BooleanVar(value=True)
+        lineplots_checkbox = ttk.Checkbutton(
+            self.checkbox_frame,
+            variable=self.lineplots_var,
+            text="lineplots"
+        )
+        lineplots_checkbox.grid(
+            column=0,
             row=4,
             sticky=tk.W
         )
 
-        self.plots_var = tk.BooleanVar(value=True)
-        plots_checkbox = ttk.Checkbutton(
+        self.stackedbarplots_var = tk.BooleanVar()
+        stackedbarplots_checkbox = ttk.Checkbutton(
             self.checkbox_frame,
-            variable=self.plots_var,
-            text="plots"
+            variable=self.stackedbarplots_var,
+            text="stackedbarplots"
         )
-        plots_checkbox.grid(
+        stackedbarplots_checkbox.grid(
             column=0,
             row=5,
             sticky=tk.W
         )
+
+
 
         self.colormap_plot_var = tk.BooleanVar()
         colormap_plot_checkbox = ttk.Checkbutton(
@@ -278,73 +283,51 @@ class PlotUI:
             row=2
         )
 
-        x_var_label = ttk.Label(
-            self.select_frame,
-            text="X variable",
-            justify="left"
-        )
-        x_var_label.grid(
-            column=0,
-            row=3,
-            sticky=tk.W
-        )
-        self.x_var_var = tk.StringVar()
-        x_var_box = ttk.Combobox(
-            self.select_frame,
-            textvariable=self.x_var_var,
-            state="readonly",
-            values=main.X_VAR_TYPES
-        )
-        x_var_box.current(0)
-        x_var_box.grid(
-            column=1,
-            row=3
-        )
+        # x_var_label = ttk.Label(
+        #     self.select_frame,
+        #     text="X variable",
+        #     justify="left"
+        # )
+        # x_var_label.grid(
+        #     column=0,
+        #     row=3,
+        #     sticky=tk.W
+        # )
+        # self.x_var_var = tk.StringVar()
+        # x_var_box = ttk.Combobox(
+        #     self.select_frame,
+        #     textvariable=self.x_var_var,
+        #     state="readonly",
+        #     values=main.X_VAR_TYPES
+        # )
+        # x_var_box.current(0)
+        # x_var_box.grid(
+        #     column=1,
+        #     row=3
+        # )
 
-        plot_context_label = ttk.Label(
-            self.select_frame,
-            text="Plot Context",
-            justify="left"
-        )
-        plot_context_label.grid(
-            column=0,
-            row=4,
-            sticky=tk.W
-        )
-        self.plot_context_var = tk.StringVar()
-        plot_context_box = ttk.Combobox(
-            self.select_frame,
-            textvariable=self.plot_context_var,
-            state="readonly",
-            values=main.PLOT_CONTEXT_TYPES
-        )
-        plot_context_box.current(0)
-        plot_context_box.grid(
-            column=1,
-            row=4
-        )
 
-        hue_split_label = ttk.Label(
-            self.select_frame,
-            text="Hue Split"
-        )
-        hue_split_label.grid(
-            column=0,
-            row=5,
-            sticky=tk.W
-        )
-        self.hue_split_var = tk.StringVar()
-        hue_split_box = ttk.Combobox(
-            self.select_frame,
-            textvariable=self.hue_split_var,
-            state="readonly",
-            values=main.HUE_SPLIT_TYPES
-        )
-        hue_split_box.current(0)
-        hue_split_box.grid(
-            column=1,
-            row=5
-        )
+        # hue_split_label = ttk.Label(
+        #     self.select_frame,
+        #     text="Hue Split"
+        # )
+        # hue_split_label.grid(
+        #     column=0,
+        #     row=5,
+        #     sticky=tk.W
+        # )
+        # self.hue_split_var = tk.StringVar()
+        # hue_split_box = ttk.Combobox(
+        #     self.select_frame,
+        #     textvariable=self.hue_split_var,
+        #     state="readonly",
+        #     values=main.HUE_SPLIT_TYPES
+        # )
+        # hue_split_box.current(0)
+        # hue_split_box.grid(
+        #     column=1,
+        #     row=5
+        # )
 
         control_condition_label = ttk.Label(
             self.select_frame,
@@ -352,7 +335,7 @@ class PlotUI:
         )
         control_condition_label.grid(
             column=0,
-            row=6,
+            row=3,
             sticky=tk.W
         )
         self.control_condition_var = tk.StringVar()
@@ -362,10 +345,11 @@ class PlotUI:
             state="readonly",
             values=list(self.conditions)
         )
-        control_condition_box.current(0)
+        # control_condition_box.current(0)
+        control_condition_box.set("Control_DMSO")
         control_condition_box.grid(
             column=1,
-            row=6
+            row=3
         )
 
         box_day_label = ttk.Label(
@@ -374,7 +358,7 @@ class PlotUI:
         )
         box_day_label.grid(
             column=0,
-            row=7,
+            row=4,
             sticky=tk.W
         )
         self.box_day_var = tk.IntVar()
@@ -384,10 +368,10 @@ class PlotUI:
             state="readonly",
             values=list(self.days)
         )
-        box_day_box.current(0)
+        box_day_box.current(6)
         box_day_box.grid(
             column=1,
-            row=7
+            row=4
         )
 
 
@@ -397,7 +381,7 @@ class PlotUI:
         )
         stats_var_label.grid(
             column=0,
-            row=8,
+            row=5,
             sticky=tk.W
         )
         self.stats_var_var = tk.StringVar()
@@ -410,7 +394,30 @@ class PlotUI:
         stats_var_box.current(0)
         stats_var_box.grid(
             column=1,
-            row=8
+            row=5
+        )
+
+        plot_context_label = ttk.Label(
+            self.select_frame,
+            text="Plot Context",
+            justify="left"
+        )
+        plot_context_label.grid(
+            column=0,
+            row=6,
+            sticky=tk.W
+        )
+        self.plot_context_var = tk.StringVar()
+        plot_context_box = ttk.Combobox(
+            self.select_frame,
+            textvariable=self.plot_context_var,
+            state="readonly",
+            values=main.PLOT_CONTEXT_TYPES
+        )
+        plot_context_box.current(0)
+        plot_context_box.grid(
+            column=1,
+            row=6
         )
 
         conditions_override_label = ttk.Label(
@@ -419,7 +426,7 @@ class PlotUI:
         )
         conditions_override_label.grid(
             column=0,
-            row=9,
+            row=7,
             sticky=tk.W
         )
 
@@ -432,7 +439,7 @@ class PlotUI:
             self.conditions_override_listbox.insert(tk.END, condition)
         self.conditions_override_listbox.grid(
             column=1,
-            row=9
+            row=7
         )
 
         run_plots_button = ttk.Button(
@@ -442,7 +449,7 @@ class PlotUI:
         )
         run_plots_button.grid(
             column=1,
-            row=11,
+            row=8,
             sticky=tk.E
         )
 
@@ -458,9 +465,9 @@ class PlotUI:
                 normalization_type=self.normalization_var.get(),
                 analyze_method=self.analyze_method_var.get(),
                 data_scale=self.data_scale_var.get(),
-                x_var=self.x_var_var.get(),
+                # x_var=self.x_var_var.get(),
                 plot_context=self.plot_context_var.get(),
-                hue_split=self.hue_split_var.get(),
+                # hue_split=self.hue_split_var.get(),
                 control_condition=self.control_condition_var.get(),
                 conditions_override = self._get_conditions_override(),
                 filepaths=self.filepaths,

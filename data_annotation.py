@@ -168,7 +168,9 @@ class AnnotatedData:
         relative_normalized_log2 = self.normalization_colname(RELATIVE_NORM, LOG2_SCALE, NORMALIZED_METHOD, stats_var, control_condition)
         total_fold_change = self.normalization_colname(TOTAL_NORM, NORMAL_SCALE, FOLD_CHANGE_METHOD, stats_var, control_condition)
         relative_fold_change = self.normalization_colname(RELATIVE_NORM, NORMAL_SCALE, FOLD_CHANGE_METHOD, stats_var, control_condition)
-        self.dataframe[[total_normalized, relative_normalized, total_normalized_log2, relative_normalized_log2, total_fold_change, relative_fold_change]] = 0.0
+        total_fold_change_log2 = self.normalization_colname(TOTAL_NORM, LOG2_SCALE, FOLD_CHANGE_METHOD, stats_var, control_condition)
+        relative_fold_change_log2 = self.normalization_colname(RELATIVE_NORM, LOG2_SCALE, FOLD_CHANGE_METHOD, stats_var, control_condition)
+        self.dataframe[[total_normalized, relative_normalized, total_normalized_log2, relative_normalized_log2, total_fold_change, relative_fold_change,total_fold_change_log2,relative_fold_change_log2]] = 0.0
 
         groups = {k: v for k, v in self.dataframe.groupby(['Date', 'Day', 'Condition', 'Marker', 'Frame'])}
         for (date, day, condition, marker, frame), group in groups.items():
@@ -191,6 +193,9 @@ class AnnotatedData:
             group[total_fold_change] = group[total_normalized] / (control_condition_group[stats_var].mean() / control_start_day_group[stats_var].mean())
             group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var].mean() - start_day_group[stats_var].mean()) / control_start_day_group[stats_var].mean())
 
+            group[total_fold_change_log2] = group[total_fold_change].map(np.log2)
+            group[relative_fold_change_log2] = group[relative_fold_change].map(np.log2)
+
             for k, j in enumerate(idx):
                 self.dataframe[total_normalized].iat[j] = group[total_normalized].iat[k]
                 self.dataframe[relative_normalized].iat[j] = group[relative_normalized].iat[k]
@@ -198,6 +203,8 @@ class AnnotatedData:
                 self.dataframe[relative_normalized_log2].iat[j] = group[relative_normalized_log2].iat[k]
                 self.dataframe[total_fold_change].iat[j] = group[total_fold_change].iat[k]
                 self.dataframe[relative_fold_change].iat[j] = group[relative_fold_change].iat[k]
+                self.dataframe[total_fold_change_log2].iat[j] = group[total_fold_change_log2].iat[k]
+                self.dataframe[relative_fold_change_log2].iat[j] = group[relative_fold_change_log2].iat[k]
 
     @staticmethod
     def normalization_colname(normalization_type, data_scale, analyze_method, stats_var, control_condition):
@@ -209,7 +216,8 @@ class AnnotatedData:
         else:
             if analyze_method == RAW_METHOD:
                 return stats_var
-            colname = f'{stats_var}_{normalization_type}_{analyze_method}_norm'
+            else:
+                colname = f'{stats_var}_{normalization_type}_{analyze_method}_norm'
         if analyze_method == FOLD_CHANGE_METHOD:
             colname = f'{colname}_{control_condition}'
         return colname
