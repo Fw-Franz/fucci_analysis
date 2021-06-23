@@ -39,8 +39,8 @@ class PlotUI:
 
         if filepaths is None or filepaths == []:
             self.filepaths = filedialog.askopenfilename(
-                # initialdir="/",
-                initialdir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\data\\",
+                initialdir="/",
+                # initialdir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\data\\",
                 title="Select file",
                 multiple=True,
                 filetypes=(("csv", "*.csv"),)
