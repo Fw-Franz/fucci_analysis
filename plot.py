@@ -352,13 +352,36 @@ class PlotUI:
             row=3
         )
 
+        replicates_label = ttk.Label(
+            self.select_frame,
+            text="Type of Replicates",
+            justify="left"
+        )
+        replicates_label.grid(
+            column=0,
+            row=4,
+            sticky=tk.W
+        )
+        self.replicates_var = tk.StringVar()
+        replicates_box = ttk.Combobox(
+            self.select_frame,
+            textvariable=self.replicates_var,
+            state="readonly",
+            values=main.REPLICATES
+        )
+        replicates_box.current(0)
+        replicates_box.grid(
+            column=1,
+            row=4
+        )
+
         box_day_label = ttk.Label(
             self.select_frame,
             text="Box day"
         )
         box_day_label.grid(
             column=0,
-            row=4,
+            row=5,
             sticky=tk.W
         )
         self.box_day_var = tk.IntVar()
@@ -371,7 +394,7 @@ class PlotUI:
         box_day_box.current(6)
         box_day_box.grid(
             column=1,
-            row=4
+            row=5
         )
 
 
@@ -381,7 +404,7 @@ class PlotUI:
         )
         stats_var_label.grid(
             column=0,
-            row=5,
+            row=6,
             sticky=tk.W
         )
         self.stats_var_var = tk.StringVar()
@@ -394,7 +417,7 @@ class PlotUI:
         stats_var_box.current(0)
         stats_var_box.grid(
             column=1,
-            row=5
+            row=6
         )
 
         plot_context_label = ttk.Label(
@@ -402,9 +425,10 @@ class PlotUI:
             text="Plot Context",
             justify="left"
         )
+
         plot_context_label.grid(
             column=0,
-            row=6,
+            row=7,
             sticky=tk.W
         )
         self.plot_context_var = tk.StringVar()
@@ -417,7 +441,7 @@ class PlotUI:
         plot_context_box.current(0)
         plot_context_box.grid(
             column=1,
-            row=6
+            row=7
         )
 
         conditions_override_label = ttk.Label(
@@ -426,7 +450,7 @@ class PlotUI:
         )
         conditions_override_label.grid(
             column=0,
-            row=7,
+            row=8,
             sticky=tk.W
         )
 
@@ -439,7 +463,7 @@ class PlotUI:
             self.conditions_override_listbox.insert(tk.END, condition)
         self.conditions_override_listbox.grid(
             column=1,
-            row=7
+            row=8
         )
 
         run_plots_button = ttk.Button(
@@ -449,7 +473,7 @@ class PlotUI:
         )
         run_plots_button.grid(
             column=1,
-            row=8,
+            row=9,
             sticky=tk.E
         )
 
@@ -464,6 +488,7 @@ class PlotUI:
             main.create_plots_and_stats(
                 normalization_type=self.normalization_var.get(),
                 analyze_method=self.analyze_method_var.get(),
+                replicates=self.replicates_var.get(),
                 data_scale=self.data_scale_var.get(),
                 # x_var=self.x_var_var.get(),
                 plot_context=self.plot_context_var.get(),
