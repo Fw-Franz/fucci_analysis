@@ -42,6 +42,15 @@ ANALYZE_METHODS = [
     RAW_METHOD,
     FOLD_CHANGE_METHOD
 ]
+
+TECHNICAL = 'technical'
+BIOLOGICAL = 'biological'
+
+REPLICATES = [
+    TECHNICAL,
+    BIOLOGICAL
+]
+
 STATS_VARS_TYPES = ['Total', 'Cell_percent']
 # X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
@@ -51,7 +60,7 @@ PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
 def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale,
 # def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, data_scale,
         # analyze_method, plot_context, hue_split,
-        analyze_method, plot_context,
+        analyze_method, replicates, plot_context,
         control_condition=None, conditions_override=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
         individual_plots=False, boxplots=False, box_day=None, stackedbarplots=False, lineplots=False,
@@ -96,6 +105,15 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
         data = data_annotation.AnnotatedData([path])
         data.load_annotated_files()
         mi = data.dataframe
+
+        if replicates == 'biological':
+            mi['Total_total_normalized_norm_log2'] = mi['Total_total_normalized_norm_log2'].astype(float)
+            mi['Total_relative_normalized_norm_log2'] = mi['Total_relative_normalized_norm_log2'].astype(float)
+            mi['Total_total_fold_change_norm_log2_Control_DMSO'] = mi['Total_total_fold_change_norm_log2_Control_DMSO'].astype(float)
+            mi['Total_relative_fold_change_norm_log2_Control_DMSO'] = mi['Total_relative_fold_change_norm_log2_Control_DMSO'].astype(float)
+
+            mi=mi.groupby(['Day','Marker','Condition','Date'], sort=False, as_index=False).mean()
+
         start_day = data.start_day()
         end_day = data.end_day()
         frames = data.get_frames()
@@ -119,6 +137,9 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
         else:
             conditions.remove(control_condition)
             conditions.insert(0, control_condition)
+
+        conditions_reduced=conditions.copy()
+        conditions_reduced.remove(control_condition)
 
         for stats_var in stats_vars:
             #region intitialize print out
@@ -211,11 +232,14 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             #endregion
 
+            # region Individual Conditions vs Control plots and stats
+
             for l, i in enumerate(graph_n): #graph_n is just the conditions list in the current iteration
                 day = i
                 print('Processing:',i, 'at frame',frame)
 
                 # region  Titles and filenames
+
                 # if x_var == "Day":
                 #     ax_title = f'm{frame} {marker} {day}'
                     # if hue_split != "Condition":
@@ -611,7 +635,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             plt.show()
                         #endregion
 
-
+            #endregion
 
             #region save stats
             if save_excel_stats:
@@ -726,7 +750,6 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             if cmap_discrete:
                                 arr = ttest_pvalues.to_numpy()
                                 arr_shape = arr.shape
-                                # print(arr_shape)
                                 arr_new = np.zeros(arr_shape)
 
                                 for i in range(arr_shape[0]):
@@ -754,7 +777,6 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             if cmap_discrete:
                                 arr = ttest_cohens.to_numpy()
                                 arr_shape = arr.shape
-                                # print(arr_shape)
                                 arr_new = np.zeros(arr_shape)
 
                                 for i in range(arr_shape[0]):
@@ -794,7 +816,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         an_len=int(len(aov_table_all))
                         aov_table_all_half=aov_table_all.iloc[0:(int(an_len/2))]
                         if fname_0==fnames_colormaps[3]:
-                            # print(aov_table_all)
+
                             if stats_var == 'Cell_percent':
                                 aov_table_all_0=aov_table_all_half[aov_table_all_half.Marker==marker_list[n]]
                             if stats_var == 'Total':
@@ -908,17 +930,32 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     # Generate a rank column that will be used to sort
                     # the dataframe numerically
-                    mi_box['Condition_Rank'] = mi_box['Condition'].map(sorterIndex)
-                    mi_box.sort_values(['Condition_Rank','WellNum'], ascending = [True,True], inplace = True)
-                    mi_box.drop('Condition_Rank', 1, inplace=True)
+
+                    if replicates == 'technical':
+                        mi_box['Condition_Rank'] = mi_box['Condition'].map(sorterIndex)
+                        mi_box.sort_values(['Condition_Rank','WellNum'], ascending = [True,True], inplace = True)
+                        mi_box.drop('Condition_Rank', 1, inplace=True)
+
+                        swarmplot_size=8
+
+                    else:
+                        swarmplot_size=12
+
 
                     mi_box = mi_box[mi_box.Day == box_day]
                     mi_box = mi_box.reset_index(drop=True)
 
+
+                    if analyze_method=='fold_change':
+                        mi_box=mi_box.loc[mi_box.Condition!=control_condition]
+                        mi_box = mi_box.reset_index(drop=True)
+
+                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=swarmplot_size,
+                                       edgecolor="white", linewidth=1, dodge=True)
                     ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, linewidth=2, fliersize=0)
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue='Date', size=15, color='#767676',edgecolor="white",linewidth=1)
-                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=8,
-                                       edgecolor="white", linewidth=1, dodge=True)
+                    # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=swarmplot_size,
+                    #                    edgecolor="white", linewidth=1, dodge=True)
 
                     # custom_lines = [Line2D([0], [0], color="#5fa2ce", lw=4),
                     #                 Line2D([0], [0], color="#ffbc79", lw=4),
@@ -934,21 +971,21 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         means_box = m_day.groupby(['Condition'], sort=False).mean()
                         means_box.pop('Cell_percent')
                         means_box.pop('Count')
-                        means_box.pop('Frame')
-                        means_box.pop('Percent')
-                        means_box.pop('Day')
-                        means_box.pop('PlateNum')
-                        means_box.pop('WellNum')
+                        # means_box.pop('Frame')
+                        # means_box.pop('Percent')
+                        # means_box.pop('Day')
+                        # means_box.pop('PlateNum')
+                        # means_box.pop('WellNum')
 
-                        stds_box = m_day.groupby(['Condition'], sort=False).std()
+                        # stds_box = m_day.groupby(['Condition'], sort=False).std()
                         stds_box = m_day.groupby(['Condition'], sort=False).std()
                         stds_box.pop('Cell_percent')
                         stds_box.pop('Count')
-                        stds_box.pop('Frame')
-                        stds_box.pop('Percent')
-                        stds_box.pop('Day')
-                        stds_box.pop('PlateNum')
-                        stds_box.pop('WellNum')
+                        # stds_box.pop('Frame')
+                        # stds_box.pop('Percent')
+                        # stds_box.pop('Day')
+                        # stds_box.pop('PlateNum')
+                        # stds_box.pop('WellNum')
 
                         means_box.to_csv(
                             path_or_buf=os.path.join(stats_dir, f'Means_results_{analyze_method}_day_5.csv'), 
@@ -984,28 +1021,46 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             # every 4th line at the interval of 6 is median line
                             # 0 -> p25 1 -> p75 2 -> lower whisker 3 -> upper whisker 4 -> p50 5 -> upper extreme value
 
-                            y = round(lines[3 + iii * 6].get_ydata()[0], 1)
-
-                            if reject_001:
-                                text(iii - 0.15, y + 0.7, '***', fontsize=40, color='black')
-                            elif reject_01:
-                                text(iii - 0.1, y + 0.7, '**', fontsize=40, color='black')
-                            elif reject_05:
-                                text(iii - 0.05, y + 0.7, '*', fontsize=40, color='black')
+                            if analyze_method=='fold_change':
+                                y = round(lines[3 + (iii-1) * 6].get_ydata()[0], 1)
+                            else:
+                                y = round(lines[3 + iii * 6].get_ydata()[0], 1)
+                            # if analyze_method=='fold_change':
+                            #     if reject_001:
+                            #         text((iii-1) - 0.15, y + 0.7, '***', fontsize=40, color='black')
+                            #     elif reject_01:
+                            #         text((iii-1) - 0.1, y + 0.7, '**', fontsize=40, color='black')
+                            #     elif reject_05:
+                            #         text((iii-1) - 0.05, y + 0.7, '*', fontsize=40, color='black')
+                            # else:
+                            if not analyze_method == 'fold_change':
+                                if reject_001:
+                                    text(iii - 0.15, y + 0.7, '***', fontsize=40, color='black')
+                                elif reject_01:
+                                    text(iii - 0.1, y + 0.7, '**', fontsize=40, color='black')
+                                elif reject_05:
+                                    text(iii - 0.05, y + 0.7, '*', fontsize=40, color='black')
 
 
                     ax.grid(True)
-                    # ax.set(ylim=(0, 1.2))
+                    bottom, top = ax.get_ylim()
+                    ax.set(ylim=(bottom-0.2*np.abs(bottom), top+0.2*np.abs(top)))
                     fig = plt.gcf()
                     fig.set_size_inches(30, 15)
                     plt.gcf().subplots_adjust(bottom=0.3)
 
                     # ax.set_xticklabels(conditions, rotation=90)
                     # ax.set(xticks=ttest_pvalues.columns, rotation=90)
-                    tick_list = np.r_[0:len(conditions)]
+                    if analyze_method == "fold_change":
+                        tick_list = np.r_[0:len(conditions_reduced)]
+                    else:
+                        tick_list = np.r_[0:len(conditions)]
                     ax.set_xticks(tick_list)
-                    # print(conditions)
-                    ax.set_xticklabels(conditions, rotation=37, ha='right')  # , rotation_mode="anchor")
+
+                    if analyze_method == "fold_change":
+                        ax.set_xticklabels(conditions_reduced, rotation=37, ha='right')  # , rotation_mode="anchor")
+                    else:
+                        ax.set_xticklabels(conditions, rotation=37, ha='right')  # , rotation_mode="anchor")
                     # for tick in ax.xaxis.get_majorticklabels():
                     #     tick.set_horizontalalignment("right")
                     ax.set_ylabel('Normalized Cell Counts')
@@ -1094,8 +1149,6 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         m = 0
                         for con_bar in range(0,len(conditions)):
                             for k in range(0, 3):
-                                # print(means)
-                                # print(3*con_bar+k)
                                 sum_means = means.iloc[3*con_bar+k]['Cell_percent']
                                 # sum_means = means.iloc[j - start_day + k * days_total]['Cell_percent']
                                 m = m + sum_means
@@ -1106,9 +1159,6 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                                 if k == 2:
                                     k_new = 0
 
-                                # tt_all = np.zeros((3, len(days), len(conditions), 3))
-                                # print(tt_all[0, j - start_day, con_bar,k_new])
-                                # print('k:',k_new,'m:',m)
                                 if 0.01 <= tt_all[0, j - start_day, con_bar,k_new] < 0.05:
                                     text(con_bar + 0.05, m - 0.05, '*', fontsize=18)
                                 if 0.001 <= tt_all[0, j - start_day, con_bar,k_new] < 0.01:
@@ -1203,6 +1253,8 @@ if __name__ == "__main__":
 
     analyze_method = NORMALIZED_METHOD
 
+    replicates = TECHNICAL
+
     do_ttest = True  # needed for plotting line and stacked bar plots with stars, as well as for colormaps
     do_wilcoxon_test = True # needs do_ttest to be set to True, as it works from within it and just replaces the actual test function
     do_anova = True
@@ -1229,6 +1281,7 @@ if __name__ == "__main__":
     create_plots_and_stats(
         control_condition=control_condition,
         stats_vars=stats_vars,
+        replicates=replicates,
         # x_var=x_var,
         filepaths=filepaths,
         normalization_type=normalization_type,

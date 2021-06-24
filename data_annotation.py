@@ -1,5 +1,5 @@
 from datetime import datetime
-from main import TOTAL_NORM, RELATIVE_NORM, NORMALIZED_METHOD, DATA_SCALE_METHODS, NORMAL_SCALE, LOG2_SCALE, RAW_METHOD, FOLD_CHANGE_METHOD
+from main import TOTAL_NORM, RELATIVE_NORM, NORMALIZED_METHOD, REPLICATES, TECHNICAL, BIOLOGICAL, DATA_SCALE_METHODS, NORMAL_SCALE, LOG2_SCALE, RAW_METHOD, FOLD_CHANGE_METHOD
 import pandas as pd
 import numpy as np
 import os
@@ -190,8 +190,11 @@ class AnnotatedData:
             group[total_normalized_log2] = group[total_normalized].map(np.log2)
             group[relative_normalized_log2] = group[relative_normalized].map(np.log2)
 
-            group[total_fold_change] = group[total_normalized] / (control_condition_group[stats_var].mean() / control_start_day_group[stats_var].mean())
-            group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var].mean() - start_day_group[stats_var].mean()) / control_start_day_group[stats_var].mean())
+            # group[total_fold_change] = group[total_normalized] / (control_condition_group[stats_var].mean() / control_start_day_group[stats_var].mean())
+            # group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var].mean() - start_day_group[stats_var].mean()) / control_start_day_group[stats_var].mean())
+
+            group[total_fold_change] = group[total_normalized] / (control_condition_group[stats_var]/ control_start_day_group[stats_var]).mean()
+            group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var] - start_day_group[stats_var]) / control_start_day_group[stats_var]).mean()
 
             group[total_fold_change_log2] = group[total_fold_change].map(np.log2)
             group[relative_fold_change_log2] = group[relative_fold_change].map(np.log2)
