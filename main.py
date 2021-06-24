@@ -155,7 +155,8 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             #endregion
 
-            data.set_normalization(stats_var, control_condition)
+            if len(mi.Total_total_normalized_norm_log2)!=len(mi.Total):
+                data.set_normalization(stats_var, control_condition)
             norm_colname = data.normalization_colname(normalization_type, data_scale, analyze_method, stats_var, control_condition)
 
             # region Initilize for-loop parameters
@@ -200,6 +201,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             #region tukey
             if do_tukey_test:
+                print('Producing Tukey Analysis results')
 
                 mi_tukey = mi.loc[mi['Condition'].isin(conditions)]
                 mi_tukey = mi_tukey[mi_tukey.Marker == 'RFP']
@@ -233,6 +235,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
             #endregion
 
             # region Individual Conditions vs Control plots and stats
+
 
             for l, i in enumerate(graph_n): #graph_n is just the conditions list in the current iteration
                 day = i
@@ -523,6 +526,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     sns.set(context=plot_context,font_scale=1.5,style="whitegrid")
                     #endregion
                     if individual_plots:
+                        print('Producing Individual Plots')
 
                         #region stacked bar
                         if plot_type=="stacked_bar":
@@ -639,6 +643,8 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             #region save stats
             if save_excel_stats:
+                print('Saving Stats')
+
                 if do_ttest:
                     if plot_type=="stacked_bar":
                         stats_dir= os.path.join(
@@ -712,6 +718,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             #region colormap plot
             if colormap_plot:
+                print('Producing Combined Colormap plot')
 
                 for fname in fnames_colormaps:
                     if stats_var == 'Total':
@@ -920,6 +927,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             #region boxplots all
             if boxplots:
+                print('Producing Combined Boxplot')
 
                 if stats_var=='Total':
                     mi_box=mi
@@ -1086,6 +1094,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             #region stackedbarplots all
             if stackedbarplots:
+                print('Producing Combined Stackedbarplot')
                 # matplotlib.rc('xtick', labelsize=8)
                 if stats_var == 'Cell_percent':
                     # mi_rfp = mi_con[mi_con['Marker'] == 'RFP']
@@ -1180,6 +1189,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             # region lineplots all
             if lineplots:
+                print('Producing Combined Lineplot')
 
                 if stats_var == 'Total':
                     mi_box = mi
