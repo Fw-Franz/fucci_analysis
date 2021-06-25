@@ -206,6 +206,9 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                 mi_tukey = mi.loc[mi['Condition'].isin(conditions)]
                 mi_tukey = mi_tukey[mi_tukey.Marker == 'RFP']
 
+                mi_tukey['sample_size_count']= mi_tukey.groupby(by=['Condition','Day'])['Date'].transform('count')
+                # print('sample_size_count', mi_tukey.columns, mi_tukey['Condition'], mi_tukey['sample_size_count'])
+
                 tukey_frames = []
                 for day in range(mi['Day'].min(), mi['Day'].max() + 1):
                     m_day = mi_tukey[mi_tukey['Day'] == day]
@@ -221,9 +224,20 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
                     df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
                     df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
-                    tukey_frames.append(df_tukey)
+
+                    df_tukey['Sample_size_1'] = ''
+                    df_tukey['Sample_size_2'] = ''
+
+                    for con in conditions:
+                        df_tukey.loc[df_tukey.group1 == con,'Sample_size_1'] = np.max(mi_tukey.loc[(mi_tukey.Condition == con) & (mi_tukey.Day == day),
+                            'sample_size_count'])
+                        df_tukey.loc[df_tukey.group2 == con,'Sample_size_2'] = np.max(mi_tukey.loc[(mi_tukey.Condition == con) & (mi_tukey.Day == day),
+                            'sample_size_count'])
+
+                        tukey_frames.append(df_tukey)
 
                 df_tukey = pd.concat(tukey_frames)
+
 
                 if save_excel_stats:
                     df_tukey.to_csv(
