@@ -18,6 +18,7 @@ import time
 import os
 import sys
 import data_annotation
+import pingouin as pg
 
 pd.options.mode.chained_assignment = 'raise'
 
@@ -43,6 +44,20 @@ ANALYZE_METHODS = [
     FOLD_CHANGE_METHOD
 ]
 
+TTEST='do_ttest'
+WILCOXIN='do_wilcoxon_test'
+ANOVA='do_anova'
+TUKEY='do_tukey_test'
+GAMESHOWELL='do_gameshowell_test'
+
+
+STATS_METHODS = [
+    TTEST,
+    WILCOXIN,
+    TUKEY,
+    GAMESHOWELL
+]
+
 TECHNICAL = 'technical'
 BIOLOGICAL = 'biological'
 
@@ -60,12 +75,11 @@ PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
 def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale,
 # def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, data_scale,
         # analyze_method, plot_context, hue_split,
-        analyze_method, replicates, plot_context,
+        analyze_method, statistical_test, replicates, plot_context,
         control_condition=None, conditions_override=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
         individual_plots=False, boxplots=False, box_day=None, stackedbarplots=False, lineplots=False,
-        do_ttest=False, do_wilcoxon_test=False, do_anova=False,
-        do_tukey_test=False, save_excel_stats=False):
+        do_stats=False, save_excel_stats=False):
 
     error_msgs = []
     if normalization_type not in NORMALIZATION_TYPES:
@@ -84,7 +98,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
     if (boxplots or lineplots or stackedbarplots) and (box_day is None):
         error_msgs.append('Must specify box_day.')
 
-    if normalization_type == FOLD_CHANGE_METHOD and do_wilcoxon_test:
+    if normalization_type == FOLD_CHANGE_METHOD and statistical_test=='do_wilcoxon_test':
         error_msgs.append('Cannot do a Wilcoxon–Mann–Whitney test when using fold-change.')
 
     if not len(error_msgs) == 0:
@@ -199,8 +213,54 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             # endregion
 
+            # region gameshowell
+            if statistical_test=='do_gameshowell_test':
+                print('Producing Games-Howell Analysis results')
+
+                mi_gameshowell = mi.loc[mi['Condition'].isin(conditions)]
+                mi_gameshowell = mi_gameshowell[mi_gameshowell.Marker == 'RFP']
+
+                mi_gameshowell['sample_size_count'] = mi_gameshowell.groupby(by=['Condition', 'Day'])['Date'].transform('count')
+
+                gameshowell_frames = []
+                for day in range(mi['Day'].min()+1, mi['Day'].max() + 1):
+                    m_day = mi_gameshowell[mi_gameshowell['Day'] == day]
+
+                    df_gameshowell = pg.pairwise_gameshowell(m_day, norm_colname, 'Condition',effsize='none')
+
+                    df_gameshowell['Day'] = day
+                    df_gameshowell['reject_05'] = (df_gameshowell['pval'] < 0.05)
+                    df_gameshowell['reject_01'] = (df_gameshowell['pval'] < 0.01)
+                    df_gameshowell['reject_001'] = (df_gameshowell['pval'] < 0.001)
+
+                    df_gameshowell['Sample_size_1'] = ''
+                    df_gameshowell['Sample_size_2'] = ''
+
+                    for con in conditions:
+                        df_gameshowell.loc[df_gameshowell.A == con, 'Sample_size_1'] = np.max(
+                            mi_gameshowell.loc[(mi_gameshowell.Condition == con) & (mi_gameshowell.Day == day),
+                                         'sample_size_count'])
+                        df_gameshowell.loc[df_gameshowell.B == con, 'Sample_size_2'] = np.max(
+                            mi_gameshowell.loc[(mi_gameshowell.Condition == con) & (mi_gameshowell.Day == day),
+                                         'sample_size_count'])
+
+                        gameshowell_frames.append(df_gameshowell)
+
+                df_gameshowell = pd.concat(gameshowell_frames)
+
+                if save_excel_stats:
+                    df_gameshowell.to_csv(
+                        path_or_buf=os.path.join(base_directory, 'stats', f'gameshowell_results_{norm_colname}.csv'),
+                        index=None,
+                        header=True
+                    )
+
+                # endregion
+
+            #endregion
+
             #region tukey
-            if do_tukey_test:
+            if statistical_test == 'do_tukey_test':
                 print('Producing Tukey Analysis results')
 
                 mi_tukey = mi.loc[mi['Condition'].isin(conditions)]
@@ -369,7 +429,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     if not os.path.exists(colormap_dir):
                         os.makedirs(colormap_dir)
 
-                    if do_wilcoxon_test:
+                    if statistical_test=='do_wilcoxon_test':
                         ax_title_colormap_p = f'{control_condition} normalized m{frame} Wilcoxon–Mann–Whitney test p-values'
                     else:
                         ax_title_colormap_p = f'{control_condition} normalized m{frame} ttest p-values'
@@ -387,7 +447,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                 #region stats
                 #region ttest
-                if do_ttest:
+                if statistical_test=='do_ttest' or statistical_test=='do_wilcoxon_test':
                     mi_control = mi[mi['Condition'] == control_condition]
                     mi_drug = mi[mi['Condition'] == i]
 
@@ -402,7 +462,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                                 mi_drug_d_m  = mi_drug_d[mi_drug_d['Marker'] == marker_list[k]]
 
                                 if not iday == 0:
-                                    if do_wilcoxon_test:
+                                    if statistical_test=='do_wilcoxon_test':
                                         tt = stats.mannwhitneyu(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
                                     else:
                                         tt =stats.ttest_ind(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
@@ -439,7 +499,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             mi_drug_d = mi_t[mi_t['Day'] == day]
 
                             if not day == 0:
-                                if do_wilcoxon_test:
+                                if statistical_test=='do_wilcoxon_test':
                                     tt = stats.mannwhitneyu(mi_control_d[norm_colname], mi_drug_d[norm_colname])
                                 else:
                                     tt = stats.ttest_ind(mi_control_d[norm_colname], mi_drug_d[norm_colname])
@@ -470,7 +530,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     #endregion
 
                     #region anova
-                    if do_anova:
+                    if statistical_test=='do_anova':
                         def eta_squared(aov):
                             aov['eta_sq'] = 'NaN'
                             aov['eta_sq'] = aov[:-1]['sum_sq'] / sum(aov['sum_sq'])
@@ -565,7 +625,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             ax.set_ylabel('Ratio')
                             ax.set_title(ax_title)
 
-                            if do_ttest:
+                            if statistical_test=='do_ttest':
                                 Days_list = mi['Day'].to_numpy()
                                 unique_Days=np.unique(Days_list)
                                 for j in range(0,len(unique_Days)):
@@ -614,7 +674,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             ax.set_ylabel(ylabel)
                             ax.set_title(ax_title)
 
-                            if do_ttest:
+                            if statistical_test=='do_ttest':
                                 Days_list = mi['Day'].to_numpy()
                                 unique_Days=np.unique(Days_list)
 
@@ -659,7 +719,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
             if save_excel_stats:
                 print('Saving Stats')
 
-                if do_ttest:
+                if statistical_test=='do_ttest':
                     if plot_type=="stacked_bar":
                         stats_dir= os.path.join(
                             base_directory, 'stats', f'{control_condition}_normalized', 
@@ -703,7 +763,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         ttest_means.to_csv(path_or_buf=os.path.join(stats_dir, f'ttests_means_m{frame}.csv'), index=None,header=True)  # Don't forget to a
 
 
-                if do_anova:
+                if statistical_test=='do_anova':
 
                     if plot_type == "line":
                         stats_dir=os.path.join(
@@ -1020,7 +1080,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             header=True
                         )
 
-                    if do_tukey_test:
+                    if statistical_test=='do_tukey_test':
                         if sorterIndex[control_condition] != 0:
                             raise ValueError("control_condition is not the first condition, violating assumptions necessary for plotting")
 
@@ -1167,7 +1227,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     ax.set_title(ax_title_stackedbar)
 
-                    if do_ttest:
+                    if statistical_test=='do_ttest':
                         j=box_day
                         m = 0
                         for con_bar in range(0,len(conditions)):
@@ -1279,11 +1339,8 @@ if __name__ == "__main__":
 
     replicates = TECHNICAL
 
-    do_ttest = True  # needed for plotting line and stacked bar plots with stars, as well as for colormaps
-    do_wilcoxon_test = True # needs do_ttest to be set to True, as it works from within it and just replaces the actual test function
-    do_anova = True
-    do_tukey_test = True
-
+    do_stats = True  # needed for plotting line and stacked bar plots with stars, as well as for colormaps
+    statistical_test = GAMESHOWELL
     save_excel_stats = True  # True = saves stats to csv or xls files. needed for colormap-plots
 
     plots = True  # True = create plots
@@ -1311,10 +1368,7 @@ if __name__ == "__main__":
         normalization_type=normalization_type,
         data_scale=data_scale,
         analyze_method=analyze_method,
-        do_ttest=do_ttest,
-        do_wilcoxon_test=do_wilcoxon_test,
-        do_anova=do_anova,
-        do_tukey_test=do_tukey_test,
+        do_stats=do_stats,
         save_excel_stats=save_excel_stats,
         plots=plots,
         colormap_plot=colormap_plot,

@@ -153,51 +153,15 @@ class PlotUI:
             sticky=tk.W
         )
 
-        self.do_ttest_var = tk.BooleanVar()
-        do_ttest_checkbox = ttk.Checkbutton(
+        self.do_stats_var = tk.BooleanVar()
+        do_stats_checkbox = ttk.Checkbutton(
             self.checkbox_frame,
-            variable=self.do_ttest_var,
-            text="do_ttest"
+            variable=self.do_stats_var,
+            text="do_stats"
         )
-        do_ttest_checkbox.grid(
+        do_stats_checkbox.grid(
             column=0,
             row=8,
-            sticky=tk.W
-        )
-
-        self.do_wilcoxon_test_var = tk.BooleanVar()
-        do_wilcoxon_test_checkbox = ttk.Checkbutton(
-            self.checkbox_frame,
-            variable=self.do_wilcoxon_test_var,
-            text="do_wilcoxon_test"
-        )
-        do_wilcoxon_test_checkbox.grid(
-            column=0,
-            row=9,
-            sticky=tk.W
-        )
-
-        self.do_anova_var = tk.BooleanVar()
-        do_anova_checkbox = ttk.Checkbutton(
-            self.checkbox_frame,
-            variable=self.do_anova_var,
-            text="do_anova"
-        )
-        do_anova_checkbox.grid(
-            column=0,
-            row=10,
-            sticky=tk.W
-        )
-
-        self.do_tukey_test_var = tk.BooleanVar()
-        do_tukey_test_checkbox = ttk.Checkbutton(
-            self.checkbox_frame,
-            variable=self.do_tukey_test_var,
-            text="do_tukey_test"
-        )
-        do_tukey_test_checkbox.grid(
-            column=0,
-            row=11,
             sticky=tk.W
         )
 
@@ -209,10 +173,32 @@ class PlotUI:
         )
         save_excel_stats_checkbox.grid(
             column=0,
-            row=12,
+            row=9,
             sticky=tk.W
         )
 
+        statistical_test_label = ttk.Label(
+            self.select_frame,
+            text="Type of statistical test",
+            justify="left"
+        )
+        statistical_test_label.grid(
+            column=0,
+            row=0,
+            sticky=tk.W
+        )
+        self. statistical_test_var = tk.StringVar()
+        statistical_test_box = ttk.Combobox(
+            self.select_frame,
+            textvariable=self. statistical_test_var,
+            state="readonly",
+            values=main.STATS_METHODS
+        )
+        statistical_test_box.current(3)
+        statistical_test_box.grid(
+            column=1,
+            row=0
+        )
 
         normalization_label = ttk.Label(
             self.select_frame,
@@ -221,7 +207,7 @@ class PlotUI:
         )
         normalization_label.grid(
             column=0,
-            row=0,
+            row=1,
             sticky=tk.W
         )
         self.normalization_var = tk.StringVar()
@@ -234,7 +220,7 @@ class PlotUI:
         normalization_box.current(0)
         normalization_box.grid(
             column=1,
-            row=0
+            row=1
         )
 
         data_scale_label = ttk.Label(
@@ -244,7 +230,7 @@ class PlotUI:
         )
         data_scale_label.grid(
             column=0,
-            row=1,
+            row=2,
             sticky=tk.W
         )
         self.data_scale_var = tk.StringVar()
@@ -257,7 +243,7 @@ class PlotUI:
         data_scale_box.current(0)
         data_scale_box.grid(
             column=1,
-            row=1
+            row=2
         )
 
         analyze_method_label = ttk.Label(
@@ -267,7 +253,7 @@ class PlotUI:
         )
         analyze_method_label.grid(
             column=0,
-            row=2,
+            row=3,
             sticky=tk.W
         )
         self.analyze_method_var = tk.StringVar()
@@ -280,7 +266,7 @@ class PlotUI:
         analyze_method_box.current(0)
         analyze_method_box.grid(
             column=1,
-            row=2
+            row=3
         )
 
         # x_var_label = ttk.Label(
@@ -335,7 +321,7 @@ class PlotUI:
         )
         control_condition_label.grid(
             column=0,
-            row=3,
+            row=4,
             sticky=tk.W
         )
         self.control_condition_var = tk.StringVar()
@@ -349,7 +335,7 @@ class PlotUI:
         control_condition_box.set("Control_DMSO")
         control_condition_box.grid(
             column=1,
-            row=3
+            row=4
         )
 
         replicates_label = ttk.Label(
@@ -359,7 +345,7 @@ class PlotUI:
         )
         replicates_label.grid(
             column=0,
-            row=4,
+            row=5,
             sticky=tk.W
         )
         self.replicates_var = tk.StringVar()
@@ -372,7 +358,7 @@ class PlotUI:
         replicates_box.current(0)
         replicates_box.grid(
             column=1,
-            row=4
+            row=5
         )
 
         box_day_label = ttk.Label(
@@ -381,7 +367,7 @@ class PlotUI:
         )
         box_day_label.grid(
             column=0,
-            row=5,
+            row=6,
             sticky=tk.W
         )
         self.box_day_var = tk.IntVar()
@@ -394,7 +380,7 @@ class PlotUI:
         box_day_box.current(6)
         box_day_box.grid(
             column=1,
-            row=5
+            row=6
         )
 
 
@@ -404,7 +390,7 @@ class PlotUI:
         )
         stats_var_label.grid(
             column=0,
-            row=6,
+            row=7,
             sticky=tk.W
         )
         self.stats_var_var = tk.StringVar()
@@ -417,7 +403,7 @@ class PlotUI:
         stats_var_box.current(0)
         stats_var_box.grid(
             column=1,
-            row=6
+            row=7
         )
 
         plot_context_label = ttk.Label(
@@ -428,7 +414,7 @@ class PlotUI:
 
         plot_context_label.grid(
             column=0,
-            row=7,
+            row=8,
             sticky=tk.W
         )
         self.plot_context_var = tk.StringVar()
@@ -441,7 +427,7 @@ class PlotUI:
         plot_context_box.current(0)
         plot_context_box.grid(
             column=1,
-            row=7
+            row=8
         )
 
         conditions_override_label = ttk.Label(
@@ -450,7 +436,7 @@ class PlotUI:
         )
         conditions_override_label.grid(
             column=0,
-            row=8,
+            row=9,
             sticky=tk.W
         )
 
@@ -463,7 +449,7 @@ class PlotUI:
             self.conditions_override_listbox.insert(tk.END, condition)
         self.conditions_override_listbox.grid(
             column=1,
-            row=8
+            row=9
         )
 
         run_plots_button = ttk.Button(
@@ -473,7 +459,7 @@ class PlotUI:
         )
         run_plots_button.grid(
             column=1,
-            row=9,
+            row=10,
             sticky=tk.E
         )
 
@@ -488,6 +474,7 @@ class PlotUI:
             main.create_plots_and_stats(
                 normalization_type=self.normalization_var.get(),
                 analyze_method=self.analyze_method_var.get(),
+                statistical_test=self.statistical_test_var.get(),
                 replicates=self.replicates_var.get(),
                 data_scale=self.data_scale_var.get(),
                 # x_var=self.x_var_var.get(),
@@ -506,10 +493,7 @@ class PlotUI:
                 save_plots=self.saveplots_var.get(),
                 colormap_plot=self.colormap_plot_var.get(),
                 cmap_discrete=self.cmap_discrete_var.get(),
-                do_ttest=self.do_ttest_var.get(),
-                do_wilcoxon_test=self.do_wilcoxon_test_var.get(),
-                do_anova=self.do_anova_var.get(),
-                do_tukey_test=self.do_tukey_test_var.get(),
+                do_stats=self.do_stats_var.get(),
                 save_excel_stats=self.save_excel_stats_var.get()
             )
         except RuntimeError as err:
