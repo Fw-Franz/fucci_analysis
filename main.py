@@ -213,100 +213,105 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             # endregion
 
-            # region gameshowell
-            if statistical_test=='do_gameshowell_test':
-                print('Producing Games-Howell Analysis results')
+            #region do stats
+            if do_stats:
 
-                mi_gameshowell = mi.loc[mi['Condition'].isin(conditions)]
-                mi_gameshowell = mi_gameshowell[mi_gameshowell.Marker == 'RFP']
+                # region gameshowell
+                if statistical_test=='do_gameshowell_test':
+                    print('Producing Games-Howell Analysis results')
 
-                mi_gameshowell['sample_size_count'] = mi_gameshowell.groupby(by=['Condition', 'Day'])['Date'].transform('count')
+                    mi_gameshowell = mi.loc[mi['Condition'].isin(conditions)]
+                    mi_gameshowell = mi_gameshowell[mi_gameshowell.Marker == 'RFP']
 
-                gameshowell_frames = []
-                for day in range(mi['Day'].min()+1, mi['Day'].max() + 1):
-                    m_day = mi_gameshowell[mi_gameshowell['Day'] == day]
+                    mi_gameshowell['sample_size_count'] = mi_gameshowell.groupby(by=['Condition', 'Day'])['Date'].transform('count')
 
-                    df_gameshowell = pg.pairwise_gameshowell(m_day, norm_colname, 'Condition',effsize='none')
+                    gameshowell_frames = []
+                    for day in range(mi['Day'].min()+1, mi['Day'].max() + 1):
+                        m_day = mi_gameshowell[mi_gameshowell['Day'] == day]
 
-                    df_gameshowell['Day'] = day
-                    df_gameshowell['reject_05'] = (df_gameshowell['pval'] < 0.05)
-                    df_gameshowell['reject_01'] = (df_gameshowell['pval'] < 0.01)
-                    df_gameshowell['reject_001'] = (df_gameshowell['pval'] < 0.001)
+                        df_gameshowell = pg.pairwise_gameshowell(m_day, norm_colname, 'Condition',effsize='none')
 
-                    df_gameshowell['Sample_size_1'] = ''
-                    df_gameshowell['Sample_size_2'] = ''
+                        df_gameshowell['Day'] = day
+                        df_gameshowell['reject_05'] = (df_gameshowell['pval'] < 0.05)
+                        df_gameshowell['reject_01'] = (df_gameshowell['pval'] < 0.01)
+                        df_gameshowell['reject_001'] = (df_gameshowell['pval'] < 0.001)
 
-                    for con in conditions:
-                        df_gameshowell.loc[df_gameshowell.A == con, 'Sample_size_1'] = np.max(
-                            mi_gameshowell.loc[(mi_gameshowell.Condition == con) & (mi_gameshowell.Day == day),
-                                         'sample_size_count'])
-                        df_gameshowell.loc[df_gameshowell.B == con, 'Sample_size_2'] = np.max(
-                            mi_gameshowell.loc[(mi_gameshowell.Condition == con) & (mi_gameshowell.Day == day),
-                                         'sample_size_count'])
+                        df_gameshowell['Sample_size_1'] = ''
+                        df_gameshowell['Sample_size_2'] = ''
 
-                        gameshowell_frames.append(df_gameshowell)
+                        for con in conditions:
+                            df_gameshowell.loc[df_gameshowell.A == con, 'Sample_size_1'] = np.max(
+                                mi_gameshowell.loc[(mi_gameshowell.Condition == con) & (mi_gameshowell.Day == day),
+                                             'sample_size_count'])
+                            df_gameshowell.loc[df_gameshowell.B == con, 'Sample_size_2'] = np.max(
+                                mi_gameshowell.loc[(mi_gameshowell.Condition == con) & (mi_gameshowell.Day == day),
+                                             'sample_size_count'])
 
-                df_gameshowell = pd.concat(gameshowell_frames)
+                            gameshowell_frames.append(df_gameshowell)
 
-                if save_excel_stats:
-                    df_gameshowell.to_csv(
-                        path_or_buf=os.path.join(base_directory, 'stats', f'gameshowell_results_{norm_colname}.csv'),
-                        index=None,
-                        header=True
-                    )
+                    df_gameshowell = pd.concat(gameshowell_frames)
 
-                # endregion
+                    if save_excel_stats:
+                        df_gameshowell.to_csv(
+                            path_or_buf=os.path.join(base_directory, 'stats', f'gameshowell_results_{norm_colname}.csv'),
+                            index=None,
+                            header=True
+                        )
 
+                    # endregion
+
+                #endregion
+
+                #region tukey
+                if statistical_test == 'do_tukey_test':
+                    print('Producing Tukey Analysis results')
+
+                    mi_tukey = mi.loc[mi['Condition'].isin(conditions)]
+                    mi_tukey = mi_tukey[mi_tukey.Marker == 'RFP']
+
+                    mi_tukey['sample_size_count']= mi_tukey.groupby(by=['Condition','Day'])['Date'].transform('count')
+                    # print('sample_size_count', mi_tukey.columns, mi_tukey['Condition'], mi_tukey['sample_size_count'])
+
+                    tukey_frames = []
+                    for day in range(mi['Day'].min(), mi['Day'].max() + 1):
+                        m_day = mi_tukey[mi_tukey['Day'] == day]
+
+                        result_05 = statsmodels.stats.multicomp.pairwise_tukeyhsd(
+                            m_day[norm_colname], m_day['Condition'], alpha=0.05
+                        )
+                        df_tukey = pd.DataFrame(
+                            data=result_05._results_table.data[1:],
+                            columns=result_05._results_table.data[0]
+                        )
+                        df_tukey['Day'] = day
+                        df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
+                        df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
+                        df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
+
+                        df_tukey['Sample_size_1'] = ''
+                        df_tukey['Sample_size_2'] = ''
+
+                        for con in conditions:
+                            df_tukey.loc[df_tukey.group1 == con,'Sample_size_1'] = np.max(mi_tukey.loc[(mi_tukey.Condition == con) & (mi_tukey.Day == day),
+                                'sample_size_count'])
+                            df_tukey.loc[df_tukey.group2 == con,'Sample_size_2'] = np.max(mi_tukey.loc[(mi_tukey.Condition == con) & (mi_tukey.Day == day),
+                                'sample_size_count'])
+
+                            tukey_frames.append(df_tukey)
+
+                    df_tukey = pd.concat(tukey_frames)
+
+
+                    if save_excel_stats:
+                        df_tukey.to_csv(
+                            path_or_buf=os.path.join(base_directory, 'stats', f'tukey_results_{norm_colname}.csv'),
+                            index=None,
+                            header=True
+                        )
+
+                #endregion
             #endregion
 
-            #region tukey
-            if statistical_test == 'do_tukey_test':
-                print('Producing Tukey Analysis results')
-
-                mi_tukey = mi.loc[mi['Condition'].isin(conditions)]
-                mi_tukey = mi_tukey[mi_tukey.Marker == 'RFP']
-
-                mi_tukey['sample_size_count']= mi_tukey.groupby(by=['Condition','Day'])['Date'].transform('count')
-                # print('sample_size_count', mi_tukey.columns, mi_tukey['Condition'], mi_tukey['sample_size_count'])
-
-                tukey_frames = []
-                for day in range(mi['Day'].min(), mi['Day'].max() + 1):
-                    m_day = mi_tukey[mi_tukey['Day'] == day]
-
-                    result_05 = statsmodels.stats.multicomp.pairwise_tukeyhsd(
-                        m_day[norm_colname], m_day['Condition'], alpha=0.05
-                    )
-                    df_tukey = pd.DataFrame(
-                        data=result_05._results_table.data[1:],
-                        columns=result_05._results_table.data[0]
-                    )
-                    df_tukey['Day'] = day
-                    df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
-                    df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
-                    df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
-
-                    df_tukey['Sample_size_1'] = ''
-                    df_tukey['Sample_size_2'] = ''
-
-                    for con in conditions:
-                        df_tukey.loc[df_tukey.group1 == con,'Sample_size_1'] = np.max(mi_tukey.loc[(mi_tukey.Condition == con) & (mi_tukey.Day == day),
-                            'sample_size_count'])
-                        df_tukey.loc[df_tukey.group2 == con,'Sample_size_2'] = np.max(mi_tukey.loc[(mi_tukey.Condition == con) & (mi_tukey.Day == day),
-                            'sample_size_count'])
-
-                        tukey_frames.append(df_tukey)
-
-                df_tukey = pd.concat(tukey_frames)
-
-
-                if save_excel_stats:
-                    df_tukey.to_csv(
-                        path_or_buf=os.path.join(base_directory, 'stats', f'tukey_results_{norm_colname}.csv'),
-                        index=None,
-                        header=True
-                    )
-
-            #endregion
 
             # region Individual Conditions vs Control plots and stats
 
@@ -445,87 +450,90 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     fnames_colormaps=[fname_colormap_p,fname_colormap_c,fname_colormap_m,fname_colormap_anova]
                 # endregion
 
-                #region stats
-                #region ttest
-                if statistical_test=='do_ttest' or statistical_test=='do_wilcoxon_test':
-                    mi_control = mi[mi['Condition'] == control_condition]
-                    mi_drug = mi[mi['Condition'] == i]
+                #region stats part 2
+                if do_stats:
+
+                    # region ttest
+
+                    if statistical_test=='do_ttest' or statistical_test=='do_wilcoxon_test':
+                        mi_control = mi[mi['Condition'] == control_condition]
+                        mi_drug = mi[mi['Condition'] == i]
 
 
-                    if stats_var=='Cell_percent':
-                        for iday in range (mi['Day'].min(),mi['Day'].max()+1):
-                            mi_control_d= mi_control[mi_control['Day'] == iday]
-                            mi_drug_d = mi_drug[mi_drug['Day'] == iday]
+                        if stats_var=='Cell_percent':
+                            for iday in range (mi['Day'].min(),mi['Day'].max()+1):
+                                mi_control_d= mi_control[mi_control['Day'] == iday]
+                                mi_drug_d = mi_drug[mi_drug['Day'] == iday]
 
-                            for k in range(0,3):
-                                mi_control_d_m = mi_control_d[mi_control_d['Marker'] == marker_list[k]]
-                                mi_drug_d_m  = mi_drug_d[mi_drug_d['Marker'] == marker_list[k]]
+                                for k in range(0,3):
+                                    mi_control_d_m = mi_control_d[mi_control_d['Marker'] == marker_list[k]]
+                                    mi_drug_d_m  = mi_drug_d[mi_drug_d['Marker'] == marker_list[k]]
 
-                                if not iday == 0:
+                                    if not iday == 0:
+                                        if statistical_test=='do_wilcoxon_test':
+                                            tt = stats.mannwhitneyu(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
+                                        else:
+                                            tt =stats.ttest_ind(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
+
+                                        tt_p[iday-start_day,k]=tt[1]
+
+                                    mean_control = np.mean(mi_control_d_m[stats_var])
+                                    mean_drug = np.mean(mi_drug_d_m[stats_var])
+
+                                    tt_m[iday-start_day,k] = mean_drug - mean_control
+
+                                    std_control = np.std(mi_control_d_m[stats_var])
+                                    std_drug = np.std(mi_drug_d_m[stats_var])
+
+                                    cohen_d = abs((mean_control - mean_drug)) / np.sqrt(
+                                        (np.square(std_control) + np.square(std_drug)) / 2)
+                                    tt_c[iday-start_day,k]=cohen_d
+
+                            tt_all[0,:,l]=tt_p
+                            tt_all[1,:,l]=tt_c
+                            tt_all[2,:,l]=tt_m
+
+                        if stats_var=='Total':
+
+                            mi_t = mi[mi['Condition'] == i]
+                            mi_t = mi_t[mi_t['Marker'] == 'RFP']
+
+                            mi_t_control = mi[mi['Condition'] == control_condition]
+                            mi_t_control = mi_t_control[mi_t_control['Marker'] == 'RFP']
+
+                            for day in range(mi['Day'].min(),mi['Day'].max()+1):
+
+                                mi_control_d = mi_t_control[mi_t_control['Day'] == day]
+                                mi_drug_d = mi_t[mi_t['Day'] == day]
+
+                                if not day == 0:
                                     if statistical_test=='do_wilcoxon_test':
-                                        tt = stats.mannwhitneyu(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
+                                        tt = stats.mannwhitneyu(mi_control_d[norm_colname], mi_drug_d[norm_colname])
                                     else:
-                                        tt =stats.ttest_ind(mi_control_d_m[stats_var],mi_drug_d_m[stats_var])
+                                        tt = stats.ttest_ind(mi_control_d[norm_colname], mi_drug_d[norm_colname])
 
-                                    tt_p[iday-start_day,k]=tt[1]
+                                    tt_p[day-start_day] = tt[1]
 
-                                mean_control = np.mean(mi_control_d_m[stats_var])
-                                mean_drug = np.mean(mi_drug_d_m[stats_var])
+                                mean_control = np.mean(mi_control_d[norm_colname])
+                                mean_drug = np.mean(mi_drug_d[norm_colname])
 
-                                tt_m[iday-start_day,k] = mean_drug - mean_control
+                                if not mean_control == 0.0:
+                                    tt_m[day-start_day] = (mean_drug - mean_control) / mean_control
 
-                                std_control = np.std(mi_control_d_m[stats_var])
-                                std_drug = np.std(mi_drug_d_m[stats_var])
+                                std_control = np.std(mi_control_d[norm_colname])
+                                std_drug = np.std(mi_drug_d[norm_colname])
 
-                                cohen_d = abs((mean_control - mean_drug)) / np.sqrt(
-                                    (np.square(std_control) + np.square(std_drug)) / 2)
-                                tt_c[iday-start_day,k]=cohen_d
-
-                        tt_all[0,:,l]=tt_p
-                        tt_all[1,:,l]=tt_c
-                        tt_all[2,:,l]=tt_m
-
-                    if stats_var=='Total':
-
-                        mi_t = mi[mi['Condition'] == i]
-                        mi_t = mi_t[mi_t['Marker'] == 'RFP']
-
-                        mi_t_control = mi[mi['Condition'] == control_condition]
-                        mi_t_control = mi_t_control[mi_t_control['Marker'] == 'RFP']
-
-                        for day in range(mi['Day'].min(),mi['Day'].max()+1):
-
-                            mi_control_d = mi_t_control[mi_t_control['Day'] == day]
-                            mi_drug_d = mi_t[mi_t['Day'] == day]
-
-                            if not day == 0:
-                                if statistical_test=='do_wilcoxon_test':
-                                    tt = stats.mannwhitneyu(mi_control_d[norm_colname], mi_drug_d[norm_colname])
+                                if std_control == 0 and std_drug == 0:
+                                    cohen_d = 0
                                 else:
-                                    tt = stats.ttest_ind(mi_control_d[norm_colname], mi_drug_d[norm_colname])
+                                    cohen_d = abs((mean_control - mean_drug)) / np.sqrt(
+                                        (np.square(std_control) + np.square(std_drug)) / 2)
 
-                                tt_p[day-start_day] = tt[1]
+                                tt_c[day-start_day] = cohen_d
 
-                            mean_control = np.mean(mi_control_d[norm_colname])
-                            mean_drug = np.mean(mi_drug_d[norm_colname])
-
-                            if not mean_control == 0.0:
-                                tt_m[day-start_day] = (mean_drug - mean_control) / mean_control
-
-                            std_control = np.std(mi_control_d[norm_colname])
-                            std_drug = np.std(mi_drug_d[norm_colname])
-
-                            if std_control == 0 and std_drug == 0:
-                                cohen_d = 0
-                            else:
-                                cohen_d = abs((mean_control - mean_drug)) / np.sqrt(
-                                    (np.square(std_control) + np.square(std_drug)) / 2)
-
-                            tt_c[day-start_day] = cohen_d
-
-                        tt_all[0,:,l]=tt_p
-                        tt_all[1,:,l]=tt_c
-                        tt_all[2,:,l]=tt_m
+                            tt_all[0,:,l]=tt_p
+                            tt_all[1,:,l]=tt_c
+                            tt_all[2,:,l]=tt_m
 
                     #endregion
 
@@ -593,6 +601,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     #endregion
 
+                #endregion
 
                 #region individual plots
                 if plots:
