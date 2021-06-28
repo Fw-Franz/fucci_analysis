@@ -169,8 +169,9 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             #endregion
 
-            if len(mi.Total_total_normalized_norm_log2)!=len(mi.Total):
-                data.set_normalization(stats_var, control_condition)
+            # if len(mi.Total_total_normalized_norm_log2)!=len(mi.Total):
+            #     data.set_normalization(stats_var, control_condition)
+            data.set_normalization(stats_var, control_condition)
             norm_colname = data.normalization_colname(normalization_type, data_scale, analyze_method, stats_var, control_condition)
 
             # region Initilize for-loop parameters
