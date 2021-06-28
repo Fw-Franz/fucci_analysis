@@ -273,7 +273,10 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     # print('sample_size_count', mi_tukey.columns, mi_tukey['Condition'], mi_tukey['sample_size_count'])
 
                     tukey_frames = []
-                    for day in range(mi['Day'].min(), mi['Day'].max() + 1):
+                    Days_list = mi_tukey['Day'].to_numpy()
+                    unique_Days = np.unique(Days_list)
+                    for j in range(0, len(unique_Days)):
+                        day=unique_Days[j]
                         m_day = mi_tukey[mi_tukey['Day'] == day]
 
                         result_05 = statsmodels.stats.multicomp.pairwise_tukeyhsd(
