@@ -278,7 +278,8 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     tukey_frames = []
                     Days_list = mi_tukey['Day'].to_numpy()
                     unique_Days = np.unique(Days_list)
-                    for j in range(0, len(unique_Days)):
+                    # for j in range(0, len(unique_Days)):
+                    for j in range(1, len(unique_Days)):
                         day=unique_Days[j]
                         m_day = mi_tukey[mi_tukey['Day'] == day]
 

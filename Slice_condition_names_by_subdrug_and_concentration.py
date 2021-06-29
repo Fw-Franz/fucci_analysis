@@ -5,8 +5,7 @@ import numpy as np
 import os
 
 # region pick repeats
-repeats=['biological','technical']
-# repeats=['technical']  # enter ['biological','technical'] or delete one of them
+repeats=['biological','technical']   # enter ['biological','technical'] or delete one of them
 # end region
 
 
@@ -14,7 +13,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\all_data_together"
 
 colnames=['Total','Total_total_normalized_norm', 'Total_relative_normalized_norm', 'Total_total_normalized_norm_log2', 'Total_relative_normalized_norm_log2', 'Total_total_fold_change_norm_Control_DMSO', 'Total_relative_fold_change_norm_Control_DMSO','Total_total_fold_change_norm_log2_Control_DMSO','Total_relative_fold_change_norm_log2_Control_DMSO']
-# colnames=['Total','Total_total_normalized_norm', 'Total_total_normalized_norm_log2', 'Total_total_fold_change_norm_Control_DMSO','Total_total_fold_change_norm_log2_Control_DMSO']
 
 root = tk.Tk()
 root.withdraw()
@@ -31,11 +29,9 @@ def export_prism_data(m_all_filepath,repeat):
 
     Con_list = mi_all['Condition'].to_numpy()
     con_list=np.unique(Con_list)
-    con_list = con_list.tolist()
 
     mi_all = mi_all[mi_all.Marker == 'RFP']
 
-    mi_all['Total'] = mi_all['Total'].astype(float)
     mi_all['Total_total_normalized_norm_log2'] = mi_all['Total_total_normalized_norm_log2'].astype(float)
     mi_all['Total_relative_normalized_norm_log2'] = mi_all['Total_relative_normalized_norm_log2'].astype(float)
     mi_all['Total_total_fold_change_norm_log2_Control_DMSO'] = mi_all['Total_total_fold_change_norm_log2_Control_DMSO'].astype(
@@ -47,7 +43,7 @@ def export_prism_data(m_all_filepath,repeat):
         mi_all = mi_all.groupby(['Day', 'Condition', 'Date'], sort=False, as_index=False).mean()
         date_list='all'
     if repeat == 'technical':
-        mi_all = mi_all.groupby(['Day', 'Condition', 'Date', 'PlateNum', 'WellNum'], sort=False, as_index=False).mean()
+        mi_all = mi_all.groupby(['Day', 'Condition', 'Date', 'WellNum'], sort=False, as_index=False).mean()
         Date_list = mi_all['Date'].to_numpy()
         date_list = np.unique(Date_list)
 
@@ -65,23 +61,15 @@ def export_prism_data(m_all_filepath,repeat):
             for day in days:
                 mi_day = mi_date[mi_date.Day == day]
 
-                control_condition='Control_DMSO'
-                con_list.remove(control_condition)
-                con_list.insert(0, control_condition)
                 for con in con_list:
-                    mi_con = mi_day.loc[mi_day.Condition == con]
+                    mi_con = mi_day[mi_day.Condition == con]
 
                     mi_conditions_bio_repeats=mi_con[norm_colname].to_frame().reset_index(drop=True)
-                    # print(mi_conditions_bio_repeats)
                     mi_conditions_bio_repeats=mi_conditions_bio_repeats.rename(columns={norm_colname: con})
 
                     if con == con_list[0]:
                         mi_conditions_bio_repeats_all = mi_conditions_bio_repeats.copy()
-                        # print(mi_conditions_bio_repeats_all)
                     else:
-
-                        # print(con)
-                        # print(mi_conditions_bio_repeats)
                         mi_conditions_bio_repeats_all[con] = mi_conditions_bio_repeats
 
                 dir_pos = m_all_filepath.rfind('/')
