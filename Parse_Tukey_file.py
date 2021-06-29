@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\all_data_together"
 
 day=6
-pval_min=0.05 # decimal value (0.0xx)  or set to None
+pval_min=None # decimal value (0.0xx)  or set to None for all data
 
 root = tk.Tk()
 root.withdraw()

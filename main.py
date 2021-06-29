@@ -174,6 +174,8 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
             data.set_normalization(stats_var, control_condition)
             norm_colname = data.normalization_colname(normalization_type, data_scale, analyze_method, stats_var, control_condition)
 
+            data.save()
+
             # region Initilize for-loop parameters
             days_total=end_day-start_day+1
             days = [f'day{start_day}']
