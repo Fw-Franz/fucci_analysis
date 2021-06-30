@@ -107,4 +107,5 @@ def export_prism_data(m_all_filepath,repeat):
 # biological repeats:
 
 for repeat in repeats:
+    print('processing ', repeat, ' repeats....')
     export_prism_data(m_all_filepath,repeat)
