@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
-
+import data_annotation
 import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\all_data_together"
 
@@ -15,8 +16,19 @@ m1_filepath,m2_filepath = filedialog.askopenfilename(initialdir=BASE_DIR,
                 multiple=True,
                 filetypes=(("csv", "*.csv"),))
 
-m1=pd.read_csv(m1_filepath)
-m2=pd.read_csv(m2_filepath)
+data1 = data_annotation.AnnotatedData([m1_filepath])
+data1.load_annotated_files()
+data1.set_normalization('Total', 'Control_DMSO')
+m1 = data1.dataframe
+
+data2 = data_annotation.AnnotatedData([m2_filepath])
+data2.load_annotated_files()
+data2.set_normalization('Total', 'Control_DMSO')
+m2 = data2.dataframe
+
+# m1=pd.read_csv(m1_filepath)
+# m2=pd.read_csv(m2_filepath)
+# m2=m2.set_normalization('Total', 'Control_DMSO')
 
 m_mean_inter=pd.concat([m1,m2])
 

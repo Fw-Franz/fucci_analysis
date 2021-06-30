@@ -169,12 +169,11 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
             #endregion
 
-            # if len(mi.Total_total_normalized_norm_log2)!=len(mi.Total):
-            #     data.set_normalization(stats_var, control_condition)
-            data.set_normalization(stats_var, control_condition)
+            # set normalization is now taken care of in Create_Frame_mean_sheet.py
+            # data.set_normalization(stats_var, control_condition)
             norm_colname = data.normalization_colname(normalization_type, data_scale, analyze_method, stats_var, control_condition)
 
-            data.save()
+            # data.save()
 
             # region Initilize for-loop parameters
             days_total=end_day-start_day+1
@@ -327,6 +326,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                 day = i
                 print('Processing:',i, 'at frame',frame)
 
+                # region  Titles and filenames
                 # region  Titles and filenames
 
                 # if x_var == "Day":
@@ -1048,9 +1048,28 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         mi_box=mi_box.loc[mi_box.Condition!=control_condition]
                         mi_box = mi_box.reset_index(drop=True)
 
-                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=swarmplot_size,
+                    swarmplot_offset = 0  # offset to left of boxplot
+
+                    # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=swarmplot_size,
+                    #                    edgecolor="white", linewidth=1, dodge=True)
+                    g = mi_box.groupby(by=["Condition"])[norm_colname].median()
+
+                    my_order=g.nlargest(len(g))
+                    my_order=my_order.index.tolist()
+
+                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, size=swarmplot_size, order=my_order,
                                        edgecolor="white", linewidth=1, dodge=True)
-                    ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, linewidth=2, fliersize=0)
+
+                    path_collections = [child for child in ax.get_children()
+                                        if isinstance(child, matplotlib.collections.PathCollection)]
+
+                    for path_collection in path_collections:
+                        x, y = np.array(path_collection.get_offsets()).T
+                        xnew = x + swarmplot_offset
+                        offsets = list(zip(xnew, y))
+                        path_collection.set_offsets(offsets)
+
+                    ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, order=my_order, linewidth=2, fliersize=0)
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue='Date', size=15, color='#767676',edgecolor="white",linewidth=1)
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=swarmplot_size,
                     #                    edgecolor="white", linewidth=1, dodge=True)
@@ -1142,7 +1161,10 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     ax.grid(True)
                     bottom, top = ax.get_ylim()
-                    ax.set(ylim=(bottom-0.2*np.abs(bottom), top+0.2*np.abs(top)))
+                    if analyze_method == "fold_change":
+                        ax.set(ylim=(bottom-0.2*np.abs(bottom), 0.1))
+                    else:
+                        ax.set(ylim=(bottom-0.2*np.abs(bottom), top+0.2*np.abs(top)))
                     fig = plt.gcf()
                     fig.set_size_inches(30, 15)
                     plt.gcf().subplots_adjust(bottom=0.3)
@@ -1155,17 +1177,42 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         tick_list = np.r_[0:len(conditions)]
                     ax.set_xticks(tick_list)
 
-                    if analyze_method == "fold_change":
-                        ax.set_xticklabels(conditions_reduced, rotation=37, ha='right')  # , rotation_mode="anchor")
+                    if len(conditions)<6:
+                        rotation=0
+                        tick_orientation='center'
                     else:
-                        ax.set_xticklabels(conditions, rotation=37, ha='right')  # , rotation_mode="anchor")
+                        rotation=37
+                        tick_orientation='right'
+
+                    # Con_list = mi_box['Condition'].to_numpy()
+                    # con_list = np.unique(Con_list)
+                    # con_list = con_list.tolist()
+
+                    con_list = [item.get_text() for item in ax.get_xticklabels()]
+
+                    conditions_labels = [w.replace('_', ' ') for w in con_list]
+
+                    conditions_labels = [w.replace('uM', 'μM\n') for w in conditions_labels]
+
+                    # conditions_label_reduced = [w.replace('_', ' \n ') for w in conditions_reduced]
+                    # conditions_label_reduced = [w.replace('uM', 'μM') for w in conditions_label_reduced]
+
+                    ax.set_xticklabels(conditions_labels, rotation=rotation,
+                                       ha=tick_orientation)  # , rotation_mode="anchor")
+                    if analyze_method == "fold_change":
+                        # ax.set_xticklabels(conditions_label_reduced, rotation=rotation, ha=tick_orientation)  # , rotation_mode="anchor")
+                        ax.set_ylabel('Log2 (fold change)')
+                        plt.axhline(y=0)
+                    else:
+                        ax.set_xticklabels(conditions_labels, rotation=rotation, ha=tick_orientation)  # , rotation_mode="anchor")
                     # for tick in ax.xaxis.get_majorticklabels():
                     #     tick.set_horizontalalignment("right")
-                    ax.set_ylabel('Normalized Cell Counts')
+                        ax.set_ylabel('Normalized Cell Counts')
                     # ax.set_xlabel('Conditions')
                     ax.set_xlabel('')
 
-                    ax.set_title(ax_title_boxplot)
+                    # ax.set_title(ax_title_boxplot)
+                    ax.set_title('')
 
                     ax.xaxis.set_ticks_position('none')
                     ax.yaxis.set_ticks_position('none')
