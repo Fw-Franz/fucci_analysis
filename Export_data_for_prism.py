@@ -6,14 +6,19 @@ import os
 
 # region pick repeats
 repeats=['biological','technical']
-# repeats=['technical']  # enter ['biological','technical'] or delete one of them
+# repeats=['biological']  # enter ['biological','technical'] or delete one of them
 # end region
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\all_data_together"
 
-colnames=['Total','Total_total_normalized_norm', 'Total_relative_normalized_norm', 'Total_total_normalized_norm_log2', 'Total_relative_normalized_norm_log2', 'Total_total_fold_change_norm_Control_DMSO', 'Total_relative_fold_change_norm_Control_DMSO','Total_total_fold_change_norm_log2_Control_DMSO','Total_relative_fold_change_norm_log2_Control_DMSO']
+colnames=['Total','Total_total_normalized_norm', 'Total_relative_normalized_norm', 'Total_total_normalized_norm_log2',
+          'Total_relative_normalized_norm_log2', 'Total_total_fold_change_norm_Control_DMSO',
+          'Total_relative_fold_change_norm_Control_DMSO','Total_total_fold_change_norm_log2_Control_DMSO',
+          'Total_relative_fold_change_norm_log2_Control_DMSO', 'Slope_total_normalized_norm_log2',
+          'Slope_total_fold_change_norm_log2_Control_DMSO', 'Slope_Diff_total_fold_change_norm_log2_Control_DMSO',
+          'Slope_Diff_total_normalized_norm_log2']
 # colnames=['Total','Total_total_normalized_norm', 'Total_total_normalized_norm_log2', 'Total_total_fold_change_norm_Control_DMSO','Total_total_fold_change_norm_log2_Control_DMSO']
 
 root = tk.Tk()
@@ -42,6 +47,13 @@ def export_prism_data(m_all_filepath,repeat):
         float)
     mi_all['Total_relative_fold_change_norm_log2_Control_DMSO'] = mi_all[
         'Total_relative_fold_change_norm_log2_Control_DMSO'].astype(float)
+
+    # slopes=mi_all.groupby(['Day', 'Condition', 'Date', 'PlateNum', 'WellNum'], sort=False, as_index=False)
+    mi_all['Slope_total_normalized_norm_log2']=mi_all.Total_total_normalized_norm_log2.diff()/2
+    mi_all['Slope_total_fold_change_norm_log2_Control_DMSO']=mi_all.Total_total_fold_change_norm_log2_Control_DMSO.diff()/2
+
+    mi_all['Slope_Diff_total_normalized_norm_log2'] = mi_all.Slope_total_normalized_norm_log2.diff(periods=2)
+    mi_all['Slope_Diff_total_fold_change_norm_log2_Control_DMSO'] = mi_all.Slope_total_fold_change_norm_log2_Control_DMSO.diff(periods=2)
 
     if repeat=='biological':
         mi_all = mi_all.groupby(['Day', 'Condition', 'Date'], sort=False, as_index=False).mean()

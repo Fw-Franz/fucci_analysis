@@ -25,8 +25,8 @@ norm_colname=normalization_type
 analyze_method='fold_change'
 # analyze_method='total_normalization'
 
-plot_context = 'talk'
-# plot_context = 'notebook'
+# plot_context = 'talk'
+plot_context = 'notebook'
 save_plots=1
 
 
