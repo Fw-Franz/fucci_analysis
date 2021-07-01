@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # Groupt_title='TMZ '
 # Groupt_title='Pantoprazole '
 # Groupt_title='Control '
-Groupt_title='Control NG108 '
+# Groupt_title='Control NG108 '
 Groupt_title='Pantoprazole NG108 '
 
 conditions_list_i=4
@@ -150,7 +150,11 @@ for path_collection in path_collections:
     offsets = list(zip(xnew, y))
     path_collection.set_offsets(offsets)
 
-ax = sns.boxplot(data=mi_box, order=my_order, linewidth=2, fliersize=0)
+ax = sns.boxplot(data=mi_box, order=my_order, linewidth=2, fliersize=0, showmeans=True,
+            meanprops={"marker": "D",
+                       "markeredgecolor": "white",
+                       "markerfacecolor": "black",
+                       "markersize": "14"})
 
 ax.grid(True)
 

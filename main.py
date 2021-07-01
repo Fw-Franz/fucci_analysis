@@ -1192,7 +1192,14 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     conditions_labels = [w.replace('_', ' ') for w in con_list]
 
-                    conditions_labels = [w.replace('uM', 'μM\n') for w in conditions_labels]
+                    if len(conditions)<15:
+                        breakline='\n'
+                    else:
+                        breakline = ''
+
+                    conditions_labels = [w.replace('uM', 'μM'+breakline) for w in conditions_labels]
+                    conditions_labels = [w.replace('nM', 'nM'+breakline) for w in conditions_labels]
+                    conditions_labels = [w.replace('mM', 'mM'+breakline) for w in conditions_labels]
 
                     # conditions_label_reduced = [w.replace('_', ' \n ') for w in conditions_reduced]
                     # conditions_label_reduced = [w.replace('uM', 'μM') for w in conditions_label_reduced]
@@ -1255,18 +1262,65 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     mi_new2['Marker'] = mi_new2['Marker'].map(
                         {'RFP': 'G1', 'YFP': 'Late S,G2,M', 'Overlap': 'Early S'})
 
+                    mi_box = mi
+                    mi_box = mi_box[mi_box.Marker == marker_list[0]]
+
+                    mi_box = mi_box.loc[mi_box['Condition'].isin(conditions)]
+
+                    mi_box = mi_box[mi_box.Day == box_day]
+                    mi_box = mi_box.reset_index(drop=True)
+
+                    g = mi_box.groupby(by=["Condition"])['Total_total_fold_change_norm_log2_Control_DMSO'].median()
+
+                    my_order = g.nlargest(len(g))
+                    my_order = my_order.index.tolist()
+
+                    sorterIndex = dict(zip(my_order, range(len(my_order))))
+                    mi_new2['Condition_rank'] = mi_new2['Condition'].map(sorterIndex)
+
+                    my_order2 = ['Late S,G2,M', 'Early S','G1']
+                    sorterIndex2 = dict(zip(my_order2, range(len(my_order2))))
+                    mi_new2['Marker_rank'] = mi_new2['Marker'].map(sorterIndex2)
+
+                    mi_new2.sort_values(['Condition_rank','Marker_rank'],
+                                        ascending=[True,True], inplace=True)
+                    mi_new2.drop('Condition_rank', 1, inplace=True)
+                    mi_new2.drop('Marker_rank', 1, inplace=True)
+
+
                     means = mi_new2.groupby(['Condition', 'Marker'], sort=False).mean()
                     stds = mi_new2.groupby(['Condition', 'Marker'], sort=False).std()
 
                     ax = means.Cell_percent.unstack().plot(kind='bar', yerr=stds.Cell_percent.unstack(),
                                                            stacked=True,
                                                            capsize=5, color=['yellow', 'orange', 'red'],
-                                                           sort_columns=True)
+                                                           sort_columns=False)
 
                     handles, labels = ax.get_legend_handles_labels()
                     # box = ax.get_position()
                     # ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
                     ax.legend(reversed(handles), reversed(labels), loc='upper right', bbox_to_anchor=(1.2, 0.8))
+
+                    con_list = [item.get_text() for item in ax.get_xticklabels()]
+
+                    conditions_labels = [w.replace('_', ' ') for w in con_list]
+                    conditions_labels = [w.replace('per', '%') for w in conditions_labels]
+
+                    if len(conditions) < 15:
+                        breakline = '\n'
+                        rotation = 37
+                        tick_orientation = 'center'
+                    else:
+                        breakline = ''
+                        rotation = 37
+                        tick_orientation = 'right'
+
+                    conditions_labels = [w.replace('uM', 'μM' + breakline) for w in conditions_labels]
+                    conditions_labels = [w.replace('nM', 'nM' + breakline) for w in conditions_labels]
+                    conditions_labels = [w.replace('mM', 'mM' + breakline) for w in conditions_labels]
+
+                    ax.set_xticklabels(conditions_labels, rotation=rotation,
+                                       ha=tick_orientation)  # , rotation_mode="anchor")
 
                     ax.set_ylabel('Ratio')
 
@@ -1283,12 +1337,13 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     tick_list = np.r_[0:len(conditions)]
                     ax.set_xticks(tick_list)
                     # print(conditions)
-                    ax.set_xticklabels(conditions, rotation=37, ha='right')  # , rotation_mode="anchor")
+                    # ax.set_xticklabels(conditions, rotation=37, ha='right')  # , rotation_mode="anchor")
                     for tick in ax.xaxis.get_majorticklabels():
                         tick.set_horizontalalignment("right")
 
 
-                    ax.set_title(ax_title_stackedbar)
+                    # ax.set_title(ax_title_stackedbar)
+                    ax.set_title('')
 
                     if statistical_test=='do_ttest':
                         j=box_day
