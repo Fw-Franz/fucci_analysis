@@ -69,13 +69,14 @@ REPLICATES = [
 STATS_VARS_TYPES = ['Total', 'Cell_percent']
 # X_VAR_TYPES = ['Day']
 PLOT_CONTEXT_TYPES = ['talk', 'poster', 'notebook']
+FONT_SCALE_TYPES = [0.5, 0.8, 1.0, 1.2, 1.5, 2]
 # HUE_SPLIT_TYPES = ['Condition', 'Percent']
 
 
 def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale,
 # def create_plots_and_stats(stats_vars, x_var, filepaths, normalization_type, data_scale,
         # analyze_method, plot_context, hue_split,
-        analyze_method, statistical_test, replicates, plot_context,
+        analyze_method, statistical_test, replicates, plot_context, font_scale,
         control_condition=None, conditions_override=None,
         plots=False, save_plots=False, colormap_plot=False, cmap_discrete=False,
         individual_plots=False, boxplots=False, box_day=None, stackedbarplots=False, lineplots=False,
@@ -613,7 +614,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                 #region individual plots
                 if plots:
                     #region Global Seaborn parameters
-                    sns.set(context=plot_context,font_scale=1.5,style="whitegrid")
+                    sns.set(context=plot_context,font_scale=float(font_scale),style="whitegrid")
                     #endregion
                     if individual_plots:
                         print('Producing Individual Plots')
@@ -1475,6 +1476,8 @@ if __name__ == "__main__":
 
     plot_context = 'talk'  # 'talk', 'poster', 'notebook' - use talk for now
 
+    font_scale = 1.2  # 'talk', 'poster', 'notebook' - use talk for now
+
     # hue_split = "Condition"  # "Percent" or 'Condition'. mostly 'Condition' right now for all major plots (line, stacked bar and colormap)
 
     create_plots_and_stats(
@@ -1498,5 +1501,6 @@ if __name__ == "__main__":
         box_day=box_day,
         save_plots=save_plots,
         plot_context=plot_context,
+        font_scale=font_scale,
         # hue_split=hue_split
     )

@@ -430,13 +430,38 @@ class PlotUI:
             row=8
         )
 
+        font_scale_label = ttk.Label(
+            self.select_frame,
+            text="Font scale",
+            justify="left"
+        )
+
+        font_scale_label.grid(
+            column=0,
+            row=9,
+            sticky=tk.W
+        )
+        self.font_scale_var = tk.StringVar()
+        font_scale_box = ttk.Combobox(
+            self.select_frame,
+            textvariable=self.font_scale_var,
+            state="readonly",
+            values=main.FONT_SCALE_TYPES
+        )
+        font_scale_box.current(3)
+        font_scale_box.grid(
+            column=1,
+            row=9
+        )
+
+
         conditions_override_label = ttk.Label(
             self.select_frame,
             text="Conditions override"
         )
         conditions_override_label.grid(
             column=0,
-            row=9,
+            row=10,
             sticky=tk.W
         )
 
@@ -449,7 +474,7 @@ class PlotUI:
             self.conditions_override_listbox.insert(tk.END, condition)
         self.conditions_override_listbox.grid(
             column=1,
-            row=9
+            row=10
         )
 
         run_plots_button = ttk.Button(
@@ -459,7 +484,7 @@ class PlotUI:
         )
         run_plots_button.grid(
             column=1,
-            row=10,
+            row=11,
             sticky=tk.E
         )
 
@@ -479,6 +504,7 @@ class PlotUI:
                 data_scale=self.data_scale_var.get(),
                 # x_var=self.x_var_var.get(),
                 plot_context=self.plot_context_var.get(),
+                font_scale=self.font_scale_var.get(),
                 # hue_split=self.hue_split_var.get(),
                 control_condition=self.control_condition_var.get(),
                 conditions_override = self._get_conditions_override(),

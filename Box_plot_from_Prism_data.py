@@ -9,27 +9,25 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 # region input parameters
-# Groupt_title='TMZ '
-# Groupt_title='Pantoprazole '
-# Groupt_title='Control '
-# Groupt_title='Control NG108 '
-Groupt_title='Pantoprazole NG108 '
-
+# 0: TMZ U87, 1: Pantoprazole U87, 2: Control U 87, 3: Control NG108, 4: Pantoprazole NG108
 conditions_list_i=4
 
 replicates='biological'
 box_day=6
-# normalization_type='Total_total_normalized_norm_log2'
-normalization_type='Total_total_fold_change_norm_log2_Control_DMSO'
-norm_colname=normalization_type
-analyze_method='fold_change'
-# analyze_method='total_normalization'
 
-# plot_context = 'talk'
-plot_context = 'notebook'
+# analyze_method='total_normalization'
+# normalization_type='Total_total_normalized_norm_log2'
+
+analyze_method='fold_change'
+normalization_type='Total_total_fold_change_norm_log2_Control_DMSO'
+
+plot_context = 'talk'
+# plot_context = 'notebook'
+font_scale=1.5
 save_plots=1
 
 
+norm_colname=normalization_type
 control_condition='Control_DMSO'
 frame='ean'
 
@@ -102,8 +100,10 @@ if not os.path.exists(box_dir):
 
 # ax_title_boxplot = f'Day {box_day} Normalized Cell Counts Compared to {control_condition} - frame m{frame}'
 
+Groupt_title = ['TMZ U87 ', 'Pantoprazole U87 ', 'Control U87 ', 'Control NG108 ', 'Pantoprazole NG108 ']
+
 ax_title_boxplot = f'Day {box_day}'
-boxplot_fname = os.path.join(box_dir, f'{Groupt_title} {control_condition} normalized {ax_title_boxplot}.png')
+boxplot_fname = os.path.join(box_dir, f'{Groupt_title[conditions_list_i]} {control_condition} normalized {ax_title_boxplot}.png')
 
 print('Producing Combined Boxplot')
 
@@ -133,7 +133,7 @@ medians=mi_box.median(axis=0)
 my_order = medians.nlargest(len(medians))
 my_order = my_order.index.tolist()
 
-sns.set(context=plot_context,font_scale=1.5,style="whitegrid")
+sns.set(context=plot_context,font_scale=font_scale,style="whitegrid")
 
 # ax = sns.swarmplot(data=mi_box, size=swarmplot_size, order=my_order,
 #                    edgecolor="black", linewidth=0.5)
