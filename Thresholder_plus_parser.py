@@ -4,15 +4,17 @@ import pandas as pd
 import time
 import os
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\all_data_together"
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+Custom_dir="Y:\\Juanita\\NewMethodAnalysisSheets\\1_13_21Allsheets\\NoPrimary\\HDAC_NSE_SOX10_Ki67_MAP2_O4_CREB_pH3_nopri\\08_07_2021"
+
+threshold_value=20
 
 root = tk.Tk()
 root.withdraw()
 
 #region Input parameters
-# input_dir_base = filedialog.askdirectory(initialdir=Custom_dir,
-input_dir_base = filedialog.askdirectory(initialdir=BASE_DIR,
+input_dir_base = filedialog.askdirectory(initialdir=Custom_dir,
+# input_dir_base = filedialog.askdirectory(initialdir=BASE_DIR,
                 title="Select Antibody Results Directory")
 dir_list = os.listdir(input_dir_base)
 # endregion
@@ -32,20 +34,28 @@ for input_dir in dir_list:
     df=pd.read_csv(sub_dir+input_fname_GFAP)
     df_nuclei=pd.read_csv(sub_dir+input_fname_nuclei)
 
-    print('GFAP # rows: ', df.shape[0], '\npre removal nuclei # rows: ', df_nuclei.shape[0])
+    print('pre threshold GFAP # rows: ', df.shape[0], '\npre threshold nuclei # rows: ', df_nuclei.shape[0])
 
-    image_n = df.ImageNumber.tolist()  # total number of wells
+    image_n=df.ImageNumber.tolist()# total number of wells
     image_n = list(dict.fromkeys(image_n))
 
-    df['row_id'] = '_' + df['ImageNumber'].apply(str) + 'and' + df['ObjectNumber'].apply(str) + '_'
-    df_nuclei['row_id'] = '_' + df_nuclei['ImageNumber'].apply(str) + 'and' + df_nuclei['ObjectNumber'].apply(str) + '_'
+    df_shape_base=df.shape
+    df = df[df.Intensity_IntegratedIntensity_OrigGreen < threshold_value]
+    df_shape_post = df.shape
+    df= df.reset_index(drop=True)
+
+    print("Number of removed rows GFAP: ", df_shape_base[0]-df_shape_post[0])
+
+    df['row_id'] =  '_' + df['ImageNumber'].apply(str) + 'and' + df['ObjectNumber'].apply(str) + '_'
+    df_nuclei['row_id'] =  '_' + df_nuclei['ImageNumber'].apply(str) + 'and' + df_nuclei['ObjectNumber'].apply(str) + '_'
 
     df_nuclei['test'] = df_nuclei['row_id'].isin(df['row_id'])
     df_nuclei = df_nuclei[df_nuclei.test == True]
     df_nuclei = df_nuclei.reset_index(drop=True)
     df_nuclei.drop(columns=['test'], inplace=True)
 
-    print('post removal nuclei # rows: ', df_nuclei.shape[0], '\n')
+
+    print('post threshold GFAP # rows: ', df.shape[0], '\npost threshold nuclei # rows: ', df_nuclei.shape[0], '\n')
 
     mi=df[['ImageNumber','ObjectNumber','FileName_DisplayImage','Intensity_IntegratedIntensity_OrigBlue',
                'Intensity_IntegratedIntensity_OrigGreen','Intensity_MeanIntensity_OrigGreen',
@@ -87,14 +97,14 @@ for input_dir in dir_list:
     means_rows=means_columns.groupby(['Row'], as_index=False).mean()
     stds_rows=means_columns.groupby(['Row'], as_index=False).std()
 
-    mi.to_csv(path_or_buf=sub_dir +input_dir + '_AntibodyResults.csv',  index=None, header=True)
+    mi.to_csv(path_or_buf=sub_dir +input_dir + '_' + str(threshold_value) + '_Thresholded_AntibodyResults.csv',  index=None, header=True)
 
-    means_frame.to_csv(path_or_buf=sub_dir + input_dir + '_AntibodyResults_Frame_means.csv',  index=None, header=True)
-    means_columns.to_csv(path_or_buf=sub_dir + input_dir + '_AntibodyResults_Column_means.csv',  index=None, header=True)
-    means_rows.to_csv(path_or_buf=sub_dir + input_dir + '_AntibodyResults_Row_means.csv',  index=None, header=True)
+    means_frame.to_csv(path_or_buf=sub_dir + input_dir + '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Frame_means.csv',  index=None, header=True)
+    means_columns.to_csv(path_or_buf=sub_dir + input_dir + '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Column_means.csv',  index=None, header=True)
+    means_rows.to_csv(path_or_buf=sub_dir + input_dir + '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Row_means.csv',  index=None, header=True)
 
-    stds_frame.to_csv(path_or_buf=sub_dir + input_dir + '_AntibodyResults_Frame_stds.csv',  index=None, header=True)
-    stds_columns.to_csv(path_or_buf=sub_dir + input_dir + '_AntibodyResults_Column_stds.csv',  index=None, header=True)
-    stds_rows.to_csv(path_or_buf=sub_dir + input_dir + '_AntibodyResults_Row_stds.csv',  index=None, header=True)
+    stds_frame.to_csv(path_or_buf=sub_dir + input_dir + '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Frame_stds.csv',  index=None, header=True)
+    stds_columns.to_csv(path_or_buf=sub_dir + input_dir + '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Column_stds.csv',  index=None, header=True)
+    stds_rows.to_csv(path_or_buf=sub_dir + input_dir + '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Row_stds.csv',  index=None, header=True)
 
 print("\n time spent in seconds: %s" % round(((time.time() - start_time)), 1))
