@@ -27,7 +27,11 @@ frame=1
 
 
 # 1st Condition list
-conditions_1=['Control_DMSO', 'Pantoprazole_50uM', 'NS1643_20uM', 'Pantoprazole_100uM_NS1643_20uM']
+conditions_1=['Control_DMSO', 'NS1643_50uM_TMZ_50uM', 'Pantoprazole_100uM_Lamotrigine_100uM', 'Pantoprazole_100uM','Pantoprazole_100uM_NS1643_20uM',
+              'Pantoprazole_100uM_Rapamycin_100nM','Pantoprazole_100uM_Retigabine_10uM','Pantoprazole_100uM_TMZ_50uM','Pantoprazole_100uM_NS1643_50uM',
+              'NS1643_20uM_TMZ_50uM']
+
+
 
 
 conditions_list=[conditions_1]
@@ -58,14 +62,14 @@ if Percent_search>0:
 else:
     normalization=''
 
-schroedinger_search = filepath.find("_Alive_")
+schroedinger_search = filepath.find("_Dead_")
 
 if Percent_search>0:
-    schroedinger='_Alive'
-else:
     schroedinger='_Dead'
+else:
+    schroedinger='_Alive'
 
-fname= 'Cell_Count' + schroedinger + normalization  + analyze_method
+fname= normalization + schroedinger + '_Cells'
 ylabel_string=fname.replace('_',' ')
 
 box_dir = os.path.join(
@@ -100,7 +104,7 @@ if analyze_method == 'fold_change':
 else:
     mi_box=mi_box[conditions]
 
-
+mi_box=mi_box*100
 
 swarmplot_size = 10
 swarmplot_offset = 0  # offset to left of boxplot
@@ -140,10 +144,7 @@ ax.grid(True)
 
 bottom, top = ax.get_ylim()
 
-# if analyze_method == "fold_change":
-#     ax.set(ylim=(bottom-0.2*np.abs(bottom), 0.1))
-# else:
-#     ax.set(ylim=(bottom-0.2*np.abs(bottom), top+0.2*np.abs(top)))
+ax.set(ylim=(bottom, top+0.1*np.abs(top)))
 
 
 # if analyze_method == "fold_change":
