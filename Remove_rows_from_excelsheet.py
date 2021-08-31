@@ -9,16 +9,20 @@ import matplotlib
 import matplotlib.pyplot as plt
 import time
 
-x=20
-y=49345
 
-Custom_dir="D:\\Data_Lab\\Juanita\\Antibody_data\\cmycbestsettings\\"
+start_time = time.time()
+
+x=84163
+y=183039
+
+BASE_DIR=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+Custom_dir="F:\\NewAnalysisSheetsAll8_29_21\\4_8_21Allsheets_allin\\RegAntibodies\\ERK_HDAC9_MBP_TH\\"
 
 root = tk.Tk()
 root.withdraw()
 filepath = filedialog.askopenfilename(
-    # initialdir="BASE_DIR",
-    initialdir="Custom_dir",
+    initialdir="BASE_DIR",
+    # initialdir="Custom_dir",
     title="Select file",
     filetypes=(("csv", "*.csv"),)
 )
@@ -28,7 +32,7 @@ base_directory = os.path.dirname(os.path.dirname(filepath))
 
 df = pd.read_csv(filepath)
 
-df.drop(df.index[x:y], inplace=True)
+df.drop(df.index[x-2:y-1], inplace=True)
 
 save_filepath=filepath.replace('.csv','_shortened.csv')
 df.to_csv(
@@ -36,3 +40,5 @@ df.to_csv(
     index=None,
     header=True
 )
+
+print("\n time spent in seconds: %s" % round(((time.time() - start_time)), 1))
