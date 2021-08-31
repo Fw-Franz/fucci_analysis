@@ -8,13 +8,21 @@ from tkinter import filedialog
 import matplotlib
 import matplotlib.pyplot as plt
 import time
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+from pylab import figure, text, scatter, show
 
 start_time = time.time()
 
 #region Input parameters
-row_order=['E', 'C', 'D', 'B', 'F', 'G']
-plottype='box'
-statistical_test = 'do_tukey_test'
+row_order=['E', 'C', 'D', 'B', 'F', 'G']   # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
+plottype='bar' # 'box' or 'bar'
+statistical_test = 'do_tukey_test' # currently only 'do_tukey_test'
+plot_stats_stars=  True  # True or False  (no '')
+
+normalization='_background_sub' # '' or '_background_sub'
+analyze_method='Fold_change_' # '' or 'Fold_change_'
+plot_column='FarRed_int_I'
+control_condition='Control'
 #endregion
 
 
@@ -35,23 +43,18 @@ base_directory = os.path.dirname(os.path.abspath(filepath))
 
 input_folder_name=os.path.basename(base_directory)
 
-normalization='_background_sub' # '' or '_background_sub'
-analyze_method='Fold_change_' # '' or 'Fold_change_'
-
-plot_column='FarRed_int_I'
-
 plot_context = 'talk'
 # plot_context = 'notebook'
 font_scale=1.5
 save_plots=1
 
-control_condition='Control'
-frame=1
 
 # endregion
 
 
 column_name= analyze_method + plot_column + normalization
+
+column_name_stats = plot_column + normalization
 
 if plottype=='box':
     box_dir = os.path.join(
@@ -78,58 +81,55 @@ mi_box.sort_values(['Drug_Rank'],
 mi_box.drop('Drug_Rank', 1, inplace = True)
 print(mi_box)
 
-# if statistical_test == 'do_tukey_test':
-#     print('Producing Tukey Analysis results')
-#
-#     mi_tukey = mi.loc[mi['Condition'].isin(conditions)]
-#     mi_tukey = mi_tukey[mi_tukey.Marker == 'RFP']
-#
-#     mi_tukey['sample_size_count'] = mi_tukey.groupby(by=['Condition', 'Day'])['Date'].transform('count')
-#     # print('sample_size_count', mi_tukey.columns, mi_tukey['Condition'], mi_tukey['sample_size_count'])
-#
-#     tukey_frames = []
-#     Days_list = mi_tukey['Day'].to_numpy()
-#     unique_Days = np.unique(Days_list)
-#     # for j in range(0, len(unique_Days)):
-#     for j in range(1, len(unique_Days)):
-#         day = unique_Days[j]
-#         m_day = mi_tukey[mi_tukey['Day'] == day]
-#
-#         result_05 = statsmodels.stats.multicomp.pairwise_tukeyhsd(
-#             m_day[norm_colname], m_day['Condition'], alpha=0.05
-#         )
-#         df_tukey = pd.DataFrame(
-#             data=result_05._results_table.data[1:],
-#             columns=result_05._results_table.data[0]
-#         )
-#         df_tukey['Day'] = day
-#         df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
-#         df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
-#         df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
-#
-#         df_tukey['Sample_size_1'] = ''
-#         df_tukey['Sample_size_2'] = ''
-#
-#         for con in conditions:
-#             df_tukey.loc[df_tukey.group1 == con, 'Sample_size_1'] = np.max(
-#                 mi_tukey.loc[(mi_tukey.Condition == con) & (mi_tukey.Day == day),
-#                              'sample_size_count'])
-#             df_tukey.loc[df_tukey.group2 == con, 'Sample_size_2'] = np.max(
-#                 mi_tukey.loc[(mi_tukey.Condition == con) & (mi_tukey.Day == day),
-#                              'sample_size_count'])
-#
-#             tukey_frames.append(df_tukey)
-#
-#     df_tukey = pd.concat(tukey_frames)
-#
-#     df_tukey.to_csv(
-#         path_or_buf=os.path.join(base_directory, 'stats', f'tukey_results_{norm_colname}.csv'),
-#         index=None,
-#         header=True
-#     )
+if statistical_test == 'do_tukey_test':
+    print('Producing Tukey Analysis results')
 
-if analyze_method=='Fold_change_':
-    mi_box=mi_box[mi_box.Drug_Name != control_condition]
+    stats_dir = os.path.join(
+        base_directory, 'stats\\')
+
+    if not os.path.exists(stats_dir):
+        os.makedirs(stats_dir)
+
+
+    mi_tukey=mi_box.copy()
+
+    Drug_list=mi_tukey['Drug_Name'].str.split(';\s*', expand=True).stack().unique()
+
+    mi_tukey['sample_size_count']=mi_tukey['Drug_Name'].copy()
+    mi_tukey['sample_size_count'] = mi_tukey.groupby(by='Drug_Name')['sample_size_count'].transform('count')
+
+    m_day = mi_tukey.copy()
+
+    result_05 = pairwise_tukeyhsd(
+        m_day[column_name_stats], m_day['Drug_Name'], alpha=0.05
+    )
+    df_tukey = pd.DataFrame(
+        data=result_05._results_table.data[1:],
+        columns=result_05._results_table.data[0]
+    )
+    df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
+    df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
+    df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
+
+    df_tukey['Sample_size_1'] = ''
+    df_tukey['Sample_size_2'] = ''
+
+    for con in Drug_list:
+        df_tukey.loc[df_tukey.group1 == con, 'Sample_size_1'] = np.max(
+            mi_tukey.loc[(mi_tukey.Drug_Name == con),
+                         'sample_size_count'])
+        df_tukey.loc[df_tukey.group2 == con, 'Sample_size_2'] = np.max(
+            mi_tukey.loc[(mi_tukey.Drug_Name == con),
+                         'sample_size_count'])
+
+    df_tukey.to_csv(
+        path_or_buf=stats_dir+ column_name_stats + '_Tukey.csv',
+        index=None,
+        header=True
+    )
+
+# if analyze_method=='Fold_change_':
+#     mi_box=mi_box[mi_box.Drug_Name != control_condition]
 
 swarmplot_size = 10
 swarmplot_offset = 0  # offset to left of boxplot
@@ -213,42 +213,45 @@ for label in ax.xaxis.get_majorticklabels():
 ax.set_xlabel('')
 
 ax.set_title('')
+if plot_stats_stars:
 
-# if statistical_test == 'do_tukey_test':
-#
-#
-#     if sorterIndex[control_condition] != 0:
-#         raise ValueError("control_condition is not the first condition, violating assumptions necessary for plotting")
-#
-#     for condition, iii in sorterIndex.items():
-#         if condition == control_condition:
-#             continue
-#         query_str = f'((group1 == "{condition}" & group2 == "{control_condition}") | \
-#               (group1 == "{control_condition}" & group2 == "{condition}"))'
-#         df_tukey_con = df_tukey.query(query_str)
-#         df_tukey_con = df_tukey_con.reset_index(drop=True)
-#         row = df_tukey_con.iloc[0]
-#         reject_05 = row['reject_05']
-#         reject_01 = row['reject_01']
-#         reject_001 = row['reject_001']
-#
-#         ymin, ymax = ax.get_ylim()
-#         lines = ax.get_lines()
-#         categories = ax.get_xticks()
-#
-#         if analyze_method == 'fold_change':
-#             y = round(lines[3 + (iii - 1) * 6].get_ydata()[0], 1)
-#         else:
-#             y = round(lines[3 + iii * 6].get_ydata()[0], 1)
-#
-#         if not analyze_method == 'fold_change':
-#             if reject_001:
-#                 text(iii - 0.15, y + 0.7, '***', fontsize=40, color='black')
-#             elif reject_01:
-#                 text(iii - 0.1, y + 0.7, '**', fontsize=40, color='black')
-#             elif reject_05:
-#                 text(iii - 0.05, y + 0.7, '*', fontsize=40, color='black')
-#
+    if statistical_test == 'do_tukey_test':
+
+        sorterIndex_Drugs = dict(zip(Drug_list, range(len(Drug_list))))
+        if sorterIndex_Drugs[control_condition] != 0:
+            raise ValueError("control_condition is not the first condition, violating assumptions necessary for plotting")
+
+        for condition, iii in sorterIndex_Drugs.items():
+            # print(condition,iii)
+            if condition == control_condition:
+                continue
+            query_str = f'((group1 == "{condition}" & group2 == "{control_condition}") | \
+                  (group1 == "{control_condition}" & group2 == "{condition}"))'
+            df_tukey_con = df_tukey.query(query_str)
+            df_tukey_con = df_tukey_con.reset_index(drop=True)
+            row = df_tukey_con.iloc[0]
+            reject_05 = row['reject_05']
+            reject_01 = row['reject_01']
+            reject_001 = row['reject_001']
+
+            ymin, ymax = ax.get_ylim()
+            lines = ax.get_lines()
+            categories = ax.get_xticks()
+
+            if plottype == 'box':
+                y = round(lines[3 + (iii-2) * 6].get_ydata()[0], 1)/round(lines[3].get_ydata()[0], 1)
+                y_offset=0.6
+            elif plottype == 'bar':
+                y = round(ax.patches[iii].get_height(), 1)
+                y_offset=0.3
+
+            if reject_001:
+                text(iii - 0.15, y + y_offset, '***', fontsize=40, color='black')
+            elif reject_01:
+                text(iii - 0.1, y + y_offset, '**', fontsize=40, color='black')
+            elif reject_05:
+                text(iii - 0.05, y + y_offset, '*', fontsize=40, color='black')
+
 
 
 if save_plots:
