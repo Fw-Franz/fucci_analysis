@@ -20,26 +20,25 @@ statistical_test = 'do_tukey_test' # currently only 'do_tukey_test'
 plot_stats_stars=  True  # True or False  (no '')
 
 normalization='_background_sub' # '' or '_background_sub'
-analyze_method='Fold_change_' # '' or 'Fold_change_'
+analyze_method='Fold_change_' # '' or 'Fold_change_'  for graphing only
 plot_column='FarRed_int_I'
 control_condition='Control'
 #endregion
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="D:\\Data_Lab\\Juanita\\Antibody_data\\cmycbestsettings\\"
+# Custom_dir="D:\\Data_Lab\\Juanita\\Antibody_data\\cmycbestsettings\\"
 
 root = tk.Tk()
 root.withdraw()
 filepath = filedialog.askopenfilename(
-    # initialdir="BASE_DIR",
-    initialdir="Custom_dir",
+    initialdir="BASE_DIR",
+    # initialdir="Custom_dir",
     title="Select file",
     filetypes=(("csv", "*.csv"),)
 )
 
 base_directory = os.path.dirname(os.path.abspath(filepath))
-# base_directory = os.path.dirname(os.path.dirname(filepath))
 
 input_folder_name=os.path.basename(base_directory)
 
@@ -79,7 +78,6 @@ mi_box['Drug_Rank'] = mi_box['Row'].map(sorterIndex)
 mi_box.sort_values(['Drug_Rank'],
         ascending = [ True], inplace = True)
 mi_box.drop('Drug_Rank', 1, inplace = True)
-print(mi_box)
 
 if statistical_test == 'do_tukey_test':
     print('Producing Tukey Analysis results')
