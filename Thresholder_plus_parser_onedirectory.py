@@ -5,9 +5,9 @@ import time
 import os
 
 #BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="T:\\Juanita\\NewMethodAnalysisSheets\\U87Allsheets\\no primary\\CREB_nopri"
+Custom_dir="T:\\Juanita\\NewMethodAnalysisSheets\\U87Allsheets\\no primary\\\MOG_nopri"
 
-threshold_value=150
+threshold_value=20
 
 root = tk.Tk()
 root.withdraw()
@@ -94,14 +94,14 @@ stds_columns=means_frame.groupby(['Row', 'Column'], as_index=False).std()
 means_rows=means_columns.groupby(['Row'], as_index=False).mean()
 stds_rows=means_columns.groupby(['Row'], as_index=False).std()
 
-mi.to_csv(path_or_buf=input_dir + '\\input_folder_name_' + str(threshold_value) + '_Thresholded_AntibodyResults.csv',  index=None, header=True)
+mi.to_csv(path_or_buf=input_dir + '\\'+input_folder_name+ '_' + str(threshold_value) + '_Thresholded_AntibodyResults.csv',  index=None, header=True)
 
-means_frame.to_csv(path_or_buf= input_dir + '\\input_folder_name_' + str(threshold_value) + '_Thresholded_AntibodyResults_Frame_means.csv',  index=None, header=True)
-means_columns.to_csv(path_or_buf= input_dir + '\\input_folder_name_' + str(threshold_value) + '_Thresholded_AntibodyResults_Column_means.csv',  index=None, header=True)
-means_rows.to_csv(path_or_buf=input_dir + '\\input_folder_name_' + str(threshold_value) + '_Thresholded_AntibodyResults_Row_means.csv',  index=None, header=True)
+means_frame.to_csv(path_or_buf= input_dir + '\\'+input_folder_name+ '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Frame_means.csv',  index=None, header=True)
+means_columns.to_csv(path_or_buf= input_dir + '\\'+input_folder_name+ '_'+ str(threshold_value) + '_Thresholded_AntibodyResults_Column_means.csv',  index=None, header=True)
+means_rows.to_csv(path_or_buf=input_dir + '\\'+input_folder_name+ '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Row_means.csv',  index=None, header=True)
 
-stds_frame.to_csv(path_or_buf= input_dir + '\\input_folder_name_' + str(threshold_value) + '_Thresholded_AntibodyResults_Frame_stds.csv',  index=None, header=True)
-stds_columns.to_csv(path_or_buf= input_dir + '\\input_folder_name_' + str(threshold_value) + '_Thresholded_AntibodyResults_Column_stds.csv',  index=None, header=True)
-stds_rows.to_csv(path_or_buf= input_dir + '\\input_folder_name_' + str(threshold_value) + '_Thresholded_AntibodyResults_Row_stds.csv',  index=None, header=True)
+stds_frame.to_csv(path_or_buf= input_dir + '\\'+input_folder_name+ '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Frame_stds.csv',  index=None, header=True)
+stds_columns.to_csv(path_or_buf= input_dir + '\\'+input_folder_name+ '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Column_stds.csv',  index=None, header=True)
+stds_rows.to_csv(path_or_buf= input_dir + '\\'+input_folder_name+ '_' + str(threshold_value) + '_Thresholded_AntibodyResults_Row_stds.csv',  index=None, header=True)
 
 print("\n time spent in seconds: %s" % round(((time.time() - start_time)), 1))
