@@ -5,7 +5,7 @@ import time
 import os
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="Y:\\Juanita\\NewMethodAnalysisSheets\\1_13_21Allsheets\\NoPrimary\\HDAC_NSE_SOX10_Ki67_MAP2_O4_CREB_pH3_nopri\\08_07_2021"
+Custom_dir="F:\\NewAnalysisSheetsAll8_29_21\\3_13_21Allsheets\\Noprimary\\Cmyc_Ki67\\08_07_2021"
 
 threshold_value=20
 

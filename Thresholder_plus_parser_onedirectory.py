@@ -7,7 +7,7 @@ import os
 #BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Custom_dir="T:\\Juanita\\NewMethodAnalysisSheets\\U87Allsheets\\no primary\\\MOG_nopri"
 
-threshold_value=20
+threshold_value=70
 
 root = tk.Tk()
 root.withdraw()
