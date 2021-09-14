@@ -14,7 +14,7 @@ from pylab import figure, text, scatter, show
 start_time = time.time()
 
 #region Input parameters
-row_order=['E', 'C', 'D', 'B', 'F', 'G']   # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
+row_order=['G', 'F', 'E', 'B', 'C', 'D']    # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
 plottype='bar' # 'box' or 'bar'
 statistical_test = 'do_tukey_test' # currently only 'do_tukey_test'
 plot_stats_stars=  True  # True or False  (no '')
@@ -69,7 +69,10 @@ if not os.path.exists(box_dir):
 
 boxplot_fname = box_dir + column_name
 
-print('Producing Combined Boxplot')
+if plottype=='box':
+    print('Producing Combined Boxplot')
+elif plottype=='bar':
+    print('Producing Combined Barplot')
 
 mi_box = pd.read_csv(filepath)
 
