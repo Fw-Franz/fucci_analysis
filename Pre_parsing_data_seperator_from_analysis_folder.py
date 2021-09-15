@@ -15,7 +15,7 @@ date='08_07_2021' # sth like '01_21_2021'
 input_fname_GFAP="GFAP.csv"
 input_fname_nuclei="Nuclei.csv"
 
-fname_strings=['MAP2_byloc_Plate','NFKb_BS_Plate','cmyc_BS_Plate']
+fname_strings=['A_Plate','B_Plate','C_Plate']  # should end with "_Plate"
 
 #endregion
 
