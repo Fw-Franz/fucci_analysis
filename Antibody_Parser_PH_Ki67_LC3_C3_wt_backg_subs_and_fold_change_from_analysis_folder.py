@@ -18,12 +18,12 @@ input_folder_name=os.path.basename(Current_dir)
 
 Antibody_type= 'PhosHist' # 'PhosHist' , 'Ki67' , 'LC3' , or 'CASP3'
 
-row_B_FarRed_int_I_background_average=5
-row_C_FarRed_int_I_background_average=5
-row_D_FarRed_int_I_background_average=5
-row_E_FarRed_int_I_background_average=5
-row_F_FarRed_int_I_background_average=5
-row_G_FarRed_int_I_background_average=5
+row_B_FarRed_int_I_background_average=0
+row_C_FarRed_int_I_background_average=0
+row_D_FarRed_int_I_background_average=0
+row_E_FarRed_int_I_background_average=0
+row_F_FarRed_int_I_background_average=0
+row_G_FarRed_int_I_background_average=0
 
 row_B_drug_name='Drug_A'
 row_C_drug_name='Drug_B'
@@ -51,9 +51,9 @@ if Antibody_type == 'PhosHist':
 if Antibody_type == 'Ki67':
     input_fname_GFAP = "/Ki67nuc.csv"
 if Antibody_type == 'LC3':
-    input_fname_GFAP="/LC3.csv"
+    input_fname_GFAP="/GFAP.csv"
 if Antibody_type == 'CASP3':
-    input_fname_GFAP = "/CASP3.csv"
+    input_fname_GFAP = "/GFAP.csv"
 
 
 input_fname_nuclei="/Nuclei.csv" # needs "/" in front
@@ -179,6 +179,7 @@ means_columns['Fold_change_FarRed_mean_I']=means_columns['FarRed_mean_I'].copy()
 means_columns['Fold_change_DAPI_mean_I']=means_columns['DAPI_mean_I'].copy()/float(means_rows_control['DAPI_mean_I'])
 means_columns['Fold_change_FarRed_area']=means_columns['FarRed_area'].copy()/float(means_rows_control['FarRed_area'])
 means_columns['Fold_change_DAPI_area']=means_columns['DAPI_area'].copy()/float(means_rows_control['DAPI_area'])
+means_columns['Fold_change_Cell_Percent_Positive'] = means_columns['Cell_Percent_Positive'].copy()/float(means_rows_control['Cell_Percent_Positive'])
 
 means_rows=means_columns.groupby(['Row','Drug_Name'], as_index=False).mean()
 stds_rows=means_columns.groupby(['Row','Drug_Name'], as_index=False).std()
