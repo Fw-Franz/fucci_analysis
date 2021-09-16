@@ -20,15 +20,12 @@ base_directory = filedialog.askdirectory(initialdir=BASE_DIR,
 start_time = time.time()
 
 filepath_means = glob.glob(base_directory + '**/*Thresholded_AntibodyResults_Column_means.csv')
-filepath_stds = glob.glob(base_directory + '**/*Thresholded_AntibodyResults_Column_stds.csv')
 
 input_folder_name = os.path.basename(base_directory)
 
 means_columns=pd.read_csv(filepath_means[0])
-stds_columns=pd.read_csv(filepath_stds[0])
 
 means_columns=means_columns.drop(columns=['Column'])
-stds_columns=stds_columns.drop(columns=['Column'])
 
 means_rows=means_columns.groupby(['Row','Drug_Name'], as_index=False).mean()
 stds_rows=means_columns.groupby(['Row','Drug_Name'], as_index=False).std()
