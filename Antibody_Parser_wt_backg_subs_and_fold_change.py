@@ -34,8 +34,8 @@ row_G_drug_name='Drug_E'
 root = tk.Tk()
 root.withdraw()
 
-input_dir_base = filedialog.askdirectory(initialdir=Custom_dir,
-# input_dir_base = filedialog.askdirectory(initialdir=BASE_DIR,
+# input_dir_base = filedialog.askdirectory(initialdir=Custom_dir,
+input_dir_base = filedialog.askdirectory(initialdir=BASE_DIR,
                 title="Select Antibody Results Directory")
 dir_list = os.listdir(input_dir_base)
 
