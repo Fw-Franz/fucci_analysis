@@ -15,7 +15,7 @@ import glob
 start_time = time.time()
 
 #region Input parameters
-load_raw_data=True
+load_raw_data=False
 
 dates=['1_13_21','2_2_21','2_22_21','3_13_21','4_8_21']
 
@@ -57,6 +57,8 @@ conditions_list_reordered=['Pantoprazole_100uM',
                  'Pantoprazole_100uM_Rapamycin_100nM',
                  '1perFBS_cAMP_1mM_Rapamycin_200nM']
 
+save_dir='CMYC'
+
 label_type='legend' # 'xaxis' or 'legend'
 swarmplots=False
 
@@ -75,7 +77,8 @@ control_condition='Control'
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Custom_dir="E:\\NewAnalysisSheetsAll8_29_21\\NG108_Antibody_data_combined\\"
-Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\NG108_Antibody_Results_combined\\"
+# Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\NG108_Antibody_Results_combined\\"
+Custom_dir=os.getcwd()
 
 root = tk.Tk()
 root.withdraw()
@@ -138,10 +141,10 @@ column_name_stats = plot_column + normalization
 
 if plottype=='box':
     box_dir = os.path.join(
-        base_directory, 'boxplots\\')
+        base_directory,  save_dir + '_stats_and_graphs\\boxplots\\')
 elif plottype=='bar':
     box_dir = os.path.join(
-        base_directory, 'barplots\\')
+        base_directory,  save_dir + '_stats_and_graphs\\barplots\\')
 
 if not os.path.exists(box_dir):
     os.makedirs(box_dir)
@@ -167,7 +170,7 @@ if statistical_test == 'do_tukey_test':
     print('Producing Tukey Analysis results')
 
     stats_dir = os.path.join(
-        base_directory, 'stats\\')
+        base_directory,  save_dir + '_stats_and_graphs\\stats\\')
 
     if not os.path.exists(stats_dir):
         os.makedirs(stats_dir)

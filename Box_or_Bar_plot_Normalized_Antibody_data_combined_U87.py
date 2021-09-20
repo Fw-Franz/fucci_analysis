@@ -17,25 +17,21 @@ start_time = time.time()
 #region Input parameters
 load_raw_data=True
 
-dates=['1_13_21','2_2_21','2_22_21','3_13_21','4_8_21']
+dates=['8_30_21','9_17_21']
 
-date_list=['1_13_21',
-           '1_13_21',
-           '1_13_21',
-           '2_2_21',
-           '2_2_21',
-           '2_2_21',
-           '2_22_21',
-           '3_13_21',
-           '3_13_21']
-antibody_list=['cx43_BS',
+date_list=['8_30_21',
+           '8_30_21',
+           '8_30_21',
+           '8_30_21',
+           '8_30_21',
+           '9_17_21']
+
+antibody_list=['O4',
                'cx43_BS',
                'cx43_BS',
                'Cx43_BS',
                'Cx43_BS',
                'Cx43_BS',
-               'cx43_BS',
-               'cx43_BS',
                'cx43_BS']
 conditions_list=['Pantoprazole_100uM',
                  'NS1643_20uM',
@@ -75,7 +71,7 @@ control_condition='Control'
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Custom_dir="E:\\NewAnalysisSheetsAll8_29_21\\NG108_Antibody_data_combined\\"
-Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\NG108_Antibody_Results_combined\\"
+Custom_dir="E:\\NewAnalysisSheetsAll8_29_21\\U87_Antibody_data_combined\\"
 
 root = tk.Tk()
 root.withdraw()
