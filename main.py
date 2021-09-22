@@ -19,6 +19,7 @@ import os
 import sys
 import data_annotation
 import pingouin as pg
+import glob
 
 pd.options.mode.chained_assignment = 'raise'
 
@@ -111,6 +112,16 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
     else:
         raise ValueError("Selected filepaths not all in same base directory")
 
+    data_dir = os.path.join(base_directory, 'data')
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+    plots_dir = os.path.join(base_directory, 'plots')
+    if not os.path.exists(plots_dir):
+        os.makedirs(plots_dir)
+    stats_dir = os.path.join(base_directory, 'stats')
+    if not os.path.exists(stats_dir):
+        os.makedirs(stats_dir)
+
     start_time = time.time()
 
     for path in filepaths:
@@ -138,7 +149,12 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
             #TODO: generalize code to handle this case
             raise ValueError("Input data has multiple frames in one file")
 
-        if conditions_override and len(conditions_override) > 0:
+        drug_list_fpath = glob.glob(data_dir + '/*Drug_List.csv')
+        drug_list_df = pd.read_csv(drug_list_fpath[0])
+        drug_list=drug_list_df['Condition'].to_list()
+        if len(drug_list)>0:
+            conditions=drug_list
+        elif conditions_override and len(conditions_override) > 0:
             conditions = list(conditions_override)
         else:
             conditions = list(data.get_conditions())
@@ -345,16 +361,6 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                 # else:
                 #     ax_title = f'm{frame} {marker} Day {day}'
 
-                data_dir = os.path.join(base_directory, 'data')
-                if not os.path.exists(data_dir):
-                    os.makedirs(data_dir)
-                plots_dir = os.path.join(base_directory, 'plots')
-                if not os.path.exists(plots_dir):
-                    os.makedirs(plots_dir)
-                stats_dir = os.path.join(base_directory, 'stats')
-                if not os.path.exists(stats_dir):
-                    os.makedirs(stats_dir)
-
                 if plot_type == "violin":
                     # if hue_split == "Condition":
                     #     violin_dir = os.path.join(
@@ -389,7 +395,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     if not os.path.exists(box_dir):
                         os.makedirs(box_dir)
                     ax_title_boxplot = f'Day {box_day} Normalized Cell Counts Compared to {control_condition} - frame m{frame}'
-                    boxplot_fname = os.path.join(box_dir, f'{control_condition} normalized {ax_title_boxplot}.png')
+                    boxplot_fname = os.path.join(box_dir, f'{control_condition} normalized_ {analyze_method} _ {ax_title_boxplot}.png')
 
                 if stackedbarplots:
                     stack_dir = os.path.join(
@@ -400,7 +406,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         os.makedirs(stack_dir)
                     ax_title_stackedbar = f'Day {box_day} Cell Cycle Proportions Compared to {control_condition} - frame m{frame}'
                     stackedbar_fname = os.path.join(
-                        stack_dir, f'{control_condition} normalized {ax_title_stackedbar}.png'
+                        stack_dir, f'{control_condition} normalized_ {analyze_method} _  {ax_title_stackedbar}.png'
                     )
 
                 if lineplots:
@@ -412,7 +418,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     if not os.path.exists(line_dir):
                         os.makedirs(line_dir)
                     ax_title_line = f'Day {box_day} Normalized Cell Counts Compared to {control_condition} - frame m{frame}'
-                    line_fname = os.path.join(line_dir, f'{control_condition} normalized {ax_title_line}.png')
+                    line_fname = os.path.join(line_dir, f'{control_condition} normalized_ {analyze_method} _  {ax_title_line}.png')
 
                 if plot_type == "stacked_bar":
                     stacked_bar_dir = os.path.join(
@@ -421,7 +427,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     )
                     if not os.path.exists(stacked_bar_dir):
                         os.makedirs(stacked_bar_dir)
-                    plot_fname =  os.path.join(stacked_bar_dir, f'{control_condition} normalized {ax_title}.png')
+                    plot_fname =  os.path.join(stacked_bar_dir, f'{control_condition} normalized_ {analyze_method} _  {ax_title}.png')
 
                 if plot_type == "line":
                     line_dir = os.path.join(
@@ -1053,12 +1059,25 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=swarmplot_size,
                     #                    edgecolor="white", linewidth=1, dodge=True)
-                    g = mi_box.groupby(by=["Condition"])[norm_colname].median()
 
-                    my_order=g.nlargest(len(g))
-                    my_order=my_order.index.tolist()
+                    drug_order_fpath = glob.glob(data_dir + '/*Drug_List_my_order.csv')
+                    drug_order_df = pd.read_csv(drug_order_fpath[0])
+                    drug_order_list = drug_order_df['Condition'].to_list()
 
-                    ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, size=swarmplot_size, order=my_order,
+                    if len(drug_order_list) > 0:
+                        my_order = drug_order_list
+                        if analyze_method == 'fold_change':
+                            my_order.remove(control_condition)
+                    else:
+                        g = mi_box.groupby(by=["Condition"])[norm_colname].median()
+
+                        my_order=g.nlargest(len(g))
+                        my_order=my_order.index.tolist()
+
+                    # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, size=swarmplot_size, order=my_order,
+                    #                    edgecolor="white", linewidth=1, dodge=True)
+
+                    ax = sns.stripplot(x="Condition", y=norm_colname, data=mi_box, size=swarmplot_size, order=my_order,
                                        edgecolor="white", linewidth=1, dodge=True)
 
                     path_collections = [child for child in ax.get_children()
@@ -1116,48 +1135,48 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             header=True
                         )
 
-                    if statistical_test=='do_tukey_test':
-                        if sorterIndex[control_condition] != 0:
-                            raise ValueError("control_condition is not the first condition, violating assumptions necessary for plotting")
+                        if statistical_test=='do_tukey_test':
+                            if sorterIndex[control_condition] != 0:
+                                raise ValueError("control_condition is not the first condition, violating assumptions necessary for plotting")
 
-                        for condition, iii in sorterIndex.items():
-                            if condition == control_condition:
-                                continue
-                            query_str = f'Day == {box_day} & \
-                                ((group1 == "{condition}" & group2 == "{control_condition}") | \
-                                (group1 == "{control_condition}" & group2 == "{condition}"))'
-                            df_tukey_con = df_tukey.query(query_str)
-                            df_tukey_con = df_tukey_con.reset_index(drop=True)
-                            row = df_tukey_con.iloc[0]
-                            reject_05 = row['reject_05']
-                            reject_01 = row['reject_01']
-                            reject_001 = row['reject_001']
+                            for condition, iii in sorterIndex.items():
+                                if condition == control_condition:
+                                    continue
+                                query_str = f'Day == {box_day} & \
+                                    ((group1 == "{condition}" & group2 == "{control_condition}") | \
+                                    (group1 == "{control_condition}" & group2 == "{condition}"))'
+                                df_tukey_con = df_tukey.query(query_str)
+                                df_tukey_con = df_tukey_con.reset_index(drop=True)
+                                row = df_tukey_con.iloc[0]
+                                reject_05 = row['reject_05']
+                                reject_01 = row['reject_01']
+                                reject_001 = row['reject_001']
 
-                            ymin, ymax = ax.get_ylim()
-                            lines = ax.get_lines()
-                            categories = ax.get_xticks()
-                            # every 4th line at the interval of 6 is median line
-                            # 0 -> p25 1 -> p75 2 -> lower whisker 3 -> upper whisker 4 -> p50 5 -> upper extreme value
+                                ymin, ymax = ax.get_ylim()
+                                lines = ax.get_lines()
+                                categories = ax.get_xticks()
+                                # every 4th line at the interval of 6 is median line
+                                # 0 -> p25 1 -> p75 2 -> lower whisker 3 -> upper whisker 4 -> p50 5 -> upper extreme value
 
-                            if analyze_method=='fold_change':
-                                y = round(lines[3 + (iii-1) * 6].get_ydata()[0], 1)
-                            else:
-                                y = round(lines[3 + iii * 6].get_ydata()[0], 1)
-                            # if analyze_method=='fold_change':
-                            #     if reject_001:
-                            #         text((iii-1) - 0.15, y + 0.7, '***', fontsize=40, color='black')
-                            #     elif reject_01:
-                            #         text((iii-1) - 0.1, y + 0.7, '**', fontsize=40, color='black')
-                            #     elif reject_05:
-                            #         text((iii-1) - 0.05, y + 0.7, '*', fontsize=40, color='black')
-                            # else:
-                            if not analyze_method == 'fold_change':
-                                if reject_001:
-                                    text(iii - 0.15, y + 0.7, '***', fontsize=40, color='black')
-                                elif reject_01:
-                                    text(iii - 0.1, y + 0.7, '**', fontsize=40, color='black')
-                                elif reject_05:
-                                    text(iii - 0.05, y + 0.7, '*', fontsize=40, color='black')
+                                if analyze_method=='fold_change':
+                                    y = round(lines[3 + (iii-1) * 6].get_ydata()[0], 1)
+                                else:
+                                    y = round(lines[3 + iii * 6].get_ydata()[0], 1)
+                                # if analyze_method=='fold_change':
+                                #     if reject_001:
+                                #         text((iii-1) - 0.15, y + 0.7, '***', fontsize=40, color='black')
+                                #     elif reject_01:
+                                #         text((iii-1) - 0.1, y + 0.7, '**', fontsize=40, color='black')
+                                #     elif reject_05:
+                                #         text((iii-1) - 0.05, y + 0.7, '*', fontsize=40, color='black')
+                                # else:
+                                if not analyze_method == 'fold_change':
+                                    if reject_001:
+                                        text(iii - 0.15, y + 0.7, '***', fontsize=40, color='black')
+                                    elif reject_01:
+                                        text(iii - 0.1, y + 0.7, '**', fontsize=40, color='black')
+                                    elif reject_05:
+                                        text(iii - 0.05, y + 0.7, '*', fontsize=40, color='black')
 
 
                     ax.grid(True)
@@ -1215,7 +1234,8 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         ax.set_xticklabels(conditions_labels, rotation=rotation, ha=tick_orientation)  # , rotation_mode="anchor")
                     # for tick in ax.xaxis.get_majorticklabels():
                     #     tick.set_horizontalalignment("right")
-                        ax.set_ylabel('Normalized Cell Counts')
+                    #     ax.set_ylabel('Normalized Cell Counts')
+                        ax.set_ylabel('Log2 (Fold Change to Day 0)')
                     # ax.set_xlabel('Conditions')
                     ax.set_xlabel('')
 
@@ -1271,10 +1291,17 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     mi_box = mi_box[mi_box.Day == box_day]
                     mi_box = mi_box.reset_index(drop=True)
 
-                    g = mi_box.groupby(by=["Condition"])['Total_total_fold_change_norm_log2_Control_DMSO'].median()
+                    drug_order_fpath = glob.glob(data_dir + '/*Drug_List_my_order.csv')
+                    drug_order_df = pd.read_csv(drug_order_fpath[0])
+                    drug_order_list = drug_order_df['Condition'].to_list()
 
-                    my_order = g.nlargest(len(g))
-                    my_order = my_order.index.tolist()
+                    if len(drug_order_list) > 0:
+                        my_order = drug_order_list
+                    else:
+                        g = mi_box.groupby(by=["Condition"])['Total_total_fold_change_norm_log2_Control_DMSO'].median()
+
+                        my_order = g.nlargest(len(g))
+                        my_order = my_order.index.tolist()
 
                     sorterIndex = dict(zip(my_order, range(len(my_order))))
                     mi_new2['Condition_rank'] = mi_new2['Condition'].map(sorterIndex)
@@ -1291,6 +1318,8 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     means = mi_new2.groupby(['Condition', 'Marker'], sort=False).mean()
                     stds = mi_new2.groupby(['Condition', 'Marker'], sort=False).std()
+
+
 
                     ax = means.Cell_percent.unstack().plot(kind='bar', yerr=stds.Cell_percent.unstack(),
                                                            stacked=True,
