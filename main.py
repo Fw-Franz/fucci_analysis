@@ -643,7 +643,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                                                                    capsize=5,color=['yellow','orange','red'], sort_columns=True)
 
                             handles, labels = ax.get_legend_handles_labels()
-                            ax.legend(reversed(handles), reversed(labels), loc='upper right', bbox_to_anchor=(1.25, 0.8))
+                            ax.legend(reversed(handles), reversed(labels), loc='upper right', bbox_to_anchor=(1.2, 0.8))
                             ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
                             ax.set_ylabel('Ratio')
                             ax.set_title(ax_title)
@@ -725,7 +725,8 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             ax.set(ylim=(0, 1.2))
 
                         fig = plt.gcf()
-                        fig.set_size_inches(18,8)
+
+                        fig.set_size_inches(30, 15)
 
                         if save_plots:
                             # plt.savefig(plot_fname)
@@ -973,7 +974,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         # ax.set(ylim=(0, 1.2))
 
                         fig = plt.gcf()
-                        fig.set_size_inches(36, 20)
+                        fig.set_size_inches(30, 15)
                         plt.gcf().subplots_adjust(bottom=0.2)
 
                         # ax.set_xticklabels(conditions, rotation=90)
@@ -1058,7 +1059,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     swarmplot_offset = 0  # offset to left of boxplot
 
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=swarmplot_size,
-                    #                    edgecolor="white", linewidth=1, dodge=True)
+                    #                    edgecolor="black", linewidth=1, dodge=True)
 
                     drug_order_fpath = glob.glob(data_dir + '/*Drug_List_my_order.csv')
                     drug_order_df = pd.read_csv(drug_order_fpath[0])
@@ -1075,10 +1076,10 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         my_order=my_order.index.tolist()
 
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, size=swarmplot_size, order=my_order,
-                    #                    edgecolor="white", linewidth=1, dodge=True)
+                    #                    edgecolor="black", linewidth=1, dodge=True)
 
                     ax = sns.stripplot(x="Condition", y=norm_colname, data=mi_box, size=swarmplot_size, order=my_order,
-                                       edgecolor="white", linewidth=1, dodge=True)
+                                       edgecolor="black", linewidth=1, dodge=True)
 
                     path_collections = [child for child in ax.get_children()
                                         if isinstance(child, matplotlib.collections.PathCollection)]
@@ -1089,10 +1090,15 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         offsets = list(zip(xnew, y))
                         path_collection.set_offsets(offsets)
 
-                    ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, order=my_order, linewidth=2, fliersize=0)
+                    ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, order=my_order,
+                                     linewidth=2, fliersize=0,showmeans=True,
+                                     meanprops={"marker": "D",
+                                                "markeredgecolor": "white",
+                                                "markerfacecolor": "black",
+                                                "markersize": "14"})
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue='Date', size=15, color='#767676',edgecolor="white",linewidth=1)
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=swarmplot_size,
-                    #                    edgecolor="white", linewidth=1, dodge=True)
+                    #                    edgecolor="black", linewidth=1, dodge=True)
 
                     # custom_lines = [Line2D([0], [0], color="#5fa2ce", lw=4),
                     #                 Line2D([0], [0], color="#ffbc79", lw=4),
@@ -1101,7 +1107,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     #                 Line2D([0], [0], color="#1170aa", lw=4)]
                     # ax.legend(custom_lines,
                     #           ['-Control', '+Control', 'Novel Combo', 'Novel Repurposed', 'Published \nor In Use'],
-                    #           loc='upper left', bbox_to_anchor=(0.14, 0.98))
+                    #           loc='upper left', bbox_to_anchor=(1.05, 0.8))
 
 
                     if save_excel_stats:
@@ -1329,7 +1335,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     handles, labels = ax.get_legend_handles_labels()
                     # box = ax.get_position()
                     # ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-                    ax.legend(reversed(handles), reversed(labels), loc='upper right', bbox_to_anchor=(1.2, 0.8))
+                    ax.legend(reversed(handles), reversed(labels), loc='upper right', bbox_to_anchor=(1.125, 0.8))
 
                     con_list = [item.get_text() for item in ax.get_xticklabels()]
 
@@ -1357,7 +1363,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     ax.grid(True)
                     # ax.set(ylim=(0, 1.2))
                     fig = plt.gcf()
-                    fig.set_size_inches(20, 10)
+                    fig.set_size_inches(30, 15)
                     plt.gcf().subplots_adjust(bottom=0.4)
                     plt.gcf().subplots_adjust(right=0.85)
                     ax.set_xlabel('')
@@ -1441,7 +1447,8 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     plt.xticks(x_days)
 
                     fig = plt.gcf()
-                    fig.set_size_inches(20, 20)
+
+                    fig.set_size_inches(30, 15)
                     box = ax.get_position()
 
                     plt.gcf().subplots_adjust(bottom=0.3)

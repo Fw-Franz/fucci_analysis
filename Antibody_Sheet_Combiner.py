@@ -10,7 +10,7 @@ pd.set_option('mode.chained_assignment', None)
 
 #region Input parameters
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="E:\\NG108_staining\\Brdu_Analysis_diffthresh_newest\\1_20realdate"
+Custom_dir="E:\\3_13_BrdUnewanalysis"
 
 
 #endregion
@@ -26,7 +26,7 @@ if not os.path.exists(combined_dir):
     os.makedirs(combined_dir)
 
 # dir_list = os.listdir(input_dir_base)
-dir_list=glob.glob(input_dir_base+'**//*only*')
+dir_list=glob.glob(input_dir_base+'**//*BrdU*')
 
 start_time = time.time()
 

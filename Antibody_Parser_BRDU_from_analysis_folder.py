@@ -14,12 +14,12 @@ Current_dir=os.getcwd()
 
 input_folder_name=os.path.basename(Current_dir)
 
-row_B_drug_name='Drug_A'
-row_C_drug_name='Drug_B'
-row_D_drug_name='Drug_C'
-row_E_drug_name='Control'
-row_F_drug_name='Drug_D'
-row_G_drug_name='Drug_E'
+row_B_drug_name='Drug_B'
+row_C_drug_name='Drug_C'
+row_D_drug_name='Drug_D'
+row_E_drug_name='Drug_E'
+row_F_drug_name='Drug_F'
+row_G_drug_name='Drug_G'
 
 #endregion
 
@@ -48,10 +48,6 @@ mi=df_nuclei[['ImageNumber','ObjectNumber','FileName_DisplayImage','Classify_PH3
 mi=mi.rename(columns={"Classify_PH3Pos": "Ph3_positive",
                       "Classify_PH3neg": "Ph3_negative"})
 
-mi['Cell_Num']=mi.groupby(by='ImageNumber')['ImageNumber'].transform('count')
-mi_pos=mi[mi.Classify_PH3Pos==1]
-mi['Cell_Num_Positive']=mi_pos.groupby(by='ImageNumber')['ImageNumber'].transform('count')
-
 name = df_nuclei['FileName_DisplayImage'].values[0]
 
 base_postion = name.find("_R_", 0, len(name))
@@ -75,8 +71,28 @@ mi['Drug_Name'].loc[mi.Drug_Name=='E']=row_E_drug_name
 mi['Drug_Name'].loc[mi.Drug_Name=='F']=row_F_drug_name
 mi['Drug_Name'].loc[mi.Drug_Name=='G']=row_G_drug_name
 
+mi['Cell_Num_Positive']=0
+mi['Cell_Num_Negative']=0
+
+for row in mi.Row.unique():
+    for column in mi.Column.unique():
+        mi.loc[(mi.Row==row)&(mi.Column==column),['Cell_Num_Positive']]=len(mi.loc[(mi.Row==row)&(mi.Column==column)&(mi.Ph3_positive==1)])
+        mi.loc[(mi.Row==row)&(mi.Column==column),['Cell_Num_Negative']]=len(mi.loc[(mi.Row==row)&(mi.Column==column)&(mi.Ph3_positive==0)])
+
+
+# mi['Cell_Num_Positive']=mi.loc[mi.Ph3_positive==1].groupby(['Column','Drug_Name'])['ImageNumber'].transform('count')
+#
+# mi['Cell_Num_Negative']=mi.loc[mi.Ph3_negative==1].groupby(['Column','Drug_Name'])['ImageNumber'].transform('count')
+
+mi['Cell_Num']=mi['Cell_Num_Negative']+mi['Cell_Num_Positive']
+
 mi['Cell_Num'] = mi['Cell_Num'].astype(float)
 mi['Cell_Num_Positive'] = mi['Cell_Num_Positive'].astype(float)
+mi['Cell_Num_Negative'] = mi['Cell_Num_Negative'].astype(float)
+
+mi['Cell_Percent_Positive']=mi['Cell_Num_Positive']/mi['Cell_Num']
+mi['Cell_Percent_Negative']=mi['Cell_Num_Negative']/mi['Cell_Num']
+
 
 means_frame=mi.groupby(['Row', 'Column', 'Frame','Drug_Name'], as_index=False).mean()
 stds_frame=mi.groupby(['Row', 'Column', 'Frame','Drug_Name'], as_index=False).std()
@@ -84,17 +100,16 @@ stds_frame=mi.groupby(['Row', 'Column', 'Frame','Drug_Name'], as_index=False).st
 means_columns=means_frame.groupby(['Row', 'Column','Drug_Name'], as_index=False).mean()
 stds_columns=means_frame.groupby(['Row', 'Column','Drug_Name'], as_index=False).std()
 
-inter_means = means_frame.groupby(['Row', 'Column'], as_index=False).sum()
-
-means_columns['Cell_Num'] = inter_means['Cell_Num']
-means_columns['Cell_Num_Positive'] = inter_means['Cell_Num_Positive']
-means_columns['Cell_Percent_Positive'] = means_columns['Cell_Num_Positive'] / means_columns['Cell_Num']
+# inter_means = means_frame.groupby(['Row', 'Column'], as_index=False).sum()
+#
+# means_columns['Cell_Num'] = inter_means['Cell_Num']
+# means_columns['Cell_Num_Positive'] = inter_means['Cell_Num_Positive']
+# means_columns['Cell_Percent_Positive'] = means_columns['Cell_Num_Positive'] / means_columns['Cell_Num']
 
 means_rows=means_columns.groupby(['Row','Drug_Name'], as_index=False).mean()
 stds_rows=means_columns.groupby(['Row','Drug_Name'], as_index=False).std()
 
 means_rows_control=means_rows.loc[means_rows.Drug_Name=='Control']
-
 
 means_columns['Fold_change_Cell_Num'] = means_columns['Cell_Num'].copy()/float(means_rows_control['Cell_Num'])
 means_columns['Fold_change_Cell_Num_Positive'] = means_columns['Cell_Num_Positive'].copy()/float(means_rows_control['Cell_Num_Positive'])

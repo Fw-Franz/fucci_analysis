@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import time
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from pylab import figure, text, scatter, show
+import scipy as sp
 import glob
 
 start_time = time.time()
@@ -19,7 +20,8 @@ plot_stats_stars=  True  # True or False  (no '')
 
 normalization='' # '' or '_background_sub'
 analyze_method='' # '' or 'Fold_change_'  for graphing only
-plot_column='Ph3_positive' # 'Cell_Percent_Positive' or 'Ph3_positive'?
+plot_column='Cell_Percent_Positive' # 'Cell_Percent_Positive' or 'Ph3_positive'?
+logit_stats= True
 control_condition='Control'
 #endregion
 
@@ -88,11 +90,15 @@ if statistical_test == 'do_tukey_test':
     mi_tukey['sample_size_count']=mi_tukey['Drug_Name'].copy()
     mi_tukey['sample_size_count'] = mi_tukey.groupby(by='Drug_Name')['sample_size_count'].transform('count')
 
-    m_day = mi_tukey.copy()
+    if logit_stats:
+        column_name_stats_logit= column_name_stats + '_logit'
+        mi_tukey[column_name_stats_logit] =sp.special.logit(mi_tukey[column_name_stats])
+        column_name_stats=column_name_stats_logit
 
     result_05 = pairwise_tukeyhsd(
-        m_day[column_name_stats], m_day['Drug_Name'], alpha=0.05
-    )
+        mi_tukey[column_name_stats], mi_tukey['Drug_Name'], alpha=0.05)
+
+
     df_tukey = pd.DataFrame(
         data=result_05._results_table.data[1:],
         columns=result_05._results_table.data[0]
