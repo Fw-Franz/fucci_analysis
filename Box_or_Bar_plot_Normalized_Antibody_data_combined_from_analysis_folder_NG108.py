@@ -15,31 +15,36 @@ import glob
 start_time = time.time()
 
 #region Input parameters
-load_raw_data=True
+load_raw_data=False
 
-dates=['8_30_21','9_17_21']
+dates=['1_13_21','2_2_21','2_22_21','3_13_21','4_8_21']
 
-date_list=['8_30_21',
-           '8_30_21',
-           '8_30_21',
-           '8_30_21',
-           '8_30_21',
-           '9_17_21']
+date_list=['1_13_21',
+           '1_13_21',
+           '1_13_21',
+           '2_2_21',
+           '2_2_21',
+           '2_22_21',
+           '3_13_21',
+           '3_13_21',
+           '3_13_21']
+antibody_list=['cmyc',
+               'cmyc',
+               'cmyc',
+               'cmyc',
+               'cmyc',
+               'cmyc',
+               'cmyc',
+               'cmyc',
+               'cmyc']
 
-antibody_list=['O4',
-               'cx43_BS',
-               'cx43_BS',
-               'Cx43_BS',
-               'Cx43_BS',
-               'Cx43_BS',
-               'cx43_BS']
-conditions_list=['Pantoprazole_100uM',
-                 'NS1643_20uM',
+conditions_list=['NS1643_20uM',
                  'NS1643_20uM_Pantoprazole_100uM',
+                 '1perFBS_cAMP_1mM_Rapamycin_200nM',
                  'Retigabine_10uM',
                  'Pantoprazole_100uM_Retigabine_10uM',
-                 '1perFBS_cAMP_1mM_Rapamycin_200nM',
                  'Pantoprazole_100uM_Rapamycin_100nM',
+                 'Pantoprazole_100uM',
                  'Lamotrigine_100uM',
                  'Pantoprazole_100uM_Lamotrigine_100uM'] # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
 
@@ -52,6 +57,8 @@ conditions_list_reordered=['Pantoprazole_100uM',
                  'Pantoprazole_100uM_Lamotrigine_100uM',
                  'Pantoprazole_100uM_Rapamycin_100nM',
                  '1perFBS_cAMP_1mM_Rapamycin_200nM']
+
+save_dir='CMYC'
 
 label_type='legend' # 'xaxis' or 'legend'
 swarmplots=False
@@ -71,7 +78,8 @@ control_condition='Control'
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Custom_dir="E:\\NewAnalysisSheetsAll8_29_21\\NG108_Antibody_data_combined\\"
-Custom_dir="E:\\NewAnalysisSheetsAll8_29_21\\U87_Antibody_data_combined\\"
+# Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\NG108_Antibody_Results_combined\\"
+Custom_dir=os.getcwd()
 
 root = tk.Tk()
 root.withdraw()
@@ -116,6 +124,10 @@ if load_raw_data:
 else:
     mi=  pd.read_csv(base_directory+'//Combined_AntibodyResults_Column_means.csv')
 
+mi.loc[mi.Drug_Name=='NS1643_20uM_Pantoprazole_100uM','Drug_Name']='Pantoprazole_100uM_NS1643_20uM'
+conditions_list = [sub.replace('NS1643_20uM_Pantoprazole_100uM', 'Pantoprazole_100uM_NS1643_20uM') for sub in conditions_list]
+conditions_list_reordered = [sub.replace('NS1643_20uM_Pantoprazole_100uM', 'Pantoprazole_100uM_NS1643_20uM') for sub in conditions_list_reordered]
+
 # region pre plotting configurations
 
 for i in range(0,len(conditions_list)):
@@ -130,14 +142,16 @@ input_folder_name=os.path.basename(base_directory)
 
 column_name= analyze_method + plot_column + normalization
 
-column_name_stats = plot_column + normalization
+# # column_name_stats = plot_column + normalization
+column_name_stats = column_name
+column_name_stats = column_name
 
 if plottype=='box':
     box_dir = os.path.join(
-        base_directory, 'boxplots\\')
+        base_directory,  save_dir + '_stats_and_graphs\\boxplots\\')
 elif plottype=='bar':
     box_dir = os.path.join(
-        base_directory, 'barplots\\')
+        base_directory,  save_dir + '_stats_and_graphs\\barplots\\')
 
 if not os.path.exists(box_dir):
     os.makedirs(box_dir)
@@ -163,13 +177,13 @@ if statistical_test == 'do_tukey_test':
     print('Producing Tukey Analysis results')
 
     stats_dir = os.path.join(
-        base_directory, 'stats\\')
+        base_directory, save_dir + '_stats_and_graphs\\stats\\')
 
     if not os.path.exists(stats_dir):
         os.makedirs(stats_dir)
 
-
     mi_tukey=mi_box.copy()
+    mi_tukey=mi_tukey[mi_tukey.Drug_Name!='1perFBS_cAMP_1mM_Rapamycin_200nM']
 
     Drug_list=mi_tukey['Drug_Name'].str.split(';\s*', expand=True).stack().unique()
 
@@ -177,6 +191,9 @@ if statistical_test == 'do_tukey_test':
     mi_tukey['sample_size_count'] = mi_tukey.groupby(by='Drug_Name')['sample_size_count'].transform('count')
 
     m_day = mi_tukey.copy()
+
+    if column_name_stats == analyze_method + plot_column + normalization:
+        m_day[column_name_stats]=m_day[column_name_stats].map(np.log10)
 
     result_05 = pairwise_tukeyhsd(
         m_day[column_name_stats], m_day['Drug_Name'], alpha=0.05
@@ -242,8 +259,20 @@ elif plottype== 'bar':
     if label_type == 'xaxis':
         ax = sns.barplot(x=mi_box.Drug_Name, y=column_name, data=mi_box,capsize=0.01)
     else:
+        mypalette = {"Pantoprazole_100uM": "#949494",
+                     "NS1643_20uM": "#0173b2",
+                     "Retigabine_10uM": "#029e73",
+                     "Lamotrigine_100uM": "#cc78bc",
+                     "Pantoprazole_100uM_NS1643_20uM": "lightskyblue",
+                     "Pantoprazole_100uM_Retigabine_10uM": "mediumaquamarine",
+                     "Pantoprazole_100uM_Lamotrigine_100uM": "#fbafe4",
+                     "Pantoprazole_100uM_Rapamycin_100nM": "#ca9161",
+                     "1perFBS_cAMP_1mM_Rapamycin_200nM": "#ece133"}
+
+        # ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.01,
+        #                  palette=sns.color_palette("colorblind"))#
         ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.01,
-                         palette=sns.color_palette("colorblind"))#
+                         palette=mypalette)#
         # ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.01,
         #                  palette=sns.color_palette("Greys"),saturation=4)#
         def change_width(ax, new_value):
@@ -261,6 +290,7 @@ elif plottype== 'bar':
         change_width(ax, bar_width)
 
 ax.grid(True)
+ax.set_ylim(ymax=5)
 
 bottom, top = ax.get_ylim()
 
@@ -348,7 +378,10 @@ if plot_stats_stars:
             reject_01 = row['reject_01']
             reject_001 = row['reject_001']
 
+            ax.set_ylim(ymax=5)
+
             ymin, ymax = ax.get_ylim()
+
             lines = ax.get_lines()
             categories = ax.get_xticks()
 
