@@ -10,9 +10,9 @@ pd.set_option('mode.chained_assignment', None)
 
 #region Input parameters
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="E:\\NG108_staining\\pH3_redosMeanIntNewest1_13thro2_22\\All_data"
+Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\pH3Redos_Results\\ph3_3_13_and_4_13"
 
-search_list=['1_14_21','2_22_21','2_2_21']
+search_list=['3_13_21','4_8_21']
 
 column_search_name='PathName_OrigBlue'
 

@@ -65,30 +65,25 @@ for input_dir in dir_list:
 
     df['row_id'] =  '_' + df['ImageNumber'].apply(str) + 'and' + df['ObjectNumber'].apply(str) + '_'
 
-    mi=df[['ImageNumber','ObjectNumber','Intensity_MeanIntensity_GFP']]
+    mi=df[['ImageNumber','ObjectNumber','FileName_CellImage','Intensity_MeanIntensity_GFP']]
     mi=mi.rename(columns={"Intensity_MeanIntensity_GFP": "GFP_mean_I"})
 
     mi['Cell_Num']=mi.groupby(by='ImageNumber')['ImageNumber'].transform('count')
 
-    mi['Row']=''
-    mi.Row.loc[(mi.ImageNumber>0)&(mi.ImageNumber<28)]='B'
-    mi.Row.loc[(mi.ImageNumber>27)&(mi.ImageNumber<55)]='C'
-    mi.Row.loc[(mi.ImageNumber>54)&(mi.ImageNumber<82)]='D'
-    mi.Row.loc[(mi.ImageNumber>81)&(mi.ImageNumber<109)]='E'
-    mi.Row.loc[(mi.ImageNumber>108)&(mi.ImageNumber<136)]='F'
-    mi.Row.loc[(mi.ImageNumber>135)&(mi.ImageNumber<163)]='G'
+    name = df['FileName_CellImage'].values[0]
 
+    base_postion = name.find("_R_", 0, len(name))
+    row = name[base_postion + 9]
+    col = name[base_postion + 10:base_postion + 12]
+    frame = name[base_postion + 12:base_postion + 15]
 
-    mi['Column'] = mi['ImageNumber'].astype(int)
-    mi['Column'] = (mi['Column']-1)/9
-    mi['Column'] = mi['Column']%3+2
-    mi['Column'] = mi['Column'].astype(int)
+    print('row, col, frame: ', row, col, frame, '\n')
 
-    mi['Frame'] = mi['ImageNumber'].astype(int)
-    # mi['Frame'] = (mi['Frame']-1)
-    mi['Frame'] = (mi['Frame']-1)%9+1
-    mi['Frame'] = mi['Frame'].astype(int)
+    mi['Row']=mi.FileName_CellImage.str.slice(base_postion + 9, base_postion + 10)
+    mi['Column']=mi.FileName_CellImage.str.slice(base_postion + 10, base_postion + 12)
+    mi['Frame']=mi.FileName_CellImage.str.slice(base_postion + 12, base_postion + 15)
 
+    mi=mi.drop(columns=['FileName_CellImage'])
 
     mi['Drug_Name']=mi['Row'].copy()
     mi['Drug_Name'].loc[mi.Drug_Name=='B']=row_B_drug_name

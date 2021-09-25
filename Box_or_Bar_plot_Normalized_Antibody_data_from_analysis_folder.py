@@ -14,30 +14,22 @@ from pylab import figure, text, scatter, show
 start_time = time.time()
 
 #region Input parameters
-row_order=['B', 'C', 'D', 'E', 'F', 'G']    # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
+row_order=['G', 'F', 'E', 'B', 'C', 'D']    # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
 plottype='bar' # 'box' or 'bar'
 statistical_test = 'do_tukey_test' # currently only 'do_tukey_test'
 plot_stats_stars=  True  # True or False  (no '')
 
-normalization='' # '' or '_background_sub'
+normalization='_background_sub' # '' or '_background_sub'
 analyze_method='Fold_change_' # '' or 'Fold_change_'  for graphing only
-# plot_column='FarRed_int_I'
-plot_column='GFP_mean_I'
+plot_column='FarRed_int_I'
 control_condition='Control'
 #endregion
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="F:\\U87dyeassays_Analysis\\U87_DiBAC4\\"
+# Custom_dir="D:\\Data_Lab\\Juanita\\Antibody_data\\cmycbestsettings\\"
+Custom_dir=os.getcwd()
 
-root = tk.Tk()
-root.withdraw()
-filepath = filedialog.askopenfilename(
-    # initialdir="BASE_DIR",
-    initialdir="Custom_dir",
-    title="Select file",
-    filetypes=(("csv", "*.csv"),)
-)
 
 base_directory = os.path.dirname(os.path.abspath(filepath))
 

@@ -16,7 +16,7 @@ input_folder_name=os.path.basename(Current_dir)
 
 
 
-Antibody_type= 'PhosHist' # 'PhosHist' , 'Ki67' , 'LC3' , or 'CASP3'
+Antibody_type= 'LC3' # 'PhosHist' , 'Ki67' , 'LC3' , or 'CASP3'
 
 row_B_FarRed_int_I_background_average=0
 row_C_FarRed_int_I_background_average=0
@@ -25,12 +25,12 @@ row_E_FarRed_int_I_background_average=0
 row_F_FarRed_int_I_background_average=0
 row_G_FarRed_int_I_background_average=0
 
-row_B_drug_name='Drug_A'
-row_C_drug_name='Drug_B'
-row_D_drug_name='Drug_C'
+row_B_drug_name='NS1643_20uM_Pantoprazole_100uM'
+row_C_drug_name='Pantoprazole_100uM'
+row_D_drug_name='NS1643_20uM'
 row_E_drug_name='Control'
-row_F_drug_name='Drug_D'
-row_G_drug_name='Drug_E'
+row_F_drug_name='10perFBS_cAMP_1mM_Rapamycin_200nM'
+row_G_drug_name='1perFBS_cAMP_1mM_Rapamycin_200nM'
 
 #endregion
 
@@ -153,7 +153,12 @@ inter_means = means_frame.groupby(['Row', 'Column'], as_index=False).sum()
 inter_means_pos = means_pos_frame.groupby(['Row', 'Column'], as_index=False).sum()
 
 means_columns['Cell_Num'] = inter_means['Cell_Num']
-means_columns['Cell_Num_Positive'] = inter_means_pos['Cell_Num_Positive']
+means_columns['Cell_Num_Positive']=0
+for row in means_columns['Row'].unique():
+    for column in means_columns['Column'].unique():
+        if len(inter_means_pos.loc[(inter_means_pos.Row==row)&(inter_means_pos.Column==column),['Cell_Num_Positive']])>0:
+            means_columns.loc[(means_columns.Row==row)&(means_columns.Column==column),['Cell_Num_Positive']] = inter_means_pos.loc[(inter_means_pos.Row==row)&(inter_means_pos.Column==column),['Cell_Num_Positive']].values[0]
+
 means_columns['Cell_Percent_Positive'] = means_columns['Cell_Num_Positive'] / means_columns['Cell_Num']
 
 # means_columns['FarRed_int_I_background_sub']=means_columns['FarRed_int_I'].copy()

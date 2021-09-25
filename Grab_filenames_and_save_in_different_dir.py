@@ -7,9 +7,9 @@ import shutil
 
 #region Input parameters
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="E:\\For Franz\\U87DiBAC4_3_Day6withdrugafterlast_2021-09-22-23-18-57"
+Custom_dir="F:\\U87dyeassays_Background\\U87DiBac_Background\\U87DiBAC4_3_Day6withdrugafterlast_2021-09-22-23-18-57seperated"
 
-columns=['02','03','04']
+columns=['02','03','04',]
 rows=['B','C','D','E','F','G']
 
 #endregion
@@ -27,7 +27,7 @@ rows=['B','C','D','E','F','G']
 #region Assemble source and target directories
 input_dir_base=Custom_dir
 parent_dir = os.path.dirname(input_dir_base)
-target_dir=parent_dir+'\\'+os.path.basename(input_dir_base)+"_02_to_04/"
+target_dir=parent_dir+'\\'+os.path.basename(input_dir_base)+"set1/"
 if not os.path.exists(target_dir):
     os.makedirs(target_dir)
 

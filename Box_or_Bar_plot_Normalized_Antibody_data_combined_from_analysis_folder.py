@@ -137,7 +137,8 @@ input_folder_name=os.path.basename(base_directory)
 
 column_name= analyze_method + plot_column + normalization
 
-column_name_stats = plot_column + normalization
+# column_name_stats = plot_column + normalization
+column_name_stats = column_name
 
 if plottype=='box':
     box_dir = os.path.join(
