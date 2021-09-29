@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import time
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from pylab import figure, text, scatter, show
+import glob
 
 start_time = time.time()
 
@@ -30,19 +31,17 @@ control_condition='Control'
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="Y:\\Juanita\\NewMethodAnalysisSheets\\1_13_21Allsheets_allin\\RegAntibodies\\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\\08_07_2021\\cmycbestsettings"
+# Custom_dir="Y:\\Juanita\\NewMethodAnalysisSheets\\1_13_21Allsheets_allin\\RegAntibodies\\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\\08_07_2021\\cmycbestsettings"
+# Custom_dir=os.path.join(r"Y:\\Juanita\NewMethodAnalysisSheets\1_13_21Allsheets_allin\RegAntibodies\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\cmycbestsettings")
+Custom_dir=r"Y:\Juanita\NewMethodAnalysisSheets\1_13_21Allsheets_allin\RegAntibodies\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\cmycbestsettings"
 
-root = tk.Tk()
-root.withdraw()
-filepath = filedialog.askopenfilename(
-    # initialdir="BASE_DIR",
-    initialdir="Custom_dir",
-    title="Select file",
-    filetypes=(("csv", "*.csv"),)
-)
-
-base_directory = os.path.dirname(os.path.abspath(filepath))
-
+# root = tk.Tk()
+# root.withdraw()
+# base_directory = filedialog.askdirectory(
+#     # initialdir="BASE_DIR",
+#     initialdir="Custom_dir",
+#     title="Select directory")
+base_directory=Custom_dir
 input_folder_name=os.path.basename(base_directory)
 
 plot_context = 'talk'
@@ -78,7 +77,8 @@ if plottype=='box':
 elif plottype=='bar':
     print('Producing Combined Barplot')
 
-mi_box = pd.read_csv(filepath)
+filelist = glob.glob(base_directory+'/*Column_means_mini.csv', recursive=True)
+mi_box = pd.read_csv(filelist[0])
 
 sorterIndex = dict(zip(row_order, range(len(row_order))))
 mi_box['Drug_Rank'] = mi_box['Row'].map(sorterIndex)
@@ -129,7 +129,7 @@ if statistical_test == 'do_tukey_test':
                          'sample_size_count'])
 
     df_tukey.to_csv(
-        path_or_buf=stats_dir+ column_name_stats + '_Tukey.csv',
+        path_or_buf=stats_dir+ column_name_stats + '_Tukey_mini.csv',
         index=None,
         header=True
     )
@@ -261,7 +261,7 @@ if plot_stats_stars:
 
 
 if save_plots:
-    plt.savefig(boxplot_fname)
+    plt.savefig(boxplot_fname+'_mini')
     plt.clf()
     plt.close()
 else:

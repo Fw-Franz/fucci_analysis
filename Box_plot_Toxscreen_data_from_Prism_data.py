@@ -27,11 +27,12 @@ frame=1
 
 
 # 1st Condition list
-conditions_1=['Control_DMSO', 'NS1643_50uM_TMZ_50uM', 'Pantoprazole_100uM_Lamotrigine_100uM', 'Pantoprazole_100uM','Pantoprazole_100uM_NS1643_20uM',
-              'Pantoprazole_100uM_Rapamycin_100nM','Pantoprazole_100uM_Retigabine_10uM','Pantoprazole_100uM_TMZ_50uM','Pantoprazole_100uM_NS1643_50uM',
-              'NS1643_20uM_TMZ_50uM']
+# conditions_1=['Control_DMSO', 'NS1643_50uM_TMZ_50uM', 'Pantoprazole_100uM_Lamotrigine_100uM', 'Pantoprazole_100uM','Pantoprazole_100uM_NS1643_20uM',
+#               'Pantoprazole_100uM_Rapamycin_100nM','Pantoprazole_100uM_Retigabine_10uM','Pantoprazole_100uM_TMZ_50uM','Pantoprazole_100uM_NS1643_50uM',
+#               'NS1643_20uM_TMZ_50uM']
 
-
+conditions_1=['Control_DMSO','Pantoprazole_100uM','NS1643_50uM','Pantoprazole_100uM_NS1643_50uM',
+       'Retigabine_10uM','Pantoprazole_100uM_Retigabine_10uM']
 
 
 conditions_list=[conditions_1]
@@ -41,8 +42,8 @@ conditions=conditions_list[conditions_list_i]
 conditions_reduced=conditions[1:]
 
 filepath = filedialog.askopenfilename(
-    initialdir="/",
-    # initialdir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\data\\",
+    # initialdir="/",
+    initialdir="E:\\U87_livedead sheets\\Plate1_Day3\\_prism_data_format\\",
     title="Select file",
     filetypes=(("csv", "*.csv"),)
 )

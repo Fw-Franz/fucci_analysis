@@ -7,13 +7,18 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Custom_dir="C:\\Users\\Franz\\OneDrive\\_PhD\\Juanita\\Fucci_analysis\\NG108_FUCCI_Used\\all_data_together"
 
-list1=['Retigabine_10uM_Chlorozoxizone_100uM','Pantoprazole_100uM_Chlorozoxizone_100uM','Pantoprazole_50uM_Chlorozoxizone_100uM','Pantoprazole_100uM_Lamotrigine_100uM',
-       'Pantoprazole_50uM_Lamotrigine_100uM','Pantoprazole_50uM']
-list2=['Pantoprazole_100uM','NS1643_20uM','Pantoprazole_100uM_NS1643_20uM','Pantoprazole_100uM_Rapamycin_100nM','Rapamycin_100nM','NS1643_50uM_Chlorozoxizone_100uM']
-list3=['Retigabine_10uM','Pantoprazole_100uM_Retigabine_10uM','NS1643_50uM','Pantoprazole_100uM_NS1643_50uM','TMZ_50uM','Pantoprazole_100uM_TMZ_50uM']
-list4=['NS1643_50uM_TMZ_50uM','Control_DMSO','Pantoprazole_50uM_TMZ_50uM','NS1643_20uM_TMZ_50uM','Control_DMSO_3','Control']
+list1=['Control_DMSO','Pantoprazole_100uM','NS1643_50uM','Pantoprazole_100uM_NS1643_50uM',
+       'Retigabine_10uM','Pantoprazole_100uM_Retigabine_10uM']
+list2=['Control_DMSO','TMZ_50uM','NS1643_50uM','Pantoprazole_100uM','Pantoprazole_100uM_TMZ_50uM','NS1643_50uM_TMZ_50uM']
 
-lists=[list1, list2, list3, list4]
+# list1=['Retigabine_10uM_Chlorozoxizone_100uM','Pantoprazole_100uM_Chlorozoxizone_100uM','Pantoprazole_50uM_Chlorozoxizone_100uM','Pantoprazole_100uM_Lamotrigine_100uM',
+#        'Pantoprazole_50uM_Lamotrigine_100uM','Pantoprazole_50uM']
+# list2=['Pantoprazole_100uM','NS1643_20uM','Pantoprazole_100uM_NS1643_20uM','Pantoprazole_100uM_Rapamycin_100nM','Rapamycin_100nM','NS1643_50uM_Chlorozoxizone_100uM']
+# list3=['Retigabine_10uM','Pantoprazole_100uM_Retigabine_10uM','NS1643_50uM','Pantoprazole_100uM_NS1643_50uM','TMZ_50uM','Pantoprazole_100uM_TMZ_50uM']
+# list4=['NS1643_50uM_TMZ_50uM','Control_DMSO','Pantoprazole_50uM_TMZ_50uM','NS1643_20uM_TMZ_50uM','Control_DMSO_3','Control']
+
+# lists=[list1, list2, list3, list4]
+lists=[list1, list2]
 
 root = tk.Tk()
 root.withdraw()
@@ -49,7 +54,7 @@ for i in range(0,len(filepaths)):
     for ii in range(0,len(list)):
         mi_mixed.iloc[0+10*ii:10+10*ii]['Condition'] = list[ii]
 
-    mi_filepath_save = mi_filepath.replace('_M1', '_M1_Processed')
+    mi_filepath_save = mi_filepath.replace('.csv', '_Processed.csv')
 
     mi_mixed.to_csv(mi_filepath_save)
 

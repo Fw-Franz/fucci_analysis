@@ -11,6 +11,7 @@ pd.set_option('mode.chained_assignment', None)
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Custom_dir="E://U87dyeassays_Analysis//U87_Fluo4"
 
+dir_substring='_withdrugafterlast'
 
 #For drug list, see below
 
@@ -29,7 +30,11 @@ dir_list = os.listdir(input_dir_base)
 
 start_time = time.time()
 
+
+
 for input_dir in dir_list:
+    if input_dir.__contains__(dir_substring)==False:
+        continue
 
     if "set1" in input_dir:
         # Set 1

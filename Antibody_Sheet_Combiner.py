@@ -10,7 +10,7 @@ pd.set_option('mode.chained_assignment', None)
 
 #region Input parameters
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="E:\\3_13_BrdUnewanalysis\\New_combined"
+Custom_dir="E:\\U87_RetPant_LC3_Casp3_pH3_Ki67_BrdU_sheets\\U87_RetPant_pH3meanint_sheets\\Hist3_Hist3missing Sheets\\08_07_2021"
 
 
 #endregion
@@ -26,7 +26,7 @@ if not os.path.exists(combined_dir):
     os.makedirs(combined_dir)
 
 # dir_list = os.listdir(input_dir_base)
-dir_list=glob.glob(input_dir_base+'**//*BrdU*')
+dir_list=glob.glob(input_dir_base+'**//*Hist3*')
 
 start_time = time.time()
 
@@ -38,7 +38,7 @@ for input_dir in dir_list:
 
 
     # input_fname_Experiment="/Experiment.csv" # needs "/" in front
-    input_fname_FilteredNuclei="/FilteredNuclei.csv" # needs "/" in front
+    # input_fname_FilteredNuclei="/FilteredNuclei.csv" # needs "/" in front
     input_fname_GFAP="/GFAP.csv" # needs "/" in front
     # input_fname_Image="/Image.csv" # needs "/" in front
     input_fname_Nuclei="/Nuclei.csv" # needs "/" in front
@@ -47,7 +47,7 @@ for input_dir in dir_list:
 
     if input_dir==dir_list[0]:
         # df_Experiment=pd.read_csv(input_dir+input_fname_Experiment)
-        df_FilteredNuclei=pd.read_csv(input_dir+input_fname_FilteredNuclei)
+        # df_FilteredNuclei=pd.read_csv(input_dir+input_fname_FilteredNuclei)
         df_GFAP=pd.read_csv(input_dir+input_fname_GFAP)
         # df_Image=pd.read_csv(input_dir+input_fname_Image)
         df_Nuclei=pd.read_csv(input_dir+input_fname_Nuclei)
@@ -55,8 +55,8 @@ for input_dir in dir_list:
     else:
         # mi_Experiment=pd.read_csv(input_dir+input_fname_Experiment)
         # df_Experiment = df_Experiment.append(mi_Experiment)
-        mi_FilteredNuclei=pd.read_csv(input_dir+input_fname_FilteredNuclei)
-        df_FilteredNuclei = df_FilteredNuclei.append(mi_FilteredNuclei)
+        # mi_FilteredNuclei=pd.read_csv(input_dir+input_fname_FilteredNuclei)
+        # df_FilteredNuclei = df_FilteredNuclei.append(mi_FilteredNuclei)
         mi_GFAP=pd.read_csv(input_dir+input_fname_GFAP)
         df_GFAP = df_GFAP.append(mi_GFAP)
         # mi_Image=pd.read_csv(input_dir+input_fname_Image)
@@ -68,7 +68,7 @@ for input_dir in dir_list:
 
 
 # df_Experiment.to_csv(path_or_buf=combined_dir + '\\Experiment.csv',  index=None, header=True)
-df_FilteredNuclei.to_csv(path_or_buf=combined_dir + '\\FilteredNuclei.csv',  index=None, header=True)
+# df_FilteredNuclei.to_csv(path_or_buf=combined_dir + '\\FilteredNuclei.csv',  index=None, header=True)
 df_GFAP.to_csv(path_or_buf=combined_dir + '\\GFAP.csv',  index=None, header=True)
 # df_Image.to_csv(path_or_buf=combined_dir + '\\Image.csv',  index=None, header=True)
 df_Nuclei.to_csv(path_or_buf=combined_dir + '\\Nuclei.csv',  index=None, header=True)
