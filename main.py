@@ -300,7 +300,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         m_day = mi_tukey[mi_tukey['Day'] == day]
 
                         result_05 = statsmodels.stats.multicomp.pairwise_tukeyhsd(
-                            m_day[norm_colname], m_day['Condition'], alpha=0.05
+                            m_day[norm_colname], m_day['Condition'], alpha=0.001
                         )
                         df_tukey = pd.DataFrame(
                             data=result_05._results_table.data[1:],
@@ -309,7 +309,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         df_tukey['Day'] = day
                         df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
                         df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
-                        df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
+                        df_tukey['reject_001'] = df_tukey['reject']
 
                         df_tukey['Sample_size_1'] = ''
                         df_tukey['Sample_size_2'] = ''

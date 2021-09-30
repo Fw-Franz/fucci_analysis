@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import time
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from pylab import figure, text, scatter, show
+import glob
+import scipy as sp
 
 start_time = time.time()
 
@@ -20,7 +22,7 @@ statistical_test = 'do_tukey_test' # currently only 'do_tukey_test'
 plot_stats_stars=  True  # True or False  (no '')
 
 normalization='' # '' or '_background_sub'
-analyze_method='' # '' or 'Fold_change_'  for graphing only
+analyze_method='Fold_change_' # '' or 'Fold_change_'  for graphing only
 plot_column='FarRed_int_I'
 # plot_column='FarRed_mean_I'
 # plot_column='GFP_mean_I'
@@ -30,18 +32,19 @@ control_condition='Control'
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="Y:\\Juanita\\NewMethodAnalysisSheets\\1_13_21Allsheets_allin\\RegAntibodies\\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\\08_07_2021\\cmycbestsettings"
+# Custom_dir="Y:\\Juanita\\NewMethodAnalysisSheets\\1_13_21Allsheets_allin\\RegAntibodies\\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\\08_07_2021\\cmycbestsettings"
+# Custom_dir=os.path.join(r"Y:\\Juanita\NewMethodAnalysisSheets\1_13_21Allsheets_allin\RegAntibodies\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\cmycbestsettings")
+Custom_dir=r"Y:\Juanita\NewMethodAnalysisSheets\2_2_21Allsheets_allin\RegAntibodies\cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\Cx43_BS_Plate"
 
-root = tk.Tk()
-root.withdraw()
-filepath = filedialog.askopenfilename(
-    # initialdir="BASE_DIR",
-    initialdir="Custom_dir",
-    title="Select file",
-    filetypes=(("csv", "*.csv"),)
-)
+# root = tk.Tk()
+# root.withdraw()
+# base_directory = filedialog.askdirectory(
+#     # initialdir="BASE_DIR",
+#     initialdir="Custom_dir",
+#     title="Select directory")
+base_directory=Custom_dir
+input_folder_name=os.path.basename(base_directory)
 
-base_directory = os.path.dirname(os.path.abspath(filepath))
 
 input_folder_name=os.path.basename(base_directory)
 
@@ -78,7 +81,9 @@ if plottype=='box':
 elif plottype=='bar':
     print('Producing Combined Barplot')
 
-mi_box = pd.read_csv(filepath)
+filelist = glob.glob(base_directory+'/*Column_means.csv', recursive=True)
+print(filelist)
+mi_box = pd.read_csv(filelist[0])
 
 sorterIndex = dict(zip(row_order, range(len(row_order))))
 mi_box['Drug_Rank'] = mi_box['Row'].map(sorterIndex)
@@ -107,15 +112,17 @@ if statistical_test == 'do_tukey_test':
     m_day[column_name_stats] = m_day[column_name_stats].map(np.log10)
 
     result_05 = pairwise_tukeyhsd(
-        m_day[column_name_stats], m_day['Drug_Name'], alpha=0.05
+        m_day[column_name_stats], m_day['Drug_Name'], alpha=0.001
     )
+    print(result_05)
     df_tukey = pd.DataFrame(
         data=result_05._results_table.data[1:],
         columns=result_05._results_table.data[0]
     )
     df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
     df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
-    df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
+    df_tukey['reject_001'] = df_tukey['reject']
+
 
     df_tukey['Sample_size_1'] = ''
     df_tukey['Sample_size_2'] = ''

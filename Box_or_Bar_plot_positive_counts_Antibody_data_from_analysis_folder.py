@@ -96,7 +96,7 @@ if statistical_test == 'do_tukey_test':
         column_name_stats=column_name_stats_logit
 
     result_05 = pairwise_tukeyhsd(
-        mi_tukey[column_name_stats], mi_tukey['Drug_Name'], alpha=0.05)
+        mi_tukey[column_name_stats], mi_tukey['Drug_Name'], alpha=0.001)
 
 
     df_tukey = pd.DataFrame(
@@ -105,7 +105,7 @@ if statistical_test == 'do_tukey_test':
     )
     df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
     df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
-    df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
+    df_tukey['reject_001'] = df_tukey['reject']
 
     df_tukey['Sample_size_1'] = ''
     df_tukey['Sample_size_2'] = ''

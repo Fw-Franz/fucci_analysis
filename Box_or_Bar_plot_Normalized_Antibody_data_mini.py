@@ -11,6 +11,7 @@ import time
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from pylab import figure, text, scatter, show
 import glob
+import scipy as sp
 
 start_time = time.time()
 
@@ -22,6 +23,7 @@ plot_stats_stars=  True  # True or False  (no '')
 
 normalization='' # '' or '_background_sub'
 analyze_method='' # '' or 'Fold_change_'  for graphing only
+# plot_column='Cell_Percent_Positive'
 plot_column='FarRed_int_I'
 # plot_column='FarRed_mean_I'
 # plot_column='GFP_mean_I'
@@ -33,7 +35,7 @@ control_condition='Control'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Custom_dir="Y:\\Juanita\\NewMethodAnalysisSheets\\1_13_21Allsheets_allin\\RegAntibodies\\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\\08_07_2021\\cmycbestsettings"
 # Custom_dir=os.path.join(r"Y:\\Juanita\NewMethodAnalysisSheets\1_13_21Allsheets_allin\RegAntibodies\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\cmycbestsettings")
-Custom_dir=r"Y:\Juanita\NewMethodAnalysisSheets\1_13_21Allsheets_allin\RegAntibodies\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\cmycbestsettings"
+Custom_dir=r"Y:\Juanita\NewMethodAnalysisSheets\1_13_21Allsheets_allin\RegAntibodies\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\cx43_BS_Plate"
 
 # root = tk.Tk()
 # root.withdraw()
@@ -103,11 +105,16 @@ if statistical_test == 'do_tukey_test':
     mi_tukey['sample_size_count']=mi_tukey['Drug_Name'].copy()
     mi_tukey['sample_size_count'] = mi_tukey.groupby(by='Drug_Name')['sample_size_count'].transform('count')
 
-    m_day = mi_tukey.copy()
-    m_day[column_name_stats] = m_day[column_name_stats].map(np.log10)
+    if column_name_stats.__contains__('Cell_Percent_Positive'):
+        column_name_stats_logit = column_name_stats + '_logit'
+        mi_tukey[column_name_stats_logit] = sp.special.logit(mi_tukey[column_name_stats])
+        column_name_stats = column_name_stats_logit
+
+    elif column_name_stats.__contains__('Fold_change'):
+        mi_tukey[column_name_stats] = mi_tukey[column_name_stats].map(np.log10)
 
     result_05 = pairwise_tukeyhsd(
-        m_day[column_name_stats], m_day['Drug_Name'], alpha=0.05
+        mi_tukey[column_name_stats], mi_tukey['Drug_Name'], alpha=0.001
     )
     df_tukey = pd.DataFrame(
         data=result_05._results_table.data[1:],
@@ -115,7 +122,7 @@ if statistical_test == 'do_tukey_test':
     )
     df_tukey['reject_05'] = (df_tukey['p-adj'] < 0.05)
     df_tukey['reject_01'] = (df_tukey['p-adj'] < 0.01)
-    df_tukey['reject_001'] = (df_tukey['p-adj'] < 0.001)
+    df_tukey['reject_001'] = df_tukey['reject']
 
     df_tukey['Sample_size_1'] = ''
     df_tukey['Sample_size_2'] = ''

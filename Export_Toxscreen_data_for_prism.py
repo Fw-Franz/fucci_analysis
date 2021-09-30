@@ -6,7 +6,7 @@ import os
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="D:\hisc_data"
+Custom_dir=r"E:\U87_LiveDead_analysis_NEWEST\Day6_combined"
 
 colnames=['Dead', 'Alive', 'Total', 'Percent_Dead', 'Percent_Alive']
 
