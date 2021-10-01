@@ -13,71 +13,43 @@ from pylab import figure, text, scatter, show
 import glob
 import scipy as sp
 
+pd.options.mode.chained_assignment = None
+
 start_time = time.time()
-
-#region Input parameters
-load_raw_data=False
-
-dates=['1_13_21','2_2_21','2_22_21','3_13_21','4_8_21']
-
-date_list=['1_13_21',
-           '1_13_21',
-           '1_13_21',
-           '1_13_21',
-           '2_2_21',
-           '2_2_21',
-           '2_2_21',
-           '2_22_21',
-           '3_13_21',
-           '3_13_21']
-antibody_list=['Casp3',
-               'Casp3',
-               'Casp3',
-               'Casp3',
-               'casp3',
-               'casp3',
-               'casp3',
-               'cleavedcasp3',
-               'cleavedcasp3',
-               'cleavedcasp3']
-
-conditions_list=['Control','Pantoprazole_100uM',
-                 'NS1643_20uM',
-                 'NS1643_20uM_Pantoprazole_100uM',
-                 'Retigabine_10uM',
-                 'Pantoprazole_100uM_Retigabine_10uM',
-                 '1perFBS_cAMP_1mM_Rapamycin_200nM',
-                 'Pantoprazole_100uM_Rapamycin_100nM',
-                 'Lamotrigine_100uM',
-                 'Pantoprazole_100uM_Lamotrigine_100uM'] # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
-
-conditions_list_reordered=['Control',
-                    'Pantoprazole_100uM',
-                 'NS1643_20uM',
-                 'Retigabine_10uM',
-                 'Lamotrigine_100uM',
-                 'NS1643_20uM_Pantoprazole_100uM',
-                 'Pantoprazole_100uM_Retigabine_10uM',
-                 'Pantoprazole_100uM_Lamotrigine_100uM',
-                 'Pantoprazole_100uM_Rapamycin_100nM',
-                 '1perFBS_cAMP_1mM_Rapamycin_200nM']
-
-save_dir='Casp3'
 
 label_type='legend' # 'xaxis' or 'legend'
 swarmplots=False
 
+#NG108 Drug Names
+# 1-13
+row_B_drug_name='NS1643_20uM_Pantoprazole_100uM'
+row_C_drug_name='Pantoprazole_100uM'
+row_D_drug_name='NS1643_20uM'
+row_E_drug_name='Control'
+row_F_drug_name='10perFBS_cAMP_1mM_Rapamycin_200nM'
+row_G_drug_name='1perFBS_cAMP_1mM_Rapamycin_200nM'
+
+row_order=['E', 'C', 'D', 'B', 'F', 'G']
+
+# conditions_list=[row_B_drug_name,row_C_drug_name,row_D_drug_name,row_E_drug_name,row_F_drug_name,row_G_drug_name]
+
+# conditions_list=['Control','Pantoprazole_100uM','NS1643_20uM' 'NS1643_20uM_Pantoprazole_100uM','10perFBS_cAMP_1mM_Rapamycin_200nM','1perFBS_cAMP_1mM_Rapamycin_200nM']
+conditions_list=['Control', 'NS1643_20uM', 'NS1643_20uM_Pantoprazole_100uM']
+
 plottype='bar' # 'box' or 'bar'
 bar_width=0.08
 y_max=2.5
-y_label='Positive Cells (%)'  # 'Percent Positive Cells' or 'Relative fluorescent level'
 
 statistical_test = 'do_tukey_test' # currently only 'do_tukey_test'
 plot_stats_stars=  False  # True or False  (no '')
 
 normalization='' # '' or '_background_sub'
 analyze_method='' # '' or 'Fold_change_'  for graphing only
-plot_column='Cell_Percent_Positive'
+plot_column='FarRed_int_I'
+# plot_column='FarRed_int_I'
+# plot_column='FarRed_mean_I'
+# plot_column='GFP_mean_I'
+# plot_column='Nuclei'
 control_condition='Control'
 #endregion
 
@@ -99,45 +71,17 @@ base_directory = Custom_dir
 
 plot_context = 'talk'
 # plot_context = 'notebook'
-font_scale=3
+font_scale=1
 save_plots=1
 
-if load_raw_data:
-    for date in dates:
-        subfolder='/'+date+'Allsheets_allin/'
-        filelist = glob.glob(base_directory + subfolder+ 'LC3_Casp3/**/*AntibodyResults_Column_means.csv', recursive=True)
+
+filelist = glob.glob(base_directory + '/*_Column_means.csv', recursive=True)
         # print(filelist)
+mi=  pd.read_csv(filelist[0])
 
-        for file in filelist:
-            mi_inter = pd.read_csv(file)
-            subdir = os.path.dirname(os.path.abspath(file))
-            input_folder_name = os.path.basename(subdir)
-            mi_inter['Antibody']=input_folder_name
-            mi_inter['date']=date
-
-            print(mi_inter.shape)
-
-            if date==dates[0] and file==filelist[0]:
-                mi=mi_inter.copy()
-            else:
-                mi=mi.append(mi_inter)
-
-    print('saving....',mi.shape)
-    mi.to_csv(path_or_buf=base_directory + '//Casp3_LC3_Combined_AntibodyResults_Column_means.csv',  index=None, header=True)
-else:
-    mi=  pd.read_csv(base_directory+'//Casp3_LC3_Combined_AntibodyResults_Column_means.csv')
-
-mi.loc[mi.Drug_Name=='NS1643_20uM_Pantoprazole_100uM','Drug_Name']='Pantoprazole_100uM_NS1643_20uM'
-conditions_list = [sub.replace('NS1643_20uM_Pantoprazole_100uM', 'Pantoprazole_100uM_NS1643_20uM') for sub in conditions_list]
-conditions_list_reordered = [sub.replace('NS1643_20uM_Pantoprazole_100uM', 'Pantoprazole_100uM_NS1643_20uM') for sub in conditions_list_reordered]
+mi_box=mi.loc[mi["Drug_Name"].isin(conditions_list)]
 
 # region pre plotting configurations
-
-for i in range(0,len(conditions_list)):
-    if i==0:
-        mi_box=mi.loc[(mi.Antibody.str.contains(antibody_list[i])) & (mi.Drug_Name==conditions_list[i]) & (mi.date==date_list[i])]
-    else:
-        mi_box=mi_box.append(mi.loc[(mi.Antibody.str.contains(antibody_list[i])) & (mi.Drug_Name==conditions_list[i]) & (mi.date==date_list[i])])
 
 mi_box['emtpy_column']=''
 
@@ -145,16 +89,25 @@ input_folder_name=os.path.basename(base_directory)
 
 column_name= analyze_method + plot_column + normalization
 
+if column_name.__contains__('Cell_Percent'):
+    if column_name.__contains__('Fold_Change'):
+        y_label='% Positive Cells (FC)'  # 'Percent Positive Cells' or 'Relative fluorescent level'
+    else:
+        y_label='% Positive Cells'
+elif column_name.__contains__('Fold_Change'):
+    y_label = 'Relative fluorescent level (FC)'
+else:
+    y_label = 'Relative fluorescent level'
+
 # # column_name_stats = plot_column + normalization
-column_name_stats = column_name
 column_name_stats = column_name
 
 if plottype=='box':
     box_dir = os.path.join(
-        base_directory,  save_dir + '_stats_and_graphs\\boxplots\\')
+        base_directory +  '\\boxplots\\')
 elif plottype=='bar':
     box_dir = os.path.join(
-        base_directory,  save_dir + '_stats_and_graphs\\barplots\\')
+        base_directory + '\\barplots\\')
 
 if not os.path.exists(box_dir):
     os.makedirs(box_dir)
@@ -168,9 +121,10 @@ if plottype=='box':
 elif plottype=='bar':
     print('Producing Combined Barplot')
 
-mi_box['Cell_Percent_Positive']=mi_box['Cell_Percent_Positive']*100
+if plot_column.__contains__('Percent'):
+    mi_box[plot_column]=mi_box[plot_column]*100
 
-sorterIndex = dict(zip(conditions_list_reordered, range(len(conditions_list_reordered))))
+sorterIndex = dict(zip(conditions_list, range(len(conditions_list))))
 mi_box['Drug_Rank'] = mi_box['Drug_Name'].map(sorterIndex)
 mi_box.sort_values(['Drug_Rank'],
         ascending = [ True], inplace = True)
@@ -182,7 +136,7 @@ if statistical_test == 'do_tukey_test':
     print('Producing Tukey Analysis results')
 
     stats_dir = os.path.join(
-        base_directory, save_dir + '_stats_and_graphs\\stats\\')
+        base_directory + '\\stats\\')
 
     if not os.path.exists(stats_dir):
         os.makedirs(stats_dir)
@@ -199,10 +153,10 @@ if statistical_test == 'do_tukey_test':
 
     if column_name_stats.__contains__('Percent'):
         if m_day[column_name_stats].min()==0.0:
-            m_day[column_name_stats] = 1 / 100 * m_day[column_name_stats].map(np.sqrt)
+            m_day[column_name_stats] = (1 / 100 * m_day[column_name_stats]).map(np.sqrt)
             m_day[column_name_stats] = m_day[column_name_stats].map(np.arcsin)
         else:
-            m_day[column_name_stats] = 1 / 100 * m_day[column_name_stats].map(sp.special.logit)
+            m_day[column_name_stats] = (1 / 100 * m_day[column_name_stats]).map(sp.special.logit)
     elif column_name_stats.__contains__('Fold_change'):
         m_day[column_name_stats]=m_day[column_name_stats].map(np.log10)
 
@@ -271,21 +225,21 @@ elif plottype== 'bar':
     if label_type == 'xaxis':
         ax = sns.barplot(x=mi_box.Drug_Name, y=column_name, data=mi_box,capsize=0.01)
     else:
-        mypalette = {"Control": "black",
-                     "Pantoprazole_100uM": "#949494",
-                     "NS1643_20uM": "#0173b2",
-                     "Retigabine_10uM": "#029e73",
-                     "Lamotrigine_100uM": "#cc78bc",
-                     "Pantoprazole_100uM_NS1643_20uM": "lightskyblue",
-                     "Pantoprazole_100uM_Retigabine_10uM": "mediumaquamarine",
-                     "Pantoprazole_100uM_Lamotrigine_100uM": "#fbafe4",
-                     "Pantoprazole_100uM_Rapamycin_100nM": "#ca9161",
-                     "1perFBS_cAMP_1mM_Rapamycin_200nM": "#ece133"}
+        # mypalette = {"Control": "black",
+        #              "Pantoprazole_100uM": "#949494",
+        #              "NS1643_20uM": "#0173b2",
+        #              "Retigabine_10uM": "#029e73",
+        #              "Lamotrigine_100uM": "#cc78bc",
+        #              "Pantoprazole_100uM_NS1643_20uM": "lightskyblue",
+        #              "Pantoprazole_100uM_Retigabine_10uM": "mediumaquamarine",
+        #              "Pantoprazole_100uM_Lamotrigine_100uM": "#fbafe4",
+        #              "Pantoprazole_100uM_Rapamycin_100nM": "#ca9161",
+        #              "1perFBS_cAMP_1mM_Rapamycin_200nM": "#ece133"}
 
-        # ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.01,
-        #                  palette=sns.color_palette("colorblind"))#
         ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.01,
-                         palette=mypalette)#
+                         palette=sns.color_palette("colorblind"))#
+        # ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.01,
+        #                  palette=mypalette)#
         # ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.01,
         #                  palette=sns.color_palette("Greys"),saturation=4)#
         def change_width(ax, new_value):
@@ -303,7 +257,7 @@ elif plottype== 'bar':
         change_width(ax, bar_width)
 
 ax.grid(True)
-ax.set_ylim(ymax=y_max)
+# ax.set_ylim(ymax=y_max)
 
 bottom, top = ax.get_ylim()
 

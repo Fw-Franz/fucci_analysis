@@ -18,13 +18,16 @@ start_time = time.time()
 load_raw_data=False
 
 sets=['set1','set2']
-days=['Day1','Day2']
+# sets=['set2']
+days=['Day3','Day6']
 dye_conditions=['dyewithdrug','justdye','withdrugafterlast']
 
-Dye_condition='justdye'
+# only change this to plot various settings
+Dye_condition='withdrugafterlast'
 
-
+# currently ignored as data is being pooled where available
 sets_list=['set1',
+           'set1',
            'set1',
            'set1',
            'set2',
@@ -33,23 +36,41 @@ sets_list=['set1',
            'set2',
            'set2']
 
-conditions_list=['Pantoprazole_100uM',
-                           'NS1643_50uM',
-                           'Retigabine_10uM',
-                           'TMZ_50uM',
-                           'Pantoprazole_100uM_NS1643_50uM',
-                           'Pantoprazole_100uM_Retigabine_10uM',
-                           'Pantoprazole_100uM_TMZ_50uM',
-                           'NS1643_50uM_TMZ_50uM'] # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
+# currently ignored as data is being pooled where available
+# sets_list=['set2',
+#            'set2',
+#            'set2',
+#            'set2']
 
-conditions_list_reordered=['Pantoprazole_100uM',
-                           'NS1643_50uM',
-                           'Retigabine_10uM',
-                           'TMZ_50uM',
-                           'Pantoprazole_100uM_NS1643_50uM',
-                           'Pantoprazole_100uM_Retigabine_10uM',
-                           'Pantoprazole_100uM_TMZ_50uM',
-                           'NS1643_50uM_TMZ_50uM']
+conditions_list=['Control',
+                'Pantoprazole_100uM',
+                'NS1643_50uM',
+                'Retigabine_10uM',
+                'TMZ_50uM',
+                'Pantoprazole_100uM_NS1643_50uM',
+                'Pantoprazole_100uM_Retigabine_10uM',
+                'Pantoprazole_100uM_TMZ_50uM',
+                'NS1643_50uM_TMZ_50uM']
+
+
+# conditions_list=['Control',
+#                 'TMZ_50uM',
+#                 'Pantoprazole_100uM_TMZ_50uM',
+#                 'NS1643_50uM_TMZ_50uM']
+
+# order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
+
+# conditions_list_reordered=['Control',
+#                            'Pantoprazole_100uM',
+#                            'NS1643_50uM',
+#                            'Retigabine_10uM',
+#                            'TMZ_50uM',
+#                            'Pantoprazole_100uM_NS1643_50uM',
+#                            'Pantoprazole_100uM_Retigabine_10uM',
+#                            'Pantoprazole_100uM_TMZ_50uM',
+#                            'NS1643_50uM_TMZ_50uM']
+
+conditions_list_reordered=conditions_list
 
 save_dir='DiBAC'
 
@@ -76,12 +97,8 @@ base_directory = Custom_dir
 
 plot_context = 'talk'
 # plot_context = 'notebook'
-font_scale=1.5
+font_scale=3
 save_plots=1
-
-sets=['set1','set2']
-days=['Day3','Day6']
-dye_conditions=['dyewithdrug','justdye','withdrugafterlast']
 
 if load_raw_data:
     # for day in days:
@@ -119,6 +136,8 @@ if load_raw_data:
 else:
     mi=  pd.read_csv(base_directory+'//Combined_DiBAC_AntibodyResults_Column_means.csv')
 
+if analyze_method=='Fold_change_':
+    mi=mi.loc[mi.Drug_Name!='Control']
 # region pre plotting configurations
 
 if Dye_condition=='withdrugafterlast':
@@ -130,6 +149,7 @@ mi_box=mi_box[0:0]
 
 for i in range(0,len(conditions_list)):
     mi_box=mi_box.append(mi.loc[(mi.Antibody==Dye_condition) & (mi.Drug_Name==conditions_list[i]) & (mi.set==sets_list[i]) & (mi.day==Day)])
+    # mi_box=mi_box.append(mi.loc[(mi.Antibody==Dye_condition) & (mi.Drug_Name==conditions_list[i])  & (mi.day==Day)])
 
 mi_box['emtpy_column']=''
 
@@ -185,7 +205,13 @@ if statistical_test == 'do_tukey_test':
     mi_tukey['sample_size_count'] = mi_tukey.groupby(by='Drug_Name')['sample_size_count'].transform('count')
 
     m_day = mi_tukey.copy()
-    if column_name_stats == analyze_method + plot_column + normalization:
+    if column_name_stats.__contains__('Percent'):
+        if m_day[column_name_stats].min()==0.0:
+            m_day[column_name_stats] = 1 / 100 * m_day[column_name_stats].map(np.sqrt)
+            m_day[column_name_stats] = m_day[column_name_stats].map(np.arcsin)
+        else:
+            m_day[column_name_stats] = 1 / 100 * m_day[column_name_stats].map(sp.special.logit)
+    elif column_name_stats.__contains__('Fold_change'):
         m_day[column_name_stats]=m_day[column_name_stats].map(np.log10)
 
     result_05 = pairwise_tukeyhsd(
@@ -250,11 +276,12 @@ if plottype=='box':
 
 elif plottype== 'bar':
     if label_type == 'xaxis':
-        ax = sns.barplot(x=mi_box.Drug_Name, y=column_name, data=mi_box,capsize=0.01)
+        ax = sns.barplot(x=mi_box.Drug_Name, y=column_name, data=mi_box,capsize=0.05)
     else:
 
         # ['#0173b2', '#de8f05', '#029e73', '#d55e00', '#cc78bc', '#ca9161', '#fbafe4', '#949494', '#ece133', '#56b4e9']
-        mypalette = {"Pantoprazole_100uM": "#949494",
+        mypalette = {"Control": "black","Pantoprazole_100uM": "#949494",
+        # mypalette = {"Pantoprazole_100uM": "#949494",
                      "Retigabine_10uM": "#029e73",
                      "Pantoprazole_100uM_Retigabine_10uM": "mediumaquamarine",
                      "Pantoprazole_100uM_NS1643_50uM": "lightskyblue",
@@ -264,11 +291,11 @@ elif plottype== 'bar':
                      "TMZ_50uM":"saddlebrown",
                      "NS1643_50uM":"#0173b2"}
 
-        # ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.01,
+        # ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.05,
         #                  palette=sns.color_palette("colorblind"))#
-        ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box, hue="Drug_Name", capsize=0.01,
+        ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box, hue="Drug_Name", capsize=0.05,
                          palette=mypalette)  #
-        # ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.01,
+        # ax = sns.barplot(x=mi_box.emtpy_column, y=column_name, data=mi_box,hue="Drug_Name", capsize=0.05,
         #                  palette=sns.color_palette("Greys"),saturation=4)#
         def change_width(ax, new_value):
             for patch in ax.patches:
@@ -351,7 +378,7 @@ ax.set_xlabel('')
 
 plt.axhline(y=1, color='black',linewidth=3, linestyle='--')
 
-ax.set_ylabel('Relative fluorescent level')
+ax.set_ylabel('Fluorescence Intensity (FC)')
 
 ax.set_title('')
 if plot_stats_stars:

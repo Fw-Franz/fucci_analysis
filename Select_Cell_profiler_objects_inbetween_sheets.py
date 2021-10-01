@@ -10,7 +10,7 @@ repeats=['biological','technical']   # enter ['biological','technical'] or delet
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir=r"E:\YAP_set2_data"
+Custom_dir=r"F:\YAP_set2_data_row_F"
 
 # root = tk.Tk()
 # root.withdraw()
@@ -20,10 +20,19 @@ Custom_dir=r"E:\YAP_set2_data"
 base_directory=Custom_dir
 
 df_EditedObjects = pd.read_csv(base_directory+'\\EditedObjects.csv')
+df_EditedObjects=df_EditedObjects[['ImageNumber','ObjectNumber','FileName_DisplayImage','Intensity_MeanIntensity_OrigGreen','Intensity_IntegratedIntensity_OrigGreen','Parent_GFAP']]
+
 df_GFAP = pd.read_csv(base_directory+'\\GFAP.csv')
+df_GFAP=df_GFAP[['ImageNumber','ObjectNumber','FileName_DisplayImage','Intensity_MeanIntensity_OrigGreen','Intensity_IntegratedIntensity_OrigGreen','Parent_Nuclei']]
+
 df_Cytoplasm = pd.read_csv(base_directory+'\\Cytoplasm.csv')
+df_Cytoplasm=df_Cytoplasm[['ImageNumber','ObjectNumber','FileName_DisplayImage','Intensity_MeanIntensity_OrigGreen','Intensity_IntegratedIntensity_OrigGreen','Parent_FilteredNuclei']]
+
 df_FilteredNuclei= pd.read_csv(base_directory+'\\FilteredNuclei.csv')
+df_FilteredNuclei=df_FilteredNuclei[['ImageNumber','ObjectNumber','FileName_DisplayImage']] # no int and mean I
+
 df_Nuclei= pd.read_csv(base_directory+'\\Nuclei.csv')
+df_Nuclei=df_Nuclei[['ImageNumber','ObjectNumber','FileName_DisplayImage','Intensity_MeanIntensity_OrigGreen','Intensity_IntegratedIntensity_OrigGreen']]
 
 EditedObjects_FileNames_Parent_GFAP=(df_EditedObjects['FileName_DisplayImage'] + '_and_' + df_EditedObjects['Parent_GFAP'].apply(str)).tolist()
 
@@ -31,6 +40,7 @@ df_GFAP['FileNames_Parent_GFAP']=(df_GFAP['FileName_DisplayImage'] + '_and_' + d
 print('pre processing length GFAP', len(df_GFAP))
 df_GFAP=df_GFAP[df_GFAP['FileNames_Parent_GFAP'].isin(EditedObjects_FileNames_Parent_GFAP)]
 print('post processing length GFAP', len(df_GFAP))
+df_GFAP.reset_index(inplace=True)
 
 GFAP_FileNames_Parent_Nuclei=(df_GFAP['FileName_DisplayImage'] + '_and_' + df_GFAP['Parent_Nuclei'].apply(str)).tolist()
 Cytoplasm_FileNames_Parent_Nuclei=(df_Cytoplasm['FileName_DisplayImage'] + '_and_' + df_Cytoplasm['Parent_FilteredNuclei'].apply(str)).tolist()
@@ -40,26 +50,30 @@ df_FilteredNuclei_EditedObjects['FileNames_Parent_Nuclei']=(df_FilteredNuclei_Ed
 print('pre processing length FilteredNuclei', len(df_FilteredNuclei_EditedObjects))
 df_FilteredNuclei_EditedObjects=df_FilteredNuclei_EditedObjects[df_FilteredNuclei_EditedObjects['FileNames_Parent_Nuclei'].isin(GFAP_FileNames_Parent_Nuclei)]
 print('post processing length FilteredNuclei', len(df_FilteredNuclei_EditedObjects))
+df_FilteredNuclei_EditedObjects.reset_index(inplace=True)
 
 # region for set 2
 df_Nuclei['FileNames_Parent_Nuclei']=(df_Nuclei['FileName_DisplayImage'] + '_and_' + df_Nuclei['ObjectNumber'].apply(str)).tolist()
 print('pre processing length Nuclei', len(df_Nuclei))
 df_Nuclei=df_Nuclei[df_Nuclei['FileNames_Parent_Nuclei'].isin(GFAP_FileNames_Parent_Nuclei)]
 print('post processing length Nuclei', len(df_Nuclei))
+df_Nuclei.reset_index(inplace=True)
 
 #endregion
 
-df_FilteredNuclei_Cytoplasm=df_FilteredNuclei.copy()
+# df_FilteredNuclei_Cytoplasm=df_FilteredNuclei.copy()
+df_FilteredNuclei_Cytoplasm=df_Nuclei.copy()
 df_FilteredNuclei_Cytoplasm['FileNames_Parent_Nuclei']=(df_FilteredNuclei_Cytoplasm['FileName_DisplayImage'] + '_and_' + df_FilteredNuclei_Cytoplasm['ObjectNumber'].apply(str)).tolist()
 print('pre processing length FilteredNuclei for Cytoplasm', len(df_FilteredNuclei_Cytoplasm))
 df_FilteredNuclei_Cytoplasm=df_FilteredNuclei_Cytoplasm[df_FilteredNuclei_Cytoplasm['FileNames_Parent_Nuclei'].isin(Cytoplasm_FileNames_Parent_Nuclei)]
 print('post processing length FilteredNuclei for Cytoplasm', len(df_FilteredNuclei_Cytoplasm))
+df_FilteredNuclei_Cytoplasm.reset_index(inplace=True)
+df_Cytoplasm.reset_index(inplace=True)
 
 df_FilteredNuclei_EditedObjects.to_csv(base_directory + '\\FilteredNuclei_from_EditedObjects.csv')
 df_FilteredNuclei_Cytoplasm.to_csv(base_directory + '\\FilteredNuclei_from_Cytoplasm.csv')
 
-df_FilteredNuclei_Cytoplasm.reset_index(inplace=True)
-df_Cytoplasm.reset_index(inplace=True)
+
 
 # region for set 1
 # df_FilteredNuclei_by_Cytoplasm_normalized=df_FilteredNuclei_Cytoplasm.copy()
@@ -81,6 +95,7 @@ df_FilteredNuclei_by_Cytoplasm_normalized['Intensity_MeanIntensity_OrigGreen']=\
 # region for set 2
 df_FilteredNuclei_by_Cytoplasm_normalized['Intensity_IntegratedIntensity_OrigGreen']=\
     df_Nuclei['Intensity_IntegratedIntensity_OrigGreen']/df_Cytoplasm['Intensity_IntegratedIntensity_OrigGreen']
+
 #endregion
 
 df_FilteredNuclei_by_Cytoplasm_normalized.to_csv(base_directory + '\\FilteredNuclei_from_Cytoplasm_by_Cytoplasm_normalized.csv')
@@ -105,6 +120,7 @@ df_Cytoplasm_by_FilteredNuclei_normalized['Intensity_MeanIntensity_OrigGreen']=\
 # region for set 2
 df_Cytoplasm_by_FilteredNuclei_normalized['Intensity_IntegratedIntensity_OrigGreen']=\
     df_Cytoplasm['Intensity_IntegratedIntensity_OrigGreen']/df_Nuclei['Intensity_IntegratedIntensity_OrigGreen']
+
 #endregion
 
 df_Cytoplasm_by_FilteredNuclei_normalized.to_csv(base_directory + '\\Cytoplasm_by_FilteredNuclei_normalized.csv')

@@ -16,25 +16,26 @@ import scipy as sp
 start_time = time.time()
 
 #region Input parameters
-row_order=['E', 'C', 'D', 'F', 'B', 'G']    # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
+row_order=['B', 'C', 'D', 'F', 'E', 'G']    # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
 plottype='bar' # 'box' or 'bar'
 statistical_test = 'do_tukey_test' # currently only 'do_tukey_test'
 plot_stats_stars=  True  # True or False  (no '')
 
 normalization='' # '' or '_background_sub'
-analyze_method='Fold_change_' # '' or 'Fold_change_'  for graphing only
+analyze_method='' # '' or 'Fold_change_'  for graphing only
 plot_column='FarRed_int_I'
 # plot_column='FarRed_mean_I'
 # plot_column='GFP_mean_I'
 # plot_column='Nuclei'
 control_condition='Control'
+Cyto_vs_Nuclei_ratio=False
 #endregion
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Custom_dir="Y:\\Juanita\\NewMethodAnalysisSheets\\1_13_21Allsheets_allin\\RegAntibodies\\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\\08_07_2021\\cmycbestsettings"
 # Custom_dir=os.path.join(r"Y:\\Juanita\NewMethodAnalysisSheets\1_13_21Allsheets_allin\RegAntibodies\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\cmycbestsettings")
-Custom_dir=r"Y:\Juanita\NewMethodAnalysisSheets\2_2_21Allsheets_allin\RegAntibodies\cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\Cx43_BS_Plate"
+Custom_dir=r"C:\Users\Franz\OneDrive\_PhD\Juanita\U87_YAP_Analysis\U87_Center_YAP_set1"
 
 # root = tk.Tk()
 # root.withdraw()
@@ -109,7 +110,8 @@ if statistical_test == 'do_tukey_test':
     mi_tukey['sample_size_count'] = mi_tukey.groupby(by='Drug_Name')['sample_size_count'].transform('count')
 
     m_day = mi_tukey.copy()
-    m_day[column_name_stats] = m_day[column_name_stats].map(np.log10)
+    if Cyto_vs_Nuclei_ratio or analyze_method=='Fold_change_':
+        m_day[column_name_stats] = m_day[column_name_stats].map(np.log10)
 
     result_05 = pairwise_tukeyhsd(
         m_day[column_name_stats], m_day['Drug_Name'], alpha=0.001

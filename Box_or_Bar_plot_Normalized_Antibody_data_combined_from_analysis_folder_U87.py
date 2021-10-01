@@ -184,7 +184,13 @@ if statistical_test == 'do_tukey_test':
     mi_tukey['sample_size_count'] = mi_tukey.groupby(by='Drug_Name')['sample_size_count'].transform('count')
 
     m_day = mi_tukey.copy()
-    if column_name_stats == analyze_method + plot_column + normalization:
+    if column_name_stats.__contains__('Percent'):
+        if m_day[column_name_stats].min()==0.0:
+            m_day[column_name_stats] = 1 / 100 * m_day[column_name_stats].map(np.sqrt)
+            m_day[column_name_stats] = m_day[column_name_stats].map(np.arcsin)
+        else:
+            m_day[column_name_stats] = 1 / 100 * m_day[column_name_stats].map(sp.special.logit)
+    elif column_name_stats.__contains__('Fold_change'):
         m_day[column_name_stats]=m_day[column_name_stats].map(np.log10)
 
     result_05 = pairwise_tukeyhsd(
