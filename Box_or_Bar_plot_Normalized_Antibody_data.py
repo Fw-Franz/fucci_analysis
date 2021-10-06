@@ -16,14 +16,14 @@ import scipy as sp
 start_time = time.time()
 
 #region Input parameters
-row_order=['B', 'C', 'D', 'F', 'E', 'G']    # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
+row_order=['B', 'C', 'D', 'E', 'F', 'G']    # order of rows by which to plot, Control must be first!, e.g. ['E', 'C', 'D', 'B', 'F', 'G']
 plottype='bar' # 'box' or 'bar'
 statistical_test = 'do_tukey_test' # currently only 'do_tukey_test'
 plot_stats_stars=  True  # True or False  (no '')
 
 normalization='' # '' or '_background_sub'
 analyze_method='' # '' or 'Fold_change_'  for graphing only
-plot_column='FarRed_int_I'
+plot_column='FarRed_mean_I'
 # plot_column='FarRed_mean_I'
 # plot_column='GFP_mean_I'
 # plot_column='Nuclei'
@@ -35,7 +35,7 @@ Cyto_vs_Nuclei_ratio=False
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Custom_dir="Y:\\Juanita\\NewMethodAnalysisSheets\\1_13_21Allsheets_allin\\RegAntibodies\\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\\08_07_2021\\cmycbestsettings"
 # Custom_dir=os.path.join(r"Y:\\Juanita\NewMethodAnalysisSheets\1_13_21Allsheets_allin\RegAntibodies\CMYC_cx43_cx46_GFAP_HDAC9_MAP2\08_07_2021\cmycbestsettings")
-Custom_dir=r"C:\Users\Franz\OneDrive\_PhD\Juanita\U87_YAP_Analysis\U87_Center_YAP_set1"
+Custom_dir=r"E:\YAP_Perinuc_analysis_set2_center"
 
 # root = tk.Tk()
 # root.withdraw()
@@ -258,7 +258,7 @@ if plot_stats_stars:
                 y_offset=0.6
             elif plottype == 'bar':
                 y = round(ax.patches[iii].get_height(), 1)
-                y_offset=0.3
+                y_offset=0.1
 
             if reject_001:
                 text(iii - 0.15, y + y_offset, '***', fontsize=40, color='black')

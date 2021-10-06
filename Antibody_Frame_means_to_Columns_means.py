@@ -10,7 +10,7 @@ pd.set_option('mode.chained_assignment', None)
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="E:\\NewAnalysisSheetsAll8_29_21\\New_Dye sheets\\Fluo_sheet\\U87Fluo4AM_drugsinbuffDay6_set1_Plate1\\"
+Custom_dir=r"E:\YAP_Perinuc_analysis_set1_center\\"
 root = tk.Tk()
 root.withdraw()
 

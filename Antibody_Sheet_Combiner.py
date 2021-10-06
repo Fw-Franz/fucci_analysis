@@ -10,7 +10,7 @@ pd.set_option('mode.chained_assignment', None)
 
 #region Input parameters
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir="E:\\U87_RetPant_LC3_Casp3_pH3_Ki67_BrdU_sheets\\U87_RetPant_pH3meanint_sheets\\Hist3_Hist3missing Sheets\\08_07_2021"
+Custom_dir=r"E:\U87_BrdU_meanint_byRow"
 
 
 #endregion
@@ -18,15 +18,18 @@ Custom_dir="E:\\U87_RetPant_LC3_Casp3_pH3_Ki67_BrdU_sheets\\U87_RetPant_pH3meani
 root = tk.Tk()
 root.withdraw()
 
-input_dir_base = filedialog.askdirectory(initialdir=Custom_dir,
-# input_dir_base = filedialog.askdirectory(initialdir=BASE_DIR,
-                title="Select DiBAC Results Directory")
+# input_dir_base = filedialog.askdirectory(initialdir=Custom_dir,
+# # input_dir_base = filedialog.askdirectory(initialdir=BASE_DIR,
+#                 title="Select Antibody Results Directory")
+
+input_dir_base=Custom_dir
+
 combined_dir=input_dir_base+"/combined_sheets"
 if not os.path.exists(combined_dir):
     os.makedirs(combined_dir)
 
 # dir_list = os.listdir(input_dir_base)
-dir_list=glob.glob(input_dir_base+'**//*Hist3*')
+dir_list=glob.glob(input_dir_base+'**//*U87*')
 
 start_time = time.time()
 

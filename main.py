@@ -150,8 +150,11 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
             raise ValueError("Input data has multiple frames in one file")
 
         drug_list_fpath = glob.glob(data_dir + '/*Drug_List.csv')
-        drug_list_df = pd.read_csv(drug_list_fpath[0])
-        drug_list=drug_list_df['Condition'].to_list()
+        if len(drug_list_fpath)>0:
+            drug_list_df = pd.read_csv(drug_list_fpath[0])
+            drug_list=drug_list_df['Condition'].to_list()
+        else:
+            drug_list=[]
         if len(drug_list)>0:
             conditions=drug_list
         elif conditions_override and len(conditions_override) > 0:
@@ -746,7 +749,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                 if statistical_test=='do_ttest':
                     if plot_type=="stacked_bar":
                         stats_dir= os.path.join(
-                            base_directory, 'stats', f'{control_condition}_normalized', 
+                            base_directory, 'stats', f'{control_condition}_normalized',
                             'percent_cell', f'm{frame}'
                         )
                         if not os.path.exists(stats_dir):
@@ -771,7 +774,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     if plot_type == "line":
                         stats_dir=os.path.join(
-                            base_directory, 'stats', f'{control_condition}_normalized', 
+                            base_directory, 'stats', f'{control_condition}_normalized',
                             'total_cell_n', f'm{frame}'
                         )
                         if not os.path.exists(stats_dir):
@@ -791,7 +794,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     if plot_type == "line":
                         stats_dir=os.path.join(
-                            base_directory, 'stats', f'{control_condition}_normalized', 
+                            base_directory, 'stats', f'{control_condition}_normalized',
                             'total_cell_n', f'm{frame}'
                         )
                         if not os.path.exists(stats_dir):
@@ -799,7 +802,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     if plot_type == "stacked_bar":
                         stats_dir= os.path.join(
-                            base_directory, 'stats', f'{control_condition}_normalized', 
+                            base_directory, 'stats', f'{control_condition}_normalized',
                             'percent_cell', f'm{frame}'
                         )
                         if not os.path.exists(stats_dir):
@@ -1062,8 +1065,11 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     #                    edgecolor="black", linewidth=1, dodge=True)
 
                     drug_order_fpath = glob.glob(data_dir + '/*Drug_List_my_order.csv')
-                    drug_order_df = pd.read_csv(drug_order_fpath[0])
-                    drug_order_list = drug_order_df['Condition'].to_list()
+                    if len(drug_order_fpath) > 0:
+                        drug_order_df = pd.read_csv(drug_order_fpath[0])
+                        drug_order_list = drug_order_df['Condition'].to_list()
+                    else:
+                        drug_order_list = []
 
                     if len(drug_order_list) > 0:
                         my_order = drug_order_list
@@ -1131,7 +1137,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         # stds_box.pop('WellNum')
 
                         means_box.to_csv(
-                            path_or_buf=os.path.join(stats_dir, f'Means_results_{analyze_method}_day_5.csv'), 
+                            path_or_buf=os.path.join(stats_dir, f'Means_results_{analyze_method}_day_5.csv'),
                             index=True,
                             header=True
                         )
@@ -1188,7 +1194,8 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     ax.grid(True)
                     bottom, top = ax.get_ylim()
                     if analyze_method == "fold_change":
-                        ax.set(ylim=(bottom-0.2*np.abs(bottom), 0.1))
+                        # ax.set(ylim=(bottom-0.2*np.abs(bottom), 0.1))
+                        ax.set(ylim=(bottom, top))
                     else:
                         ax.set(ylim=(bottom-0.2*np.abs(bottom), top+0.2*np.abs(top)))
                     fig = plt.gcf()
@@ -1233,15 +1240,22 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     ax.set_xticklabels(conditions_labels, rotation=rotation,
                                        ha=tick_orientation)  # , rotation_mode="anchor")
                     if analyze_method == "fold_change":
+                        if data_scale==NORMAL_SCALE:
+                            ax.set_ylabel('Fold Change')
+                        elif data_scale==LOG2_SCALE:
+                            ax.set_ylabel('Log2 (Fold Change)')
                         # ax.set_xticklabels(conditions_label_reduced, rotation=rotation, ha=tick_orientation)  # , rotation_mode="anchor")
-                        ax.set_ylabel('Log2 (fold change)')
                         plt.axhline(y=0)
                     else:
                         ax.set_xticklabels(conditions_labels, rotation=rotation, ha=tick_orientation)  # , rotation_mode="anchor")
                     # for tick in ax.xaxis.get_majorticklabels():
                     #     tick.set_horizontalalignment("right")
                     #     ax.set_ylabel('Normalized Cell Counts')
-                        ax.set_ylabel('Log2 (Fold Change to Day 0)')
+                        if data_scale==NORMAL_SCALE:
+                            ax.set_ylabel('Fold Change to Day 0')
+                        elif data_scale==LOG2_SCALE:
+                            ax.set_ylabel('Log2 (Fold Change to Day 0)')
+
                     # ax.set_xlabel('Conditions')
                     ax.set_xlabel('')
 
