@@ -1116,6 +1116,11 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                                  "Rapamycin_100nM_TMZ_50uM": "orange",
                                  "1perFBS_cAMP_1mM_Rapamycin_200nM": "#ece133"}
 
+                    for condition in my_order:
+                        if condition not in mypalette.keys():
+                            mypalette[condition]="whitesmoke"
+
+
                     ax = sns.stripplot(x="Condition", y=norm_colname, data=mi_box, size=swarmplot_size, order=my_order,
                                        # edgecolor="black", linewidth=1, dodge=True)
                                        edgecolor="black", linewidth=1, dodge=True,palette=mypalette)
@@ -1236,7 +1241,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     fig = plt.gcf()
                     fig.set_size_inches(30, 15)
 
-                    if len(conditions)>20:
+                    if len(conditions) > 38:
                         plt.gcf().subplots_adjust(bottom=0.4)
                     else:
                         plt.gcf().subplots_adjust(bottom=0.3)
@@ -1255,7 +1260,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     # elif len(conditions) < 12:
                     #     rotation = 37
                     #     tick_orientation = 'right'
-                    elif len(conditions) > 20:
+                    elif len(conditions) > 38:
                         rotation = 90
                         tick_orientation = 'center'
                     else:
@@ -1285,11 +1290,11 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     ax.set_xticklabels(conditions_labels, rotation=rotation,
                                        ha=tick_orientation)  # , rotation_mode="anchor")
 
-                    if len(conditions) > 20:
+                    if len(conditions) > 38:
                         for tick in ax.get_yticklabels():
                             tick.set_rotation(rotation)
 
-                    if len(conditions) > 20:
+                    if len(conditions) > 38:
                         label_rotation=90
                     else:
                         label_rotation=0
@@ -1308,9 +1313,9 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     #     tick.set_horizontalalignment("right")
                     #     ax.set_ylabel('Normalized Cell Counts')
                         if data_scale==NORMAL_SCALE:
-                            ax.set_ylabel('Cell Number Fold Change to Day 0', rotation=label_rotation)
+                            ax.set_ylabel('Cell Number Fold Change to Day 0')
                         elif data_scale==LOG2_SCALE:
-                            ax.set_ylabel('Log2 (Cell Number Fold Change to Day 0)', rotation=label_rotation)
+                            ax.set_ylabel('Log2 (Cell Number Fold Change to Day 0)')
 
                     # ax.set_xlabel('Conditions')
                     ax.set_xlabel('')
@@ -1512,15 +1517,23 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                                  "TMZ_50uM":"saddlebrown",
                                  "NS1643_50uM":"#0173b2",
                                  "Pantoprazole_100uM_NS1643_50uM": "lightskyblue",
+                                 "Pantoprazole_50uM_NS1643_50uM": "cornflowerblue",
                                  "Pantoprazole_100uM_TMZ_50uM": "chocolate",
-                                 "NS1643_50uM_TMZ_50uM": "mediumorchid",
+                                 "NS1643_50uM_TMZ_50uM": "blueviolet",
+                                 "NS1643_20uM_TMZ_50uM": "mediumorchid",
                                  "Lamotrigine_100uM": "#cc78bc",
-                                 "Pantoprazole_100uM_NS1643_20uM": "lightskyblue",
+                                 "Pantoprazole_100uM_NS1643_20uM": "powderblue",
                                  "Pantoprazole_100uM_Retigabine_10uM": "mediumaquamarine",
                                  "Pantoprazole_100uM_Lamotrigine_100uM": "#fbafe4",
                                  "Pantoprazole_100uM_Rapamycin_100nM": "#ca9161",
+                                 "Pantoprazole_100uM_Rapamycin_150nM": "peru",
+                                 "Rapamycin_150nM_TMZ_50uM": "darkorange",
+                                 "Rapamycin_100nM_TMZ_50uM": "orange",
                                  "1perFBS_cAMP_1mM_Rapamycin_200nM": "#ece133"}
 
+                    for condition in conditions:
+                        if condition not in mypalette.keys():
+                            mypalette[condition]="whitesmoke"
                     # ax = sns.lineplot(x='Day', y=norm_colname, data=mi_box, hue='Condition', linewidth=10,
                     #                   legend='full', ci=None)
 
