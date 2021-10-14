@@ -155,12 +155,18 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
             drug_list=drug_list_df['Condition'].to_list()
         else:
             drug_list=[]
+
         if len(drug_list)>0:
             conditions=drug_list
         elif conditions_override and len(conditions_override) > 0:
             conditions = list(conditions_override)
+            df_conditions = pd.DataFrame(conditions_override, columns=['Condition'])
+            df_conditions.to_csv(data_dir + '/Drug_List.csv',index=False)
         else:
             conditions = list(data.get_conditions())
+            df_conditions = pd.DataFrame(data.get_conditions(), columns=['Condition'])
+            df_conditions.to_csv(data_dir + '/Drug_List.csv',index=False)
+
         start_time_conditions = time.time()
 
         if (control_condition is None) or (control_condition == ""):
@@ -1078,14 +1084,41 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     else:
                         g = mi_box.groupby(by=["Condition"])[norm_colname].median()
 
-                        my_order=g.nlargest(len(g))
+                        if analyze_method=='fold_change':
+                            my_order=g.nsmallest(len(g))
+                        else:
+                            my_order=g.nlargest(len(g))
+                        df_myconditions = pd.DataFrame(my_order.index, columns=['Condition'])
+                        df_myconditions.to_csv(data_dir + '/Drug_List_my_order.csv',index=False)
                         my_order=my_order.index.tolist()
 
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, size=swarmplot_size, order=my_order,
                     #                    edgecolor="black", linewidth=1, dodge=True)
 
+                    mypalette = {"Control_DMSO": "black",
+                                 "Pantoprazole_100uM": "#949494",
+                                 "NS1643_20uM": "#0173b2",
+                                 "Retigabine_10uM": "#029e73",
+                                 "TMZ_50uM":"saddlebrown",
+                                 "NS1643_50uM":"#0173b2",
+                                 "Pantoprazole_100uM_NS1643_50uM": "lightskyblue",
+                                 "Pantoprazole_50uM_NS1643_50uM": "cornflowerblue",
+                                 "Pantoprazole_100uM_TMZ_50uM": "chocolate",
+                                 "NS1643_50uM_TMZ_50uM": "blueviolet",
+                                 "NS1643_20uM_TMZ_50uM": "mediumorchid",
+                                 "Lamotrigine_100uM": "#cc78bc",
+                                 "Pantoprazole_100uM_NS1643_20uM": "powderblue",
+                                 "Pantoprazole_100uM_Retigabine_10uM": "mediumaquamarine",
+                                 "Pantoprazole_100uM_Lamotrigine_100uM": "#fbafe4",
+                                 "Pantoprazole_100uM_Rapamycin_100nM": "#ca9161",
+                                 "Pantoprazole_100uM_Rapamycin_150nM": "peru",
+                                 "Rapamycin_150nM_TMZ_50uM": "darkorange",
+                                 "Rapamycin_100nM_TMZ_50uM": "orange",
+                                 "1perFBS_cAMP_1mM_Rapamycin_200nM": "#ece133"}
+
                     ax = sns.stripplot(x="Condition", y=norm_colname, data=mi_box, size=swarmplot_size, order=my_order,
-                                       edgecolor="black", linewidth=1, dodge=True)
+                                       # edgecolor="black", linewidth=1, dodge=True)
+                                       edgecolor="black", linewidth=1, dodge=True,palette=mypalette)
 
                     path_collections = [child for child in ax.get_children()
                                         if isinstance(child, matplotlib.collections.PathCollection)]
@@ -1096,8 +1129,10 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         offsets = list(zip(xnew, y))
                         path_collection.set_offsets(offsets)
 
+
                     ax = sns.boxplot(x="Condition", y=norm_colname, data=mi_box, order=my_order,
-                                     linewidth=2, fliersize=0,showmeans=True,
+                                     # linewidth=2, fliersize=0,showmeans=True,
+                                     linewidth=2, fliersize=0,showmeans=True,palette=mypalette,
                                      meanprops={"marker": "D",
                                                 "markeredgecolor": "white",
                                                 "markerfacecolor": "black",
@@ -1200,7 +1235,11 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                         ax.set(ylim=(bottom-0.2*np.abs(bottom), top+0.2*np.abs(top)))
                     fig = plt.gcf()
                     fig.set_size_inches(30, 15)
-                    plt.gcf().subplots_adjust(bottom=0.3)
+
+                    if len(conditions)>20:
+                        plt.gcf().subplots_adjust(bottom=0.4)
+                    else:
+                        plt.gcf().subplots_adjust(bottom=0.3)
 
                     # ax.set_xticklabels(conditions, rotation=90)
                     # ax.set(xticks=ttest_pvalues.columns, rotation=90)
@@ -1213,6 +1252,12 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     if len(conditions)<6:
                         rotation=0
                         tick_orientation='center'
+                    # elif len(conditions) < 12:
+                    #     rotation = 37
+                    #     tick_orientation = 'right'
+                    elif len(conditions) > 20:
+                        rotation = 90
+                        tick_orientation = 'center'
                     else:
                         rotation=37
                         tick_orientation='right'
@@ -1224,6 +1269,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     con_list = [item.get_text() for item in ax.get_xticklabels()]
 
                     conditions_labels = [w.replace('_', ' ') for w in con_list]
+                    conditions_labels = [w.replace('per', '%') for w in conditions_labels]
 
                     if len(conditions)<15:
                         breakline='\n'
@@ -1233,17 +1279,27 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     conditions_labels = [w.replace('uM', 'μM'+breakline) for w in conditions_labels]
                     conditions_labels = [w.replace('nM', 'nM'+breakline) for w in conditions_labels]
                     conditions_labels = [w.replace('mM', 'mM'+breakline) for w in conditions_labels]
-
                     # conditions_label_reduced = [w.replace('_', ' \n ') for w in conditions_reduced]
                     # conditions_label_reduced = [w.replace('uM', 'μM') for w in conditions_label_reduced]
 
                     ax.set_xticklabels(conditions_labels, rotation=rotation,
                                        ha=tick_orientation)  # , rotation_mode="anchor")
+
+                    if len(conditions) > 20:
+                        for tick in ax.get_yticklabels():
+                            tick.set_rotation(rotation)
+
+                    if len(conditions) > 20:
+                        label_rotation=90
+                    else:
+                        label_rotation=0
+
+
                     if analyze_method == "fold_change":
                         if data_scale==NORMAL_SCALE:
-                            ax.set_ylabel('Fold Change')
+                            ax.set_ylabel('Cell Number % Decrease To Control')
                         elif data_scale==LOG2_SCALE:
-                            ax.set_ylabel('Log2 (Fold Change)')
+                            ax.set_ylabel('Log2 (Cell Number % Decrease To Control)')
                         # ax.set_xticklabels(conditions_label_reduced, rotation=rotation, ha=tick_orientation)  # , rotation_mode="anchor")
                         plt.axhline(y=0)
                     else:
@@ -1252,9 +1308,9 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     #     tick.set_horizontalalignment("right")
                     #     ax.set_ylabel('Normalized Cell Counts')
                         if data_scale==NORMAL_SCALE:
-                            ax.set_ylabel('Fold Change to Day 0')
+                            ax.set_ylabel('Cell Number Fold Change to Day 0', rotation=label_rotation)
                         elif data_scale==LOG2_SCALE:
-                            ax.set_ylabel('Log2 (Fold Change to Day 0)')
+                            ax.set_ylabel('Log2 (Cell Number Fold Change to Day 0)', rotation=label_rotation)
 
                     # ax.set_xlabel('Conditions')
                     ax.set_xlabel('')
@@ -1312,8 +1368,11 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     mi_box = mi_box.reset_index(drop=True)
 
                     drug_order_fpath = glob.glob(data_dir + '/*Drug_List_my_order.csv')
-                    drug_order_df = pd.read_csv(drug_order_fpath[0])
-                    drug_order_list = drug_order_df['Condition'].to_list()
+                    if len(drug_order_fpath)>0:
+                        drug_order_df = pd.read_csv(drug_order_fpath[0])
+                        drug_order_list = drug_order_df['Condition'].to_list()
+                    else:
+                        drug_order_list=conditions
 
                     if len(drug_order_list) > 0:
                         my_order = drug_order_list
@@ -1372,7 +1431,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     ax.set_xticklabels(conditions_labels, rotation=rotation,
                                        ha=tick_orientation)  # , rotation_mode="anchor")
 
-                    ax.set_ylabel('Ratio')
+                    ax.set_ylabel('Cell Cycle Proportion')
 
                     ax.grid(True)
                     # ax.set(ylim=(0, 1.2))
@@ -1446,14 +1505,46 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     mi_box.sort_values(['Condition_Rank', 'WellNum'], ascending=[True, True], inplace=True)
                     mi_box.drop('Condition_Rank', 1, inplace=True)
 
-                    ax = sns.lineplot(x='Day', y=norm_colname, data=mi_box, hue='Condition', linewidth=6,
-                                      legend='full', ci=None)
+                    mypalette = {"Control_DMSO": "black",
+                                 "Pantoprazole_100uM": "#949494",
+                                 "NS1643_20uM": "#0173b2",
+                                 "Retigabine_10uM": "#029e73",
+                                 "TMZ_50uM":"saddlebrown",
+                                 "NS1643_50uM":"#0173b2",
+                                 "Pantoprazole_100uM_NS1643_50uM": "lightskyblue",
+                                 "Pantoprazole_100uM_TMZ_50uM": "chocolate",
+                                 "NS1643_50uM_TMZ_50uM": "mediumorchid",
+                                 "Lamotrigine_100uM": "#cc78bc",
+                                 "Pantoprazole_100uM_NS1643_20uM": "lightskyblue",
+                                 "Pantoprazole_100uM_Retigabine_10uM": "mediumaquamarine",
+                                 "Pantoprazole_100uM_Lamotrigine_100uM": "#fbafe4",
+                                 "Pantoprazole_100uM_Rapamycin_100nM": "#ca9161",
+                                 "1perFBS_cAMP_1mM_Rapamycin_200nM": "#ece133"}
+
+                    # ax = sns.lineplot(x='Day', y=norm_colname, data=mi_box, hue='Condition', linewidth=10,
+                    #                   legend='full', ci=None)
+
+                    ax = sns.lineplot(x='Day', y=norm_colname, data=mi_box, hue='Condition', linewidth=10,
+                                      legend='full', ci=None, palette=mypalette)
                     handles, labels = ax.get_legend_handles_labels()
+
+                    labels = [w.replace('_', ' ') for w in labels]
+
+                    labels = [w.replace('uM', 'μM') for w in labels]
+
+                    labels = [w.replace('mM', 'mM') for w in labels]
+                    labels = [w.replace('nM', 'nM') for w in labels]
+                    labels = [w.replace('per', '%') for w in labels]
+
+
                     for legobj in handles:
-                        legobj.set_linewidth(6.0)
+                        legobj.set_linewidth(10.0)
+                    # ax.legend(handles=handles[0:], labels=labels[0:], loc=
+                    ax.legend(handles=handles[0:], labels=labels[0:])
+
                     vertical_line_label = 'Removal of Drug'
                     x0 = 6
-                    plt.axvline(x0, color='black', linestyle='--', linewidth=3, label=vertical_line_label)
+                    plt.axvline(x0, color='black', linestyle='--', linewidth=6, label=vertical_line_label)
 
                     ax.grid(True)
 
@@ -1462,14 +1553,27 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     fig = plt.gcf()
 
-                    fig.set_size_inches(30, 15)
+                    fig.set_size_inches(30, 22)
                     box = ax.get_position()
 
                     plt.gcf().subplots_adjust(bottom=0.3)
 
                     ax.set_ylabel('Normalized Cell Counts')
 
-                    ax.set_title(ax_title_line)
+                    if analyze_method == "fold_change":
+                        if data_scale==NORMAL_SCALE:
+                            ax.set_ylabel('Cell Number Fold Decrease To Control')
+                        elif data_scale==LOG2_SCALE:
+                            ax.set_ylabel('Log2 (Cell Number Fold Decrease To Control)')
+
+                    else:
+                        if data_scale==NORMAL_SCALE:
+                            ax.set_ylabel('Cell Number Fold Change to Day 0')
+                        elif data_scale==LOG2_SCALE:
+                            ax.set_ylabel('Log2 (Cell Number Fold Change to Day 0)')
+
+                    # ax.set_title(ax_title_line)
+                    # ax.set_title(ax_title_line)
 
                     ax.xaxis.set_ticks_position('none')
                     ax.yaxis.set_ticks_position('none')

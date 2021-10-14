@@ -10,7 +10,7 @@ pd.set_option('mode.chained_assignment', None)
 
 #region Input parameters
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Custom_dir=r"E:\U87_BrdU_meanint_byRow"
+Custom_dir=r"C:\Users\Franz\OneDrive\_PhD\Juanita\Sheets for U87Brdu\U87_RetPant"
 
 
 #endregion
@@ -29,7 +29,7 @@ if not os.path.exists(combined_dir):
     os.makedirs(combined_dir)
 
 # dir_list = os.listdir(input_dir_base)
-dir_list=glob.glob(input_dir_base+'**//*U87*')
+dir_list=glob.glob(input_dir_base+'**//*only*')
 
 start_time = time.time()
 

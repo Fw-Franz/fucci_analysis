@@ -193,11 +193,15 @@ class AnnotatedData:
             # group[total_fold_change] = group[total_normalized] / (control_condition_group[stats_var].mean() / control_start_day_group[stats_var].mean())
             # group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var].mean() - start_day_group[stats_var].mean()) / control_start_day_group[stats_var].mean())
 
-            group[total_fold_change] = group[total_normalized] / (control_condition_group[stats_var]/ control_start_day_group[stats_var]).mean()
-            group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var] - start_day_group[stats_var]) / control_start_day_group[stats_var]).mean()
+            # group[total_fold_change] = group[total_normalized] / (control_condition_group[stats_var]/ control_start_day_group[stats_var]).mean()
+            # group[relative_fold_change] = group[relative_normalized] / ((control_condition_group[stats_var] - start_day_group[stats_var]) / control_start_day_group[stats_var]).mean()
+
+            group[total_fold_change] = 100-100/((control_condition_group[stats_var]/ control_start_day_group[stats_var]).mean() / group[total_normalized])
+            group[relative_fold_change] = 100-100/(((control_condition_group[stats_var] / control_start_day_group[stats_var]).mean() - group[relative_normalized]) / group[relative_normalized])
 
             group[total_fold_change_log2] = group[total_fold_change].map(np.log2)
             group[relative_fold_change_log2] = group[relative_fold_change].map(np.log2)
+
 
             for k, j in enumerate(idx):
                 self.dataframe[total_normalized].iat[j] = group[total_normalized].iat[k]

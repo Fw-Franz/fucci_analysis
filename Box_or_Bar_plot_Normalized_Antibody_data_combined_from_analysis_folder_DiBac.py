@@ -207,10 +207,10 @@ if statistical_test == 'do_tukey_test':
     m_day = mi_tukey.copy()
     if column_name_stats.__contains__('Percent'):
         if m_day[column_name_stats].min()==0.0:
-            m_day[column_name_stats] = 1 / 100 * m_day[column_name_stats].map(np.sqrt)
+            m_day[column_name_stats] = (1 / 100 * m_day[column_name_stats]).map(np.sqrt)
             m_day[column_name_stats] = m_day[column_name_stats].map(np.arcsin)
         else:
-            m_day[column_name_stats] = 1 / 100 * m_day[column_name_stats].map(sp.special.logit)
+            m_day[column_name_stats] = (1 / 100 * m_day[column_name_stats]).map(sp.special.logit)
     elif column_name_stats.__contains__('Fold_change'):
         m_day[column_name_stats]=m_day[column_name_stats].map(np.log10)
 

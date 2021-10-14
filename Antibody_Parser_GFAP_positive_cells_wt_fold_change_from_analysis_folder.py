@@ -49,11 +49,11 @@ image_n = list(dict.fromkeys(image_n))
 
 mi=df[['ImageNumber','ObjectNumber','FileName_DisplayImage']]
 
-mi['Cell_Num']=mi.groupby(by='ImageNumber')['ImageNumber'].transform('count')
+mi['Cell_Num']=mi.groupby(by='FileName_DisplayImage')['FileName_DisplayImage'].transform('count')
 
 mi_pos=df_positive[['ImageNumber','ObjectNumber','FileName_DisplayImage']]
 
-mi_pos['Cell_Num_Positive']=mi_pos.groupby(by='ImageNumber')['ImageNumber'].transform('count')
+mi_pos['Cell_Num_Positive']=mi_pos.groupby(by='FileName_DisplayImage')['FileName_DisplayImage'].transform('count')
 
 name = df['FileName_DisplayImage'].values[0]
 
