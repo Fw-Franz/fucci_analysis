@@ -20,6 +20,7 @@ import sys
 import data_annotation
 import pingouin as pg
 import glob
+import matplotlib.transforms as mtransforms
 
 pd.options.mode.chained_assignment = 'raise'
 
@@ -111,6 +112,21 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
         base_directory = base_directories[0]
     else:
         raise ValueError("Selected filepaths not all in same base directory")
+
+    fucci_ylabel='Cell Cycle Proportion'
+    cell_count_ylabel = 'Normalized Cell Counts'
+
+    if analyze_method == "fold_change":
+        if data_scale == NORMAL_SCALE:
+            cell_count_ylabel = 'Percent Reduction in Cells'
+        elif data_scale == LOG2_SCALE:
+            cell_count_ylabel = 'Log2 (Percent Reduction in Cells)'
+
+    else:
+        if data_scale == NORMAL_SCALE:
+            cell_count_ylabel = 'Cell Number Fold Change to Day 0'
+        elif data_scale == LOG2_SCALE:
+            cell_count_ylabel = 'Log2 (Cell Number Fold Change to Day 0)'
 
     data_dir = os.path.join(base_directory, 'data')
     if not os.path.exists(data_dir):
@@ -654,7 +670,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                             handles, labels = ax.get_legend_handles_labels()
                             ax.legend(reversed(handles), reversed(labels), loc='upper right', bbox_to_anchor=(1.2, 0.8))
                             ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
-                            ax.set_ylabel('Ratio')
+                            ax.set_ylabel(fucci_ylabel)
                             ax.set_title(ax_title)
 
                             if statistical_test=='do_ttest':
@@ -1125,6 +1141,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                                        # edgecolor="black", linewidth=1, dodge=True)
                                        edgecolor="black", linewidth=1, dodge=True,palette=mypalette)
 
+
                     path_collections = [child for child in ax.get_children()
                                         if isinstance(child, matplotlib.collections.PathCollection)]
 
@@ -1142,6 +1159,15 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                                                 "markeredgecolor": "white",
                                                 "markerfacecolor": "black",
                                                 "markersize": "14"})
+
+
+                    if '1perFBS_cAMP_1mM_Rapamycin_200nM' in my_order:
+                        trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
+                        index = my_order.index('1perFBS_cAMP_1mM_Rapamycin_200nM')
+                        # ax.fill_between(x, 0, 1, where=y > theta, facecolor='green', alpha=0.5, transform=trans)
+                        plt.fill_between([index-0.5, index+0.5], [index-0.5, index+0.5], facecolor='red', alpha=0.5, transform=trans)
+
+                    # plt.show()
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue='Date', size=15, color='#767676',edgecolor="white",linewidth=1)
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue="Date", size=swarmplot_size,
                     #                    edgecolor="black", linewidth=1, dodge=True)
@@ -1301,21 +1327,11 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
 
                     if analyze_method == "fold_change":
-                        if data_scale==NORMAL_SCALE:
-                            ax.set_ylabel('Cell Number % Decrease To Control')
-                        elif data_scale==LOG2_SCALE:
-                            ax.set_ylabel('Log2 (Cell Number % Decrease To Control)')
-                        # ax.set_xticklabels(conditions_label_reduced, rotation=rotation, ha=tick_orientation)  # , rotation_mode="anchor")
                         plt.axhline(y=0)
                     else:
-                        ax.set_xticklabels(conditions_labels, rotation=rotation, ha=tick_orientation)  # , rotation_mode="anchor")
-                    # for tick in ax.xaxis.get_majorticklabels():
-                    #     tick.set_horizontalalignment("right")
-                    #     ax.set_ylabel('Normalized Cell Counts')
-                        if data_scale==NORMAL_SCALE:
-                            ax.set_ylabel('Cell Number Fold Change to Day 0')
-                        elif data_scale==LOG2_SCALE:
-                            ax.set_ylabel('Log2 (Cell Number Fold Change to Day 0)')
+                        ax.set_xticklabels(conditions_labels, rotation=rotation, ha=tick_orientation)
+
+                    ax.set_ylabel(cell_count_ylabel)
 
                     # ax.set_xlabel('Conditions')
                     ax.set_xlabel('')
@@ -1436,7 +1452,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     ax.set_xticklabels(conditions_labels, rotation=rotation,
                                        ha=tick_orientation)  # , rotation_mode="anchor")
 
-                    ax.set_ylabel('Cell Cycle Proportion')
+                    ax.set_ylabel(fucci_ylabel)
 
                     ax.grid(True)
                     # ax.set(ylim=(0, 1.2))
@@ -1537,8 +1553,24 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                     # ax = sns.lineplot(x='Day', y=norm_colname, data=mi_box, hue='Condition', linewidth=10,
                     #                   legend='full', ci=None)
 
-                    ax = sns.lineplot(x='Day', y=norm_colname, data=mi_box, hue='Condition', linewidth=10,
-                                      legend='full', ci=None, palette=mypalette)
+                    drug_order_fpath = glob.glob(data_dir + '/*Drug_List_my_order.csv')
+                    if len(drug_order_fpath) > 0:
+                        drug_order_df = pd.read_csv(drug_order_fpath[0])
+                        drug_order_list = drug_order_df['Condition'].to_list()
+                    else:
+                        drug_order_list = conditions
+
+                    if len(drug_order_list) > 0:
+                        my_order = drug_order_list
+                    else:
+                        g = mi_box.groupby(by=["Condition"])['Total_total_fold_change_norm_log2_Control_DMSO'].median()
+
+                        my_order = g.nlargest(len(g))
+                        my_order = my_order.index.tolist()
+
+                    ax = sns.lineplot(x='Day', y=norm_colname, data=mi_box, hue='Condition', hue_order=my_order,
+                                      linewidth=10, legend='full', ci="sd", err_style="bars",err_kws={"elinewidth":3},
+                                      palette=mypalette)
                     handles, labels = ax.get_legend_handles_labels()
 
                     labels = [w.replace('_', ' ') for w in labels]
@@ -1571,19 +1603,7 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
 
                     plt.gcf().subplots_adjust(bottom=0.3)
 
-                    ax.set_ylabel('Normalized Cell Counts')
-
-                    if analyze_method == "fold_change":
-                        if data_scale==NORMAL_SCALE:
-                            ax.set_ylabel('Cell Number Fold Decrease To Control')
-                        elif data_scale==LOG2_SCALE:
-                            ax.set_ylabel('Log2 (Cell Number Fold Decrease To Control)')
-
-                    else:
-                        if data_scale==NORMAL_SCALE:
-                            ax.set_ylabel('Cell Number Fold Change to Day 0')
-                        elif data_scale==LOG2_SCALE:
-                            ax.set_ylabel('Log2 (Cell Number Fold Change to Day 0)')
+                    ax.set_ylabel(cell_count_ylabel)
 
                     # ax.set_title(ax_title_line)
                     # ax.set_title(ax_title_line)
