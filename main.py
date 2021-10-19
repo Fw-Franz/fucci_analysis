@@ -1160,12 +1160,27 @@ def create_plots_and_stats(stats_vars, filepaths, normalization_type, data_scale
                                                 "markerfacecolor": "black",
                                                 "markersize": "14"})
 
+                    # ax.set_ylim(ymax=100)
+
+                    if 'cAMP_1mM_Rapamycin_100nM' in my_order:
+                        trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
+                        index = my_order.index('cAMP_1mM_Rapamycin_100nM')
+                        # ax.fill_between(x, 0, 1, where=y > theta, facecolor='green', alpha=0.5, transform=trans)
+                        plt.fill_between([index-0.5, index+0.5], [index-0.5, index+0.5], facecolor='red', alpha=0.5, transform=trans)
+
 
                     if '1perFBS_cAMP_1mM_Rapamycin_200nM' in my_order:
                         trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
                         index = my_order.index('1perFBS_cAMP_1mM_Rapamycin_200nM')
                         # ax.fill_between(x, 0, 1, where=y > theta, facecolor='green', alpha=0.5, transform=trans)
                         plt.fill_between([index-0.5, index+0.5], [index-0.5, index+0.5], facecolor='red', alpha=0.5, transform=trans)
+
+                    if 'cAMP_1mM_Rapamycin_200nM' in my_order:
+                        trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
+                        index = my_order.index('cAMP_1mM_Rapamycin_200nM')
+                        # ax.fill_between(x, 0, 1, where=y > theta, facecolor='green', alpha=0.5, transform=trans)
+                        plt.fill_between([index - 0.5, index + 0.5], [index - 0.5, index + 0.5], facecolor='red',
+                                         alpha=0.5, transform=trans)
 
                     # plt.show()
                     # ax = sns.swarmplot(x="Condition", y=norm_colname, data=mi_box, hue='Date', size=15, color='#767676',edgecolor="white",linewidth=1)
